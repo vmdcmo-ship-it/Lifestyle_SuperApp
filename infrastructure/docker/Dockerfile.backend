@@ -1,0 +1,144 @@
+# ============================================================================
+# Dockerfile for NestJS Backend Services
+# ============================================================================
+# Multi-stage build for optimal image size and security
+# Usage: docker build -f infrastructure/docker/Dockerfile.backend -t service-name .
+# ============================================================================
+
+# ============================================================================
+# Stage 1: Dependencies Installation
+# ============================================================================
+# ARG here makes this stage unique per service → avoids BuildKit "circular dependency on stage: deps"
+ARG SERVICE_NAME=main-api
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+
+# Force stage cache to be per-service (breaks circular dependency when building multiple services)
+ARG SERVICE_NAME
+RUN echo "deps-${SERVICE_NAME}" > /tmp/.build-service
+
+# Install pnpm
+RUN npm install -g pnpm@latest
+
+# Copy package files (include .npmrc for shamefully-hoist)
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY services/*/package.json ./services/
+COPY packages/*/package.json ./packages/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile --prod=false
+
+# ============================================================================
+# Stage 2: Build Application
+# ============================================================================
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@latest
+
+# Copy dependencies from deps stage (node_modules gồm .pnpm store)
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source code
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY tsconfig.json ./
+COPY services ./services
+COPY packages ./packages
+
+# Tái tạo service-level node_modules symlinks (pnpm dùng .pnpm đã có, không download lại)
+# Dùng lockfile nếu khớp; nếu không sẽ cập nhật (tránh build fail khi lockfile lệch nhẹ)
+RUN pnpm install --frozen-lockfile --prod=false --prefer-offline || pnpm install --prod=false
+
+# Build shared packages first
+WORKDIR /app/packages/shared
+RUN pnpm build || true
+
+WORKDIR /app/packages/types
+RUN pnpm build || true
+
+WORKDIR /app/packages/utils
+RUN pnpm build || true
+
+WORKDIR /app/packages/validation
+RUN pnpm build || true
+
+WORKDIR /app/packages/constants
+RUN pnpm build || true
+
+# Build the target service: symlink node_modules để tsc/nest resolve đúng; prisma generate nếu có schema
+ARG SERVICE_NAME
+RUN npm install -g @nestjs/cli rimraf
+WORKDIR /app/services/${SERVICE_NAME}
+RUN (rimraf dist 2>/dev/null || true)
+RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi
+RUN nest build
+
+# ============================================================================
+# Stage 3: Production Dependencies
+# ============================================================================
+ARG SERVICE_NAME=main-api
+FROM node:20-alpine AS prod-deps
+
+WORKDIR /app
+
+# Force stage cache to be per-service (consistent with deps stage)
+ARG SERVICE_NAME
+RUN echo "prod-deps-${SERVICE_NAME}" > /tmp/.build-service
+
+# Install pnpm
+RUN npm install -g pnpm@latest
+
+# Copy package files (include .npmrc for shamefully-hoist)
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY services/*/package.json ./services/
+COPY packages/*/package.json ./packages/
+
+# Install only production dependencies
+RUN pnpm install --frozen-lockfile --prod
+
+# ============================================================================
+# Stage 4: Production Runtime
+# ============================================================================
+FROM node:20-alpine AS runner
+
+# Security: Run as non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001
+
+WORKDIR /app
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Copy built application + toàn bộ node_modules từ builder
+# (builder đã có shamefully-hoist + prisma generate → đủ deps cho runtime)
+ARG SERVICE_NAME
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/services/${SERVICE_NAME}/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/services/${SERVICE_NAME}/package.json ./package.json
+
+# Tạo thư mục uploads với đúng quyền trước khi switch user
+RUN mkdir -p /app/uploads && chown -R nestjs:nodejs /app/uploads
+
+# Environment variables
+ENV NODE_ENV=production
+ENV SERVICE_NAME=${SERVICE_NAME}
+
+# Switch to non-root user
+USER nestjs
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3000) + '/', (r) => {process.exit(r.statusCode < 500 ? 0 : 1)})"
+
+# Expose port (can be overridden)
+EXPOSE 3000
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "dist/main.js"]

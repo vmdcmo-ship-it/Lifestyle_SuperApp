@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Lifestyle Đối tác",
+    "slug": "lifestyle-merchant",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "vn.lifestyle.superapp.merchant",
+      "buildNumber": "1"
+    },
+    "android": {
+      "package": "vn.lifestyle.superapp.merchant",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f79ca440-506c-4636-942a-8ef50cab1a59"
+      }
+    },
+    "owner": "kodo_superapp"
+  }
+}

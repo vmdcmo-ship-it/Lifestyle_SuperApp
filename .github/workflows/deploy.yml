@@ -1,0 +1,92 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'Service to deploy'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - main-api
+          - web
+          - user-service
+
+env:
+  VPS_HOST: ${{ secrets.VPS_HOST }}
+  VPS_USER: ${{ secrets.VPS_USER }}
+  DEPLOY_PATH: /opt/lifestyle-superapp
+
+jobs:
+  deploy:
+    name: Deploy ${{ github.event.inputs.service }}
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Add host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ env.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync code to VPS
+        run: |
+          rsync -avz --delete \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='.env' \
+            --exclude='dist' \
+            ./ ${{ env.VPS_USER }}@${{ env.VPS_HOST }}:${{ env.DEPLOY_PATH }}/
+
+      - name: Deploy on VPS
+        run: |
+          ssh ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'DEPLOY'
+          cd ${{ env.DEPLOY_PATH }}
+
+          SERVICE="${{ github.event.inputs.service }}"
+
+          if [ "$SERVICE" = "all" ] || [ "$SERVICE" = "main-api" ]; then
+            echo ">>> Rebuilding main-api..."
+            docker compose -f infrastructure/docker/docker-compose.production.yml \
+              --env-file .env build main-api
+            docker compose -f infrastructure/docker/docker-compose.production.yml \
+              --env-file .env up -d main-api
+          fi
+
+          if [ "$SERVICE" = "all" ] || [ "$SERVICE" = "web" ]; then
+            echo ">>> Rebuilding web..."
+            docker compose -f infrastructure/docker/docker-compose.production.yml \
+              --env-file .env build web
+            docker compose -f infrastructure/docker/docker-compose.production.yml \
+              --env-file .env up -d web
+          fi
+
+          echo ">>> Checking container status..."
+          docker compose -f infrastructure/docker/docker-compose.production.yml ps
+
+          echo ">>> Deploy completed!"
+          DEPLOY
+
+      - name: Health Check
+        run: |
+          sleep 15
+          ssh ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'CHECK'
+          echo ">>> Health check main-api..."
+          curl -sf http://localhost:4000/api/v1/health || echo "main-api health check failed"
+
+          echo ">>> Container logs (last 20 lines)..."
+          docker logs lifestyle_main_api --tail 20 2>&1
+          CHECK
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "::error::Deployment failed for ${{ github.event.inputs.service }}"

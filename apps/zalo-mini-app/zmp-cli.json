@@ -1,0 +1,10 @@
+{
+  "name": "lifestyle-zalo-mini-app",
+  "framework": "react-typescript",
+  "cssPreProcessor": "scss",
+  "includeTailwind": true,
+  "package": "zmp-ui",
+  "stateManagement": "jotai",
+  "newProject": true,
+  "template": "single-view"
+}

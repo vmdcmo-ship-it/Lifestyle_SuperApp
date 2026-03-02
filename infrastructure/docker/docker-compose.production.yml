@@ -1,0 +1,395 @@
+# ============================================================================
+# Docker Compose - Production Configuration
+# ============================================================================
+# Lifestyle Super App - Full Production Stack
+#
+# Usage (from repo root /opt/lifestyle-superapp):
+#   export env file:  docker compose --env-file infrastructure/.env.production \
+#                     -f infrastructure/docker/docker-compose.production.yml up -d --build
+#   or use deploy:    bash infrastructure/scripts/deploy.sh
+# ============================================================================
+# (version attribute removed - obsolete in Compose V2, avoids WARN)
+
+# ============================================================================
+# NETWORKS
+# ============================================================================
+networks:
+  lifestyle_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================================================
+# VOLUMES
+# ============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  nginx_certs:
+    driver: local
+  nginx_logs:
+    driver: local
+  main_api_uploads:
+    driver: local
+
+# ============================================================================
+# SERVICES
+# ============================================================================
+services:
+  # ==========================================================================
+  # DATABASE LAYER
+  # ==========================================================================
+  
+  # PostgreSQL - Primary Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: lifestyle_postgres_prod
+    restart: always
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-lifestyle_db}
+      POSTGRES_USER: ${DATABASE_USER:-lifestyle_admin}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      TZ: Asia/Ho_Chi_Minh
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - lifestyle_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-lifestyle_admin} -d ${DATABASE_NAME:-lifestyle_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Redis - Cache & Session Store
+  redis:
+    image: redis:7-alpine
+    container_name: lifestyle_redis_prod
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 512mb --maxmemory-policy allkeys-lru
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - lifestyle_network
+    healthcheck:
+      # Dùng biến từ container env để tránh lỗi khi password có ký tự đặc biệt ( < > $ " )
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$REDIS_PASSWORD\" ping 2>/dev/null | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # ==========================================================================
+  # APPLICATION LAYER - CORE SERVICES (Phase 1)
+  # ==========================================================================
+  
+  # Main API Service
+  main-api:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.backend
+      args:
+        SERVICE_NAME: main-api
+    container_name: lifestyle_main_api
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-15m}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-7d}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      CORS_ORIGIN: https://vmd.asia,https://www.vmd.asia,https://api.vmd.asia
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      API_DOMAIN: api.vmd.asia
+      API_BASE_URL: https://api.vmd.asia
+      FRONTEND_URL: https://vmd.asia
+    volumes:
+      - main_api_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lifestyle_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    labels:
+      - "com.lifestyle.service=main-api"
+      - "com.lifestyle.tier=core"
+
+  # User Service
+  user-service:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.backend
+      args:
+        SERVICE_NAME: user-service
+    container_name: lifestyle_user_service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${DATABASE_USER:-lifestyle_admin}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${DATABASE_NAME:-lifestyle_db}
+      DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-30d}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lifestyle_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    labels:
+      - "com.lifestyle.service=user-service"
+      - "com.lifestyle.tier=core"
+
+  # ==========================================================================
+  # EXTENDED SERVICES (Phase 2) - Can be disabled if not needed
+  # ==========================================================================
+  
+  # Payment Service
+  payment-service:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.backend
+      args:
+        SERVICE_NAME: payment-service
+    container_name: lifestyle_payment_service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      PAYMENT_GATEWAY_API_KEY: ${PAYMENT_GATEWAY_API_KEY}
+      PAYMENT_GATEWAY_SECRET: ${PAYMENT_GATEWAY_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lifestyle_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    labels:
+      - "com.lifestyle.service=payment-service"
+      - "com.lifestyle.tier=extended"
+    profiles:
+      - extended
+
+  # Transportation Service
+  transportation-service:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.backend
+      args:
+        SERVICE_NAME: transportation-service
+    container_name: lifestyle_transportation_service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3004
+      DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lifestyle_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    labels:
+      - "com.lifestyle.service=transportation-service"
+      - "com.lifestyle.tier=extended"
+    profiles:
+      - extended
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.backend
+      args:
+        SERVICE_NAME: notification-service
+    container_name: lifestyle_notification_service
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3005
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+      FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
+      FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - lifestyle_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    labels:
+      - "com.lifestyle.service=notification-service"
+      - "com.lifestyle.tier=extended"
+    profiles:
+      - extended
+
+  # ==========================================================================
+  # FRONTEND LAYER
+  # ==========================================================================
+  
+  # Next.js Web Application
+  web:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.web
+      args:
+        NEXT_PUBLIC_API_URL: https://api.vmd.asia
+        NEXT_PUBLIC_WS_URL: wss://api.vmd.asia
+    container_name: lifestyle_web
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      NEXT_PUBLIC_API_URL: https://api.vmd.asia
+      NEXT_PUBLIC_WS_URL: wss://api.vmd.asia
+      NEXT_PUBLIC_GOOGLE_MAPS_KEY: ${GOOGLE_MAPS_API_KEY}
+    depends_on:
+      - main-api
+    networks:
+      - lifestyle_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    labels:
+      - "com.lifestyle.service=web"
+      - "com.lifestyle.tier=frontend"
+
+  # ==========================================================================
+  # REVERSE PROXY LAYER
+  # ==========================================================================
+  
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: lifestyle_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/conf.d:/etc/nginx/conf.d:ro
+      - nginx_certs:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - web
+      - main-api
+      - user-service
+    networks:
+      - lifestyle_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    labels:
+      - "com.lifestyle.service=nginx"
+      - "com.lifestyle.tier=proxy"
+
+# ============================================================================
+# PRODUCTION NOTES
+# ============================================================================
+# 1. Set environment variables in .env.production file
+# 2. Ensure SSL certificates are in place before starting
+# 3. To start core services only:
+#    docker compose -f infrastructure/docker/docker-compose.production.yml up -d
+# 4. To start with extended services:
+#    docker compose -f infrastructure/docker/docker-compose.production.yml --profile extended up -d
+# 5. Monitor logs:
+#    docker compose -f infrastructure/docker/docker-compose.production.yml logs -f
+# 6. Check health:
+#    docker compose -f infrastructure/docker/docker-compose.production.yml ps
+# ============================================================================

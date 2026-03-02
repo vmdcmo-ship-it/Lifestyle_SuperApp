@@ -1,0 +1,2750 @@
+openapi: 3.0.3
+info:
+  title: Lifestyle Super App API
+  description: |
+    ## 🚀 Lifestyle Super App - REST API Documentation
+    
+    **Base URL:** `https://api.lifestyle.vn/v1`  
+    **Local Dev:** `http://localhost:3000/api/v1`
+    
+    ### Authentication
+    Hầu hết endpoints yêu cầu JWT Bearer token:
+    ```
+    Authorization: Bearer <access_token>
+    ```
+    
+    ### Response Format
+    ```json
+    {
+      "success": true,
+      "data": { ... },
+      "message": "Success",
+      "meta": { "page": 1, "limit": 20, "total": 100 }
+    }
+    ```
+    
+    ### Error Format
+    ```json
+    {
+      "success": false,
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "message": "Email is required",
+        "statusCode": 400
+      }
+    }
+    ```
+    
+    ### Modules
+    | Module | Prefix | Description |
+    |--------|--------|-------------|
+    | Auth | `/auth` | Đăng ký, Đăng nhập, Token |
+    | Users | `/users` | Hồ sơ, Địa chỉ, Preferences |
+    | Drivers | `/drivers` | Đăng ký tài xế, Xe, Giấy tờ |
+    | Merchants | `/merchants` | Cửa hàng, Nhân viên |
+    | Wallets | `/wallets` | Ví, Nạp tiền, Rút tiền |
+    | Payments | `/payments` | Thanh toán, Webhooks |
+    | Spotlight | `/spotlight` | Redcomments, Reviews, Creators |
+    | Loyalty | `/loyalty` | Xu, Referral |
+
+  version: 1.0.0
+  contact:
+    name: Lifestyle Super App Team
+    email: dev@lifestyle.vn
+  license:
+    name: Private
+    
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local Development
+  - url: https://api-staging.lifestyle.vn/v1
+    description: Staging
+  - url: https://api.lifestyle.vn/v1
+    description: Production
+
+# =============================================================================
+# TAGS (Nhóm API)
+# =============================================================================
+tags:
+  - name: Auth
+    description: Đăng ký, Đăng nhập, Quản lý token
+  - name: Users
+    description: Hồ sơ người dùng, Địa chỉ, Preferences
+  - name: Drivers
+    description: Đăng ký tài xế, Hồ sơ, Xe cộ, Trạng thái
+  - name: Merchants
+    description: Quản lý cửa hàng, Nhân viên
+  - name: Wallets
+    description: Ví Lifestyle - Số dư, Xu, Lịch sử
+  - name: Payments
+    description: Nạp tiền, Thanh toán, Rút tiền, Webhooks
+  - name: Spotlight
+    description: Redcomments, Reviews, Creators (KOC)
+  - name: Loyalty
+    description: Lifestyle Xu, Referral, Rewards
+  - name: Admin
+    description: Admin Operations (Ops Dashboard)
+
+# =============================================================================
+# SECURITY
+# =============================================================================
+security:
+  - BearerAuth: []
+
+# =============================================================================
+# PATHS (API Endpoints)
+# =============================================================================
+paths:
+
+  # ===========================================================================
+  # AUTH
+  # ===========================================================================
+  
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Đăng ký tài khoản mới
+      description: |
+        Tạo tài khoản mới bằng email + password hoặc số điện thoại.
+        Tự động tạo Wallet cho user.
+        Gửi OTP xác thực qua email/SMS.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              email_register:
+                summary: Đăng ký bằng email
+                value:
+                  email: "nguyenvana@gmail.com"
+                  password: "SecurePass@123"
+                  firstName: "Nguyễn Văn"
+                  lastName: "A"
+                  phoneNumber: "0901234567"
+              phone_register:
+                summary: Đăng ký bằng SĐT
+                value:
+                  phoneNumber: "0901234567"
+                  password: "SecurePass@123"
+                  firstName: "Nguyễn Văn"
+                  lastName: "A"
+      responses:
+        '201':
+          description: Đăng ký thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: Email/SĐT đã tồn tại
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: "USER_ALREADY_EXISTS"
+                  message: "Email đã được sử dụng"
+                  statusCode: 409
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Đăng nhập
+      description: Đăng nhập bằng email/SĐT + password. Trả về access token và refresh token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              email_login:
+                summary: Đăng nhập bằng email
+                value:
+                  email: "nguyenvana@gmail.com"
+                  password: "SecurePass@123"
+              phone_login:
+                summary: Đăng nhập bằng SĐT
+                value:
+                  phoneNumber: "0901234567"
+                  password: "SecurePass@123"
+      responses:
+        '200':
+          description: Đăng nhập thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Sai mật khẩu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: "INVALID_CREDENTIALS"
+                  message: "Email hoặc mật khẩu không đúng"
+                  statusCode: 401
+
+  /auth/login/social:
+    post:
+      tags: [Auth]
+      summary: Đăng nhập bằng mạng xã hội
+      description: |
+        Đăng nhập hoặc đăng ký bằng Google/Facebook/Apple/Zalo.
+        Nếu chưa có tài khoản, tự động tạo mới.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SocialLoginRequest'
+            example:
+              provider: "google"
+              accessToken: "ya29.a0AfH6SM..."
+      responses:
+        '200':
+          description: Đăng nhập thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/send-otp:
+    post:
+      tags: [Auth]
+      summary: Gửi OTP xác thực
+      description: Gửi mã OTP qua SMS hoặc Email để xác thực số điện thoại/email.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target, type]
+              properties:
+                target:
+                  type: string
+                  description: Email hoặc SĐT
+                  example: "0901234567"
+                type:
+                  type: string
+                  enum: [SMS, EMAIL]
+                  example: "SMS"
+                purpose:
+                  type: string
+                  enum: [REGISTER, LOGIN, RESET_PASSWORD, VERIFY_PHONE]
+                  example: "REGISTER"
+      responses:
+        '200':
+          description: OTP đã gửi
+          content:
+            application/json:
+              example:
+                success: true
+                message: "OTP đã gửi đến 090****567"
+                data:
+                  expiresIn: 300
+                  retryAfter: 60
+
+  /auth/verify-otp:
+    post:
+      tags: [Auth]
+      summary: Xác thực OTP
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target, otp]
+              properties:
+                target:
+                  type: string
+                  example: "0901234567"
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        '200':
+          description: Xác thực thành công
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Xác thực thành công"
+                data:
+                  verified: true
+
+  /auth/refresh-token:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      description: Dùng refresh token để lấy access token mới khi token cũ hết hạn.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIs..."
+      responses:
+        '200':
+          description: Token mới
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Refresh token không hợp lệ hoặc đã hết hạn
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Đăng xuất
+      description: Revoke refresh token, xóa session.
+      responses:
+        '200':
+          description: Đăng xuất thành công
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Đăng xuất thành công"
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Quên mật khẩu
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "nguyenvana@gmail.com"
+      responses:
+        '200':
+          description: Link reset password đã gửi qua email
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Đặt lại mật khẩu
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Mật khẩu đã cập nhật
+
+  # ===========================================================================
+  # USERS
+  # ===========================================================================
+
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Lấy thông tin user hiện tại
+      description: Trả về profile đầy đủ của user đang đăng nhập, bao gồm wallet balance.
+      responses:
+        '200':
+          description: Thông tin user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    
+    patch:
+      tags: [Users]
+      summary: Cập nhật thông tin cá nhân
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+            example:
+              displayName: "Nguyễn Văn A"
+              gender: "MALE"
+              dateOfBirth: "1995-06-15"
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: Upload ảnh đại diện
+      responses:
+        '200':
+          description: Cập nhật thành công
+
+  /users/me/avatar:
+    put:
+      tags: [Users]
+      summary: Upload/Thay đổi avatar
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Avatar đã cập nhật
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  avatarUrl: "https://cdn.lifestyle.vn/avatars/user-abc123.jpg"
+
+  /users/me/preferences:
+    put:
+      tags: [Users]
+      summary: Cập nhật preferences (Language, Theme, Notifications)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPreferences'
+            example:
+              language: "vi"
+              currency: "VND"
+              theme: "DARK"
+              notifications:
+                email: true
+                push: true
+                sms: false
+      responses:
+        '200':
+          description: Preferences đã cập nhật
+
+  /users/me/change-password:
+    post:
+      tags: [Users]
+      summary: Đổi mật khẩu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Mật khẩu đã cập nhật
+        '400':
+          description: Mật khẩu hiện tại không đúng
+
+  # --- User Addresses ---
+
+  /users/me/addresses:
+    get:
+      tags: [Users]
+      summary: Lấy danh sách địa chỉ đã lưu
+      responses:
+        '200':
+          description: Danh sách địa chỉ
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: "uuid-addr-1"
+                    label: "Nhà"
+                    fullAddress: "456 Lý Thường Kiệt, P.14, Q.10, TP.HCM"
+                    latitude: 10.7721
+                    longitude: 106.6602
+                    isDefault: true
+                  - id: "uuid-addr-2"
+                    label: "Công ty"
+                    fullAddress: "789 Điện Biên Phủ, P.25, Q.Bình Thạnh, TP.HCM"
+                    latitude: 10.8010
+                    longitude: 106.7120
+                    isDefault: false
+    
+    post:
+      tags: [Users]
+      summary: Thêm địa chỉ mới
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAddressRequest'
+            example:
+              label: "Nhà bạn"
+              street: "100 Nguyễn Du"
+              ward: "Phường Bến Thành"
+              district: "Quận 1"
+              city: "TP. Hồ Chí Minh"
+              latitude: 10.7756
+              longitude: 106.6990
+              isDefault: false
+      responses:
+        '201':
+          description: Địa chỉ đã thêm
+
+  /users/me/addresses/{addressId}:
+    parameters:
+      - name: addressId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    
+    put:
+      tags: [Users]
+      summary: Cập nhật địa chỉ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAddressRequest'
+      responses:
+        '200':
+          description: Địa chỉ đã cập nhật
+    
+    delete:
+      tags: [Users]
+      summary: Xóa địa chỉ
+      responses:
+        '200':
+          description: Địa chỉ đã xóa
+
+  # ===========================================================================
+  # DRIVERS
+  # ===========================================================================
+  
+  /drivers/register:
+    post:
+      tags: [Drivers]
+      summary: Đăng ký làm tài xế
+      description: |
+        User hiện tại đăng ký trở thành tài xế.
+        Khởi tạo hồ sơ tài xế với trạng thái PENDING_VERIFICATION.
+        Bắt đầu quy trình onboarding 8 bước.
+      responses:
+        '201':
+          description: Đăng ký thành công, bắt đầu onboarding
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  driverId: "uuid-driver-1"
+                  driverNumber: "LS-DRV-00002"
+                  status: "PENDING_VERIFICATION"
+                  onboardingStep: 1
+                  message: "Chào mừng! Hãy hoàn thành hồ sơ để bắt đầu nhận chuyến."
+        '409':
+          description: Đã đăng ký tài xế rồi
+
+  /drivers/me:
+    get:
+      tags: [Drivers]
+      summary: Lấy hồ sơ tài xế hiện tại
+      description: Trả về thông tin tài xế, xe, giấy tờ, thống kê, thu nhập.
+      responses:
+        '200':
+          description: Hồ sơ tài xế
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverProfileResponse'
+
+  /drivers/me/identity:
+    post:
+      tags: [Drivers]
+      summary: Nộp giấy tờ tùy thân (CCCD, GPLX, Lý lịch tư pháp)
+      description: |
+        Upload giấy tờ cho bước xác minh. Bao gồm:
+        - CCCD (mặt trước + sau)
+        - Ảnh chân dung (sinh trắc học)
+        - Giấy phép lái xe
+        - Lý lịch tư pháp
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DriverIdentityRequest'
+      responses:
+        '200':
+          description: Giấy tờ đã nộp, chờ xác minh
+        '400':
+          description: Thiếu giấy tờ bắt buộc
+
+  /drivers/me/vehicle:
+    post:
+      tags: [Drivers]
+      summary: Đăng ký phương tiện
+      description: |
+        Upload thông tin xe: loại xe, biển số, hình ảnh 4 góc,
+        đăng ký xe, bảo hiểm TNDS.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VehicleRegistrationRequest'
+      responses:
+        '201':
+          description: Phương tiện đã đăng ký
+    
+    get:
+      tags: [Drivers]
+      summary: Lấy thông tin xe hiện tại
+      responses:
+        '200':
+          description: Thông tin xe
+
+  /drivers/me/status:
+    patch:
+      tags: [Drivers]
+      summary: Thay đổi trạng thái online/offline
+      description: Bật/tắt nhận chuyến.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [onlineStatus]
+              properties:
+                onlineStatus:
+                  type: string
+                  enum: [ONLINE, OFFLINE]
+            example:
+              onlineStatus: "ONLINE"
+      responses:
+        '200':
+          description: Trạng thái đã cập nhật
+
+  /drivers/me/location:
+    put:
+      tags: [Drivers]
+      summary: Cập nhật vị trí hiện tại (real-time)
+      description: Driver app gọi mỗi 5-10 giây khi online.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [latitude, longitude]
+              properties:
+                latitude:
+                  type: number
+                  format: double
+                  example: 10.7769
+                longitude:
+                  type: number
+                  format: double
+                  example: 106.7009
+                heading:
+                  type: number
+                  description: Hướng di chuyển (0-360 độ)
+                speed:
+                  type: number
+                  description: Tốc độ (km/h)
+      responses:
+        '200':
+          description: Vị trí đã cập nhật
+
+  /drivers/me/earnings:
+    get:
+      tags: [Drivers]
+      summary: Lấy thống kê thu nhập
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [today, week, month, custom]
+            default: today
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Thống kê thu nhập
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  period: "today"
+                  totalEarnings: 850000
+                  totalTrips: 12
+                  totalDistance: 45.5
+                  avgRating: 4.9
+                  breakdown:
+                    baseFare: 600000
+                    tips: 100000
+                    bonuses: 150000
+                    deductions: 0
+
+  /drivers/me/stats:
+    get:
+      tags: [Drivers]
+      summary: Lấy thống kê tổng quan
+      responses:
+        '200':
+          description: Thống kê tài xế
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  totalTrips: 152
+                  totalDistanceKm: 3250.5
+                  rating: 4.85
+                  totalRatings: 148
+                  acceptanceRate: 95.5
+                  cancellationRate: 2.1
+                  totalEarnings: 25000000
+                  currentBalance: 3500000
+                  onboardingCompleted: true
+
+  # ===========================================================================
+  # MERCHANTS
+  # ===========================================================================
+
+  /merchants/register:
+    post:
+      tags: [Merchants]
+      summary: Đăng ký cửa hàng/quán mới
+      description: |
+        User đăng ký trở thành đối tác bán hàng.
+        Tự động tạo merchant profile với trạng thái PENDING.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantRegisterRequest'
+            example:
+              name: "Phở Nguyễn - Phở Bò Truyền Thống"
+              type: "RESTAURANT"
+              description: "Quán phở gia truyền 3 đời"
+              phone: "0945678901"
+              email: "quanpho@gmail.com"
+              street: "123 Nguyễn Huệ"
+              ward: "Phường Bến Nghé"
+              district: "Quận 1"
+              city: "TP. Hồ Chí Minh"
+              latitude: 10.7731
+              longitude: 106.7030
+      responses:
+        '201':
+          description: Đăng ký thành công, chờ duyệt
+
+  /merchants/{merchantId}:
+    parameters:
+      - $ref: '#/components/parameters/MerchantId'
+    
+    get:
+      tags: [Merchants]
+      summary: Lấy thông tin cửa hàng (public)
+      security: []
+      responses:
+        '200':
+          description: Thông tin cửa hàng
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantPublicProfile'
+    
+    patch:
+      tags: [Merchants]
+      summary: Cập nhật thông tin cửa hàng (Owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMerchantRequest'
+      responses:
+        '200':
+          description: Đã cập nhật
+
+  /merchants/{merchantId}/business-hours:
+    parameters:
+      - $ref: '#/components/parameters/MerchantId'
+    put:
+      tags: [Merchants]
+      summary: Cập nhật giờ mở cửa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              monday: { isOpen: true, openTime: "08:00", closeTime: "22:00" }
+              tuesday: { isOpen: true, openTime: "08:00", closeTime: "22:00" }
+              sunday: { isOpen: true, openTime: "09:00", closeTime: "21:00" }
+      responses:
+        '200':
+          description: Giờ mở cửa đã cập nhật
+
+  /merchants/{merchantId}/staff:
+    parameters:
+      - $ref: '#/components/parameters/MerchantId'
+    
+    get:
+      tags: [Merchants]
+      summary: Danh sách nhân viên cửa hàng
+      responses:
+        '200':
+          description: Danh sách nhân viên
+    
+    post:
+      tags: [Merchants]
+      summary: Thêm nhân viên
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, role]
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                role:
+                  type: string
+                  enum: [MANAGER, STAFF]
+                permissions:
+                  type: array
+                  items:
+                    type: string
+            example:
+              userId: "uuid-user-123"
+              role: "STAFF"
+              permissions: ["MANAGE_ORDERS", "VIEW_ANALYTICS"]
+      responses:
+        '201':
+          description: Nhân viên đã thêm
+
+  /merchants/search:
+    get:
+      tags: [Merchants]
+      summary: Tìm kiếm cửa hàng
+      security: []
+      parameters:
+        - name: q
+          in: query
+          description: Từ khóa tìm kiếm
+          schema:
+            type: string
+          example: "phở bò quận 1"
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [RESTAURANT, CAFE, FOOD_STALL, SUPERMARKET, CONVENIENCE_STORE, GROCERY, BAKERY, PHARMACY, FASHION, ELECTRONICS, BEAUTY, OTHER]
+        - name: lat
+          in: query
+          description: Vĩ độ (để tìm gần)
+          schema:
+            type: number
+        - name: lng
+          in: query
+          description: Kinh độ
+          schema:
+            type: number
+        - name: radius
+          in: query
+          description: Bán kính tìm kiếm (km)
+          schema:
+            type: number
+            default: 5
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [distance, rating, newest, popular]
+            default: distance
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Kết quả tìm kiếm
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: "uuid-merchant-1"
+                    name: "Phở Nguyễn"
+                    type: "RESTAURANT"
+                    rating: 4.5
+                    totalReviews: 128
+                    distance: 0.8
+                    isOpen: true
+                    coverImage: "https://cdn.lifestyle.vn/merchants/cover1.jpg"
+                meta:
+                  page: 1
+                  limit: 20
+                  total: 45
+
+  # ===========================================================================
+  # WALLETS
+  # ===========================================================================
+
+  /wallets/me:
+    get:
+      tags: [Wallets]
+      summary: Lấy thông tin ví
+      description: Số dư VND, Xu, hạn mức, thống kê.
+      responses:
+        '200':
+          description: Thông tin ví
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+              example:
+                success: true
+                data:
+                  walletNumber: "LS-W-260216-48611"
+                  balance: 5000000
+                  reservedBalance: 0
+                  xuBalance: 12500
+                  currency: "VND"
+                  status: "ACTIVE"
+                  limits:
+                    dailyTopUp: { limit: 50000000, used: 2000000, remaining: 48000000 }
+                    dailyPayment: { limit: 100000000, used: 500000, remaining: 99500000 }
+                    dailyWithdrawal: { limit: 50000000, used: 0, remaining: 50000000 }
+                  stats:
+                    totalTopUp: 15000000
+                    totalPayment: 10000000
+                    totalWithdrawal: 0
+                    totalEarned: 25000000
+
+  /wallets/me/transactions:
+    get:
+      tags: [Wallets]
+      summary: Lịch sử giao dịch
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [TOP_UP, PAYMENT, WITHDRAWAL, REFUND, TRANSFER, COMMISSION, XU_EARN, XU_SPEND, BONUS]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, PROCESSING, COMPLETED, FAILED, CANCELLED]
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Lịch sử giao dịch
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - id: "uuid-txn-1"
+                    transactionRef: "LS-TXN-260216-123456"
+                    type: "TOP_UP"
+                    status: "COMPLETED"
+                    amount: 500000
+                    fee: 0
+                    netAmount: 500000
+                    paymentMethod: "VNPAY"
+                    description: "Nạp tiền qua VNPay"
+                    balanceBefore: 4500000
+                    balanceAfter: 5000000
+                    createdAt: "2026-02-16T10:30:00Z"
+                  - id: "uuid-txn-2"
+                    transactionRef: "LS-TXN-260216-123457"
+                    type: "PAYMENT"
+                    status: "COMPLETED"
+                    amount: 55000
+                    fee: 0
+                    netAmount: 55000
+                    paymentMethod: "WALLET"
+                    description: "Thanh toán đơn hàng #LS-ORD-001"
+                    balanceBefore: 5000000
+                    balanceAfter: 4945000
+                    createdAt: "2026-02-16T12:00:00Z"
+                meta:
+                  page: 1
+                  limit: 20
+                  total: 35
+
+  /wallets/me/bank-accounts:
+    get:
+      tags: [Wallets]
+      summary: Danh sách tài khoản ngân hàng liên kết
+      responses:
+        '200':
+          description: Danh sách tài khoản
+    
+    post:
+      tags: [Wallets]
+      summary: Liên kết tài khoản ngân hàng mới
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              bankName: "Vietcombank"
+              bankCode: "VCB"
+              accountNumber: "1234567890"
+              accountHolder: "NGUYEN VAN A"
+      responses:
+        '201':
+          description: Tài khoản đã liên kết
+
+  # ===========================================================================
+  # PAYMENTS
+  # ===========================================================================
+
+  /payments/top-up:
+    post:
+      tags: [Payments]
+      summary: Nạp tiền vào ví
+      description: |
+        Tạo yêu cầu nạp tiền qua payment gateway (VNPay, MoMo, Bank Transfer).
+        Trả về URL thanh toán hoặc QR code.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TopUpRequest'
+            examples:
+              vnpay:
+                summary: Nạp qua VNPay
+                value:
+                  amount: 500000
+                  paymentMethod: "VNPAY"
+                  returnUrl: "lifestyle://wallet/top-up/result"
+              bank_transfer:
+                summary: Nạp qua chuyển khoản
+                value:
+                  amount: 1000000
+                  paymentMethod: "BANK_TRANSFER"
+      responses:
+        '200':
+          description: URL thanh toán / QR code
+          content:
+            application/json:
+              examples:
+                vnpay_response:
+                  summary: VNPay redirect
+                  value:
+                    success: true
+                    data:
+                      transactionRef: "LS-TXN-260216-789012"
+                      paymentUrl: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_TmnCode=..."
+                      expiresIn: 900
+                sepay_response:
+                  summary: Bank Transfer (SePay QR)
+                  value:
+                    success: true
+                    data:
+                      transactionRef: "LS-TXN-260216-789013"
+                      bankInfo:
+                        bankName: "MB Bank"
+                        accountNumber: "0123456789"
+                        accountHolder: "LIFESTYLE TECHNOLOGY JSC"
+                        transferContent: "LS260216789013"
+                        amount: 1000000
+                      qrCodeUrl: "https://qr.sepay.vn/img?bank=MBBank&acc=0123456789&amount=1000000&des=LS260216789013"
+                      expiresIn: 1800
+
+  /payments/pay:
+    post:
+      tags: [Payments]
+      summary: Thanh toán đơn hàng
+      description: Thanh toán từ ví hoặc qua payment gateway.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+            example:
+              orderId: "uuid-order-1"
+              amount: 155000
+              paymentMethod: "WALLET"
+              note: "Thanh toán đơn phở"
+      responses:
+        '200':
+          description: Thanh toán thành công
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  transactionRef: "LS-TXN-260216-345678"
+                  status: "COMPLETED"
+                  amount: 155000
+                  balanceAfter: 4845000
+        '400':
+          description: Số dư không đủ
+
+  /payments/withdraw:
+    post:
+      tags: [Payments]
+      summary: Rút tiền về ngân hàng
+      description: |
+        Rút tiền từ ví về tài khoản ngân hàng đã liên kết.
+        Yêu cầu eKYC Level 2+. Phí rút: 0đ (dưới 2M) hoặc 1.1% (trên 2M).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawRequest'
+            example:
+              amount: 2000000
+              bankAccountId: "uuid-bank-1"
+              note: "Rút tiền về VCB"
+      responses:
+        '200':
+          description: Yêu cầu rút tiền đã tạo
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  transactionRef: "LS-TXN-260216-456789"
+                  status: "PROCESSING"
+                  amount: 2000000
+                  fee: 22000
+                  netAmount: 1978000
+                  estimatedArrival: "2026-02-17T09:00:00Z"
+                  message: "Tiền sẽ về tài khoản trong 1-2 ngày làm việc"
+
+  # --- Webhooks ---
+
+  /payments/vnpay-callback:
+    get:
+      tags: [Payments]
+      summary: VNPay Return URL (redirect user)
+      description: URL mà VNPay redirect user về sau khi thanh toán.
+      security: []
+      parameters:
+        - name: vnp_TxnRef
+          in: query
+          schema:
+            type: string
+        - name: vnp_ResponseCode
+          in: query
+          schema:
+            type: string
+        - name: vnp_SecureHash
+          in: query
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect về app
+
+  /payments/vnpay-ipn:
+    post:
+      tags: [Payments]
+      summary: VNPay IPN Webhook
+      description: |
+        **Server-to-server callback.**  
+        VNPay gọi endpoint này khi giao dịch hoàn thành.
+        Phải verify signature trước khi xử lý.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            example:
+              vnp_TxnRef: "LS-TXN-260216-789012"
+              vnp_Amount: "50000000"
+              vnp_ResponseCode: "00"
+              vnp_TransactionNo: "14128963"
+              vnp_SecureHash: "abc123..."
+      responses:
+        '200':
+          description: |
+            Trả về RspCode cho VNPay
+          content:
+            application/json:
+              example:
+                RspCode: "00"
+                Message: "Confirm Success"
+
+  /payments/sepay-webhook:
+    post:
+      tags: [Payments]
+      summary: SePay Webhook - Nhận thông báo nạp tiền qua chuyển khoản
+      description: |
+        **SePay gọi endpoint này** khi phát hiện giao dịch chuyển khoản đến tài khoản công ty.
+        
+        Flow:
+        1. User chuyển khoản với nội dung: `LS260216789013`
+        2. SePay detect giao dịch, gọi webhook này
+        3. Server parse nội dung chuyển khoản → match transaction
+        4. Cộng tiền vào ví user
+        
+        **Security:** Verify webhook bằng API Key trong header.
+      security:
+        - SepayWebhookKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SepayWebhookPayload'
+            example:
+              id: 90242
+              gateway: "MBBank"
+              transactionDate: "2026-02-16 10:30:00"
+              accountNumber: "0123456789"
+              subAccount: null
+              transferType: "in"
+              transferAmount: 1000000
+              accumulated: 15000000
+              code: null
+              content: "LS260216789013 NGUYEN VAN A chuyen tien"
+              referenceCode: "FT26047123456"
+              description: "LS260216789013 NGUYEN VAN A chuyen tien"
+      responses:
+        '200':
+          description: Webhook đã xử lý
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Transaction processed"
+                data:
+                  transactionRef: "LS-TXN-260216-789013"
+                  matchedAmount: 1000000
+                  walletUpdated: true
+        '400':
+          description: Không match được giao dịch
+          content:
+            application/json:
+              example:
+                success: false
+                error:
+                  code: "NO_MATCHING_TRANSACTION"
+                  message: "Không tìm thấy giao dịch phù hợp"
+        '401':
+          description: API Key không hợp lệ
+
+  /payments/momo-ipn:
+    post:
+      tags: [Payments]
+      summary: MoMo IPN Webhook
+      description: MoMo gọi khi giao dịch hoàn thành.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            example:
+              partnerCode: "LIFESTYLE"
+              orderId: "LS-TXN-260216-111222"
+              requestId: "req-123"
+              amount: 500000
+              orderInfo: "Nap tien vi Lifestyle"
+              orderType: "momo_wallet"
+              transId: 2123456789
+              resultCode: 0
+              message: "Thành công."
+              signature: "abc123..."
+      responses:
+        '200':
+          description: Đã xử lý
+
+  # ===========================================================================
+  # SPOTLIGHT (Redcomments & Reviews)
+  # ===========================================================================
+
+  /spotlight/reels:
+    get:
+      tags: [Spotlight]
+      summary: Lấy danh sách video Redcomment (TikTok-style feed)
+      description: |
+        Feed dạng infinite scroll, trả về Redcomments dạng video reel.
+        Sắp xếp theo thuật toán (views + recency + relevance).
+      security: []
+      parameters:
+        - name: category
+          in: query
+          description: Lọc theo danh mục
+          schema:
+            type: string
+            enum: [PRODUCT, RESTAURANT, CAFE, HOTEL, TRAVEL, INSURANCE, EVENT, EXPERIENCE]
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [VIDEO_REEL, ARTICLE, PHOTO_ESSAY, COMPARISON]
+            default: VIDEO_REEL
+        - name: cursor
+          in: query
+          description: Cursor cho infinite scroll (ID của item cuối cùng)
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Danh sách Redcomments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReelsFeedResponse'
+              example:
+                success: true
+                data:
+                  - id: "uuid-rdc-1"
+                    redcommentNumber: "LS-RDC-260216-001"
+                    creator:
+                      id: "uuid-creator-1"
+                      displayName: "Trần Thị B - Food Reviewer"
+                      avatarUrl: "https://cdn.lifestyle.vn/avatars/creator1.jpg"
+                      tier: "RISING"
+                      followerCount: 5200
+                    format: "VIDEO_REEL"
+                    title: "Review Phở Nguyễn - Phở Bò NGON NHẤT Quận 1!"
+                    description: "Nước dùng trong, ngọt thanh, thịt bò tươi mềm."
+                    videoUrl: "https://cdn.lifestyle.vn/spotlight/video1.mp4"
+                    videoDuration: 45
+                    thumbnailUrl: "https://cdn.lifestyle.vn/spotlight/thumb1.jpg"
+                    targetType: "RESTAURANT"
+                    targetName: "Phở Nguyễn"
+                    overallRating: 4.5
+                    views: 12500
+                    likes: 850
+                    shares: 120
+                    commentsCount: 45
+                    isLiked: false
+                    isSaved: false
+                    ctaButtons:
+                      - text: "Đặt ngay"
+                        action: "BUY"
+                        targetUrl: "lifestyle://merchant/uuid-merchant-1"
+                    publishedAt: "2026-02-13T14:30:00Z"
+                nextCursor: "uuid-rdc-1"
+                hasMore: true
+
+  /spotlight/redcomments:
+    post:
+      tags: [Spotlight]
+      summary: Tạo Redcomment mới (Creator only)
+      description: |
+        KOC/Creator tạo nội dung mới. Hỗ trợ 4 format:
+        - VIDEO_REEL (upload video vertical)
+        - ARTICLE (bài viết)
+        - PHOTO_ESSAY (bộ ảnh)
+        - COMPARISON (so sánh)
+        
+        Status mặc định: DRAFT. Creator submit để chuyển sang PENDING_REVIEW.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateRedcommentRequest'
+      responses:
+        '201':
+          description: Redcomment đã tạo (DRAFT)
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  id: "uuid-rdc-new"
+                  redcommentNumber: "LS-RDC-260216-002"
+                  status: "DRAFT"
+                  message: "Redcomment đã lưu nháp. Submit để gửi duyệt."
+
+  /spotlight/redcomments/{redcommentId}:
+    parameters:
+      - name: redcommentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    
+    get:
+      tags: [Spotlight]
+      summary: Lấy chi tiết Redcomment
+      security: []
+      responses:
+        '200':
+          description: Chi tiết Redcomment
+    
+    patch:
+      tags: [Spotlight]
+      summary: Cập nhật Redcomment (Creator only, khi còn DRAFT)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                targetTags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Đã cập nhật
+
+  /spotlight/redcomments/{redcommentId}/submit:
+    parameters:
+      - name: redcommentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Spotlight]
+      summary: Submit Redcomment để duyệt
+      description: Chuyển status từ DRAFT → PENDING_REVIEW.
+      responses:
+        '200':
+          description: Đã submit, chờ duyệt
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  status: "PENDING_REVIEW"
+                  message: "Nội dung đã gửi duyệt. Kết quả trong vòng 24h."
+
+  /spotlight/redcomments/{redcommentId}/like:
+    parameters:
+      - name: redcommentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Spotlight]
+      summary: Like/Unlike Redcomment
+      responses:
+        '200':
+          description: Toggled like
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  liked: true
+                  totalLikes: 851
+
+  /spotlight/redcomments/{redcommentId}/comments:
+    parameters:
+      - name: redcommentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    
+    get:
+      tags: [Spotlight]
+      summary: Lấy comments của Redcomment
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Danh sách comments
+    
+    post:
+      tags: [Spotlight]
+      summary: Viết comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body:
+                  type: string
+                  maxLength: 1000
+                parentId:
+                  type: string
+                  format: uuid
+                  description: Reply to comment (nested)
+            example:
+              body: "Phở ngon thật! Mình cũng muốn thử"
+      responses:
+        '201':
+          description: Comment đã đăng
+
+  # --- Reviews ---
+
+  /spotlight/reviews:
+    post:
+      tags: [Spotlight]
+      summary: Viết đánh giá (User)
+      description: User viết review cho sản phẩm/dịch vụ đã sử dụng.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateReviewRequest'
+      responses:
+        '201':
+          description: Review đã gửi, chờ duyệt
+
+  /spotlight/reviews/merchant/{merchantId}:
+    parameters:
+      - $ref: '#/components/parameters/MerchantId'
+    get:
+      tags: [Spotlight]
+      summary: Lấy reviews của merchant
+      security: []
+      parameters:
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [newest, highest, lowest, most_helpful]
+            default: newest
+        - name: rating
+          in: query
+          description: Lọc theo số sao (1-5)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+        - name: verifiedOnly
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Danh sách reviews
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  summary:
+                    averageRating: 4.5
+                    totalReviews: 128
+                    distribution: { "5": 65, "4": 38, "3": 15, "2": 7, "1": 3 }
+                  reviews:
+                    - id: "uuid-review-1"
+                      reviewNumber: "LS-RVW-260216-001"
+                      userName: "Nguyễn Văn A"
+                      userAvatar: "https://cdn.lifestyle.vn/avatars/user1.jpg"
+                      isVerifiedPurchase: true
+                      overallRating: 4.5
+                      title: "Phở ngon, nước dùng tuyệt vời!"
+                      body: "Đã ăn 3 lần rồi..."
+                      merchantReply: null
+                      createdAt: "2026-02-16T08:00:00Z"
+
+  # --- Creators ---
+
+  /spotlight/creators/me:
+    get:
+      tags: [Spotlight]
+      summary: Dashboard Creator (KOC)
+      description: Thống kê, thu nhập, nội dung của creator.
+      responses:
+        '200':
+          description: Creator dashboard
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  creatorNumber: "LS-CRT-00001"
+                  affiliateId: "LS-ID-12345"
+                  tier: "RISING"
+                  followerCount: 5200
+                  stats:
+                    totalViews: 125000
+                    totalLikes: 8500
+                    totalRedcomments: 15
+                    avgRating: 4.5
+                  earnings:
+                    totalEarned: 8500000
+                    pendingPayout: 2300000
+                    thisMonth: 1200000
+                  recentContent:
+                    - id: "uuid-rdc-1"
+                      title: "Review Phở Nguyễn..."
+                      views: 12500
+                      status: "APPROVED"
+
+  /spotlight/creators/me/earnings:
+    get:
+      tags: [Spotlight]
+      summary: Lịch sử thu nhập Creator
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [CONTENT_FEE, AFFILIATE_COMMISSION, BONUS, TIP]
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Lịch sử thu nhập
+
+  /spotlight/creators/me/payout:
+    post:
+      tags: [Spotlight]
+      summary: Yêu cầu rút tiền (Creator)
+      description: Rút thu nhập về tài khoản ngân hàng. Tối thiểu 500,000 VND.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              amount: 2000000
+      responses:
+        '200':
+          description: Yêu cầu rút tiền đã tạo
+
+  # ===========================================================================
+  # LOYALTY (Xu & Referral)
+  # ===========================================================================
+
+  /loyalty/xu/balance:
+    get:
+      tags: [Loyalty]
+      summary: Số dư Lifestyle Xu
+      responses:
+        '200':
+          description: Số dư Xu
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  balance: 12500
+                  earnedTotal: 45000
+                  spentTotal: 32500
+                  expiringSoon: 2000
+                  expiringDate: "2026-03-31"
+
+  /loyalty/xu/history:
+    get:
+      tags: [Loyalty]
+      summary: Lịch sử tích/tiêu Xu
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [EARN, SPEND, BONUS, EXPIRED]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Lịch sử Xu
+
+  /loyalty/referral:
+    get:
+      tags: [Loyalty]
+      summary: Thông tin mã giới thiệu
+      responses:
+        '200':
+          description: Referral info
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  referralCode: "LS8068F741"
+                  referralLink: "https://lifestyle.vn/ref/LS8068F741"
+                  totalReferred: 5
+                  totalEarned: 250000
+                  reward:
+                    referrer: "50,000 Xu"
+                    referee: "30,000 Xu + Giảm 20% chuyến đầu"
+
+  /loyalty/referral/apply:
+    post:
+      tags: [Loyalty]
+      summary: Áp dụng mã giới thiệu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              referralCode: "LS8068F741"
+      responses:
+        '200':
+          description: Mã giới thiệu đã áp dụng
+
+  # ===========================================================================
+  # ADMIN (Ops Dashboard)
+  # ===========================================================================
+
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: "[Admin] Danh sách users"
+      description: Xem, tìm kiếm, lọc tất cả users. Yêu cầu role ADMIN.
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [CUSTOMER, DRIVER, RESTAURANT_OWNER, SELLER, ADMIN]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+        - name: search
+          in: query
+          description: Tìm theo tên, email, SĐT
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Danh sách users
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/drivers/pending:
+    get:
+      tags: [Admin]
+      summary: "[Admin] Tài xế chờ duyệt"
+      responses:
+        '200':
+          description: Danh sách tài xế pending
+
+  /admin/drivers/{driverId}/verify:
+    parameters:
+      - name: driverId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Admin]
+      summary: "[Admin] Duyệt/Từ chối tài xế"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [APPROVE, REJECT]
+                rejectionReason:
+                  type: string
+            example:
+              action: "APPROVE"
+      responses:
+        '200':
+          description: Đã xử lý
+
+  /admin/merchants/pending:
+    get:
+      tags: [Admin]
+      summary: "[Admin] Cửa hàng chờ duyệt"
+      responses:
+        '200':
+          description: Danh sách merchant pending
+
+  /admin/spotlight/moderation:
+    get:
+      tags: [Admin]
+      summary: "[Admin] Nội dung chờ duyệt (Redcomments & Reviews)"
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [REDCOMMENT, REVIEW]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING_REVIEW]
+            default: PENDING_REVIEW
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Queue nội dung chờ duyệt
+
+  /admin/spotlight/{contentId}/moderate:
+    parameters:
+      - name: contentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Admin]
+      summary: "[Admin] Duyệt/Từ chối nội dung Spotlight"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [APPROVE, REJECT]
+                rejectionReason:
+                  type: string
+                  enum: [INAPPROPRIATE_CONTENT, FALSE_INFORMATION, POOR_QUALITY, COPYRIGHT_VIOLATION, SPAM, OFFENSIVE_LANGUAGE]
+                rejectionNote:
+                  type: string
+            example:
+              action: "APPROVE"
+      responses:
+        '200':
+          description: Đã xử lý
+
+  /admin/dashboard/stats:
+    get:
+      tags: [Admin]
+      summary: "[Admin] Tổng quan dashboard"
+      responses:
+        '200':
+          description: Thống kê tổng quan
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  users:
+                    total: 15000
+                    newToday: 45
+                    activeToday: 3200
+                  drivers:
+                    total: 500
+                    online: 120
+                    pendingVerification: 15
+                  merchants:
+                    total: 200
+                    active: 180
+                    pendingApproval: 8
+                  transactions:
+                    todayVolume: 250000000
+                    todayCount: 1500
+                    totalBalance: 5000000000
+                  spotlight:
+                    totalRedcomments: 500
+                    pendingReview: 12
+                    totalCreators: 50
+
+# =============================================================================
+# COMPONENTS
+# =============================================================================
+components:
+
+  # ---------------------------------------------------------------------------
+  # Security Schemes
+  # ---------------------------------------------------------------------------
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT Access Token. Lấy từ `/auth/login` hoặc `/auth/register`.
+        ```
+        Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+        ```
+    SepayWebhookKey:
+      type: apiKey
+      in: header
+      name: X-Sepay-Key
+      description: API Key xác thực webhook từ SePay
+
+  # ---------------------------------------------------------------------------
+  # Parameters (Reusable)
+  # ---------------------------------------------------------------------------
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Số trang (bắt đầu từ 1)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Số item mỗi trang
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    MerchantId:
+      name: merchantId
+      in: path
+      required: true
+      description: Merchant UUID
+      schema:
+        type: string
+        format: uuid
+
+  # ---------------------------------------------------------------------------
+  # Responses (Reusable)
+  # ---------------------------------------------------------------------------
+  responses:
+    Unauthorized:
+      description: Chưa đăng nhập hoặc token hết hạn
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "UNAUTHORIZED"
+              message: "Token không hợp lệ hoặc đã hết hạn"
+              statusCode: 401
+    Forbidden:
+      description: Không có quyền truy cập
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "FORBIDDEN"
+              message: "Bạn không có quyền thực hiện thao tác này"
+              statusCode: 403
+    ValidationError:
+      description: Dữ liệu không hợp lệ
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "VALIDATION_ERROR"
+              message: "Dữ liệu không hợp lệ"
+              statusCode: 400
+              details:
+                email: "Email không đúng định dạng"
+                password: "Mật khẩu phải có ít nhất 8 ký tự"
+    NotFound:
+      description: Không tìm thấy
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "NOT_FOUND"
+              message: "Không tìm thấy tài nguyên"
+              statusCode: 404
+
+  # ---------------------------------------------------------------------------
+  # Schemas (Data Models)
+  # ---------------------------------------------------------------------------
+  schemas:
+  
+    # --- Error ---
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            statusCode:
+              type: integer
+            details:
+              type: object
+
+    # --- Auth ---
+    RegisterRequest:
+      type: object
+      required: [password, firstName, lastName]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "nguyenvana@gmail.com"
+        phoneNumber:
+          type: string
+          pattern: '^0[0-9]{9}$'
+          example: "0901234567"
+        password:
+          type: string
+          minLength: 8
+          description: "Tối thiểu 8 ký tự, có chữ hoa + số + ký tự đặc biệt"
+        firstName:
+          type: string
+          example: "Nguyễn Văn"
+        lastName:
+          type: string
+          example: "A"
+        referralCode:
+          type: string
+          description: Mã giới thiệu (optional)
+          example: "LS8068F741"
+
+    LoginRequest:
+      type: object
+      required: [password]
+      properties:
+        email:
+          type: string
+          format: email
+        phoneNumber:
+          type: string
+        password:
+          type: string
+
+    SocialLoginRequest:
+      type: object
+      required: [provider, accessToken]
+      properties:
+        provider:
+          type: string
+          enum: [google, facebook, apple, zalo]
+        accessToken:
+          type: string
+          description: Access token từ provider
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/UserSummary'
+            accessToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIs..."
+            refreshToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIs..."
+            expiresIn:
+              type: integer
+              description: Access token TTL (seconds)
+              example: 3600
+
+    # --- User ---
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        phoneNumber:
+          type: string
+        displayName:
+          type: string
+        avatarUrl:
+          type: string
+        role:
+          type: string
+          enum: [CUSTOMER, DRIVER, RESTAURANT_OWNER, SELLER, ADMIN]
+        ekycLevel:
+          type: string
+          enum: [LEVEL_0, LEVEL_1, LEVEL_2, LEVEL_3]
+        isActive:
+          type: boolean
+
+    UserProfileResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          allOf:
+            - $ref: '#/components/schemas/UserSummary'
+            - type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                gender:
+                  type: string
+                  enum: [MALE, FEMALE, OTHER]
+                dateOfBirth:
+                  type: string
+                  format: date
+                referralCode:
+                  type: string
+                xuBalance:
+                  type: integer
+                walletBalance:
+                  type: integer
+                preferences:
+                  $ref: '#/components/schemas/UserPreferences'
+                createdAt:
+                  type: string
+                  format: date-time
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        displayName:
+          type: string
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER]
+        dateOfBirth:
+          type: string
+          format: date
+
+    UserPreferences:
+      type: object
+      properties:
+        language:
+          type: string
+          enum: [vi, en]
+          default: vi
+        currency:
+          type: string
+          enum: [VND, USD]
+          default: VND
+        theme:
+          type: string
+          enum: [LIGHT, DARK, AUTO]
+          default: AUTO
+        notifications:
+          type: object
+          properties:
+            email:
+              type: boolean
+            push:
+              type: boolean
+            sms:
+              type: boolean
+
+    CreateAddressRequest:
+      type: object
+      required: [label, street, city, latitude, longitude]
+      properties:
+        label:
+          type: string
+          example: "Nhà"
+        street:
+          type: string
+        ward:
+          type: string
+        district:
+          type: string
+        city:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        isDefault:
+          type: boolean
+          default: false
+
+    # --- Driver ---
+    DriverProfileResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            driverNumber:
+              type: string
+              example: "LS-DRV-00001"
+            status:
+              type: string
+              enum: [PENDING_VERIFICATION, ACTIVE, INACTIVE, SUSPENDED, BANNED]
+            onlineStatus:
+              type: string
+              enum: [ONLINE, OFFLINE, BUSY]
+            rating:
+              type: number
+              example: 4.85
+            totalTrips:
+              type: integer
+            totalEarnings:
+              type: integer
+            currentBalance:
+              type: integer
+            onboardingStep:
+              type: integer
+            onboardingCompleted:
+              type: boolean
+            vehicle:
+              type: object
+              properties:
+                vehicleType:
+                  type: string
+                licensePlate:
+                  type: string
+                brand:
+                  type: string
+                model:
+                  type: string
+                color:
+                  type: string
+
+    DriverIdentityRequest:
+      type: object
+      required: [citizenId, citizenIdFrontImage, citizenIdBackImage, faceImage, driverLicenseNumber, driverLicenseImage]
+      properties:
+        citizenId:
+          type: string
+          example: "079090012345"
+        citizenIdIssueDate:
+          type: string
+          format: date
+        citizenIdIssuePlace:
+          type: string
+        citizenIdFrontImage:
+          type: string
+          format: binary
+        citizenIdBackImage:
+          type: string
+          format: binary
+        faceImage:
+          type: string
+          format: binary
+        driverLicenseNumber:
+          type: string
+        driverLicenseClass:
+          type: string
+          enum: [A1, A2, B1, B2, C, D, E, F]
+        driverLicenseIssueDate:
+          type: string
+          format: date
+        driverLicenseExpiry:
+          type: string
+          format: date
+        driverLicenseImage:
+          type: string
+          format: binary
+        criminalRecordNumber:
+          type: string
+        criminalRecordIssueDate:
+          type: string
+          format: date
+        criminalRecordImage:
+          type: string
+          format: binary
+
+    VehicleRegistrationRequest:
+      type: object
+      required: [vehicleType, licensePlate, brand, model, year, color]
+      properties:
+        vehicleType:
+          type: string
+          enum: [BIKE, CAR_4_SEATS, CAR_7_SEATS, TRUCK]
+        licensePlate:
+          type: string
+          example: "59F1-12345"
+        brand:
+          type: string
+          example: "Honda"
+        model:
+          type: string
+          example: "Wave RSX"
+        year:
+          type: integer
+          example: 2022
+        color:
+          type: string
+          example: "Đỏ"
+        frontImage:
+          type: string
+          format: binary
+        backImage:
+          type: string
+          format: binary
+        leftImage:
+          type: string
+          format: binary
+        rightImage:
+          type: string
+          format: binary
+        plateCloseupImage:
+          type: string
+          format: binary
+        registrationNumber:
+          type: string
+        registrationImage:
+          type: string
+          format: binary
+        insuranceNumber:
+          type: string
+        insuranceProvider:
+          type: string
+        insuranceImage:
+          type: string
+          format: binary
+
+    # --- Merchant ---
+    MerchantRegisterRequest:
+      type: object
+      required: [name, type, phone, street, district, city, latitude, longitude]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [RESTAURANT, CAFE, FOOD_STALL, SUPERMARKET, CONVENIENCE_STORE, GROCERY, BAKERY, PHARMACY, FASHION, ELECTRONICS, BEAUTY, OTHER]
+        description:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        street:
+          type: string
+        ward:
+          type: string
+        district:
+          type: string
+        city:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+
+    MerchantPublicProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        merchantNumber:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        logoUrl:
+          type: string
+        coverImages:
+          type: array
+          items:
+            type: string
+        phone:
+          type: string
+        fullAddress:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        businessHours:
+          type: object
+        rating:
+          type: object
+          properties:
+            overall:
+              type: number
+            totalReviews:
+              type: integer
+        followerCount:
+          type: integer
+        isVerified:
+          type: boolean
+        isOpen:
+          type: boolean
+
+    UpdateMerchantRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+
+    # --- Wallet & Payment ---
+    WalletResponse:
+      type: object
+      properties:
+        walletNumber:
+          type: string
+        balance:
+          type: integer
+          description: Số dư VND
+        reservedBalance:
+          type: integer
+        xuBalance:
+          type: integer
+        currency:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, FROZEN, SUSPENDED, CLOSED]
+
+    TopUpRequest:
+      type: object
+      required: [amount, paymentMethod]
+      properties:
+        amount:
+          type: integer
+          minimum: 10000
+          maximum: 50000000
+          description: Số tiền nạp (VND)
+        paymentMethod:
+          type: string
+          enum: [VNPAY, MOMO, ZALOPAY, BANK_TRANSFER]
+        returnUrl:
+          type: string
+          description: URL redirect sau khi thanh toán
+
+    PaymentRequest:
+      type: object
+      required: [orderId, amount, paymentMethod]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        amount:
+          type: integer
+        paymentMethod:
+          type: string
+          enum: [WALLET, VNPAY, MOMO, ZALOPAY, COD, XU]
+        note:
+          type: string
+
+    WithdrawRequest:
+      type: object
+      required: [amount, bankAccountId]
+      properties:
+        amount:
+          type: integer
+          minimum: 50000
+          description: Số tiền rút (VND, tối thiểu 50,000)
+        bankAccountId:
+          type: string
+          format: uuid
+        note:
+          type: string
+
+    SepayWebhookPayload:
+      type: object
+      description: |
+        Payload từ SePay khi detect giao dịch chuyển khoản.
+        Docs: https://docs.sepay.vn
+      properties:
+        id:
+          type: integer
+          description: ID giao dịch trên SePay
+        gateway:
+          type: string
+          description: Tên ngân hàng
+          example: "MBBank"
+        transactionDate:
+          type: string
+          description: Thời gian giao dịch
+          example: "2026-02-16 10:30:00"
+        accountNumber:
+          type: string
+          description: STK nhận tiền
+          example: "0123456789"
+        subAccount:
+          type: string
+          nullable: true
+        transferType:
+          type: string
+          enum: [in, out]
+          description: in=nhận tiền, out=chuyển đi
+        transferAmount:
+          type: integer
+          description: Số tiền
+          example: 1000000
+        accumulated:
+          type: integer
+          description: Số dư tích lũy
+        code:
+          type: string
+          nullable: true
+        content:
+          type: string
+          description: Nội dung chuyển khoản (chứa mã giao dịch)
+          example: "LS260216789013 NGUYEN VAN A chuyen tien"
+        referenceCode:
+          type: string
+          description: Mã tham chiếu từ ngân hàng
+        description:
+          type: string
+          description: Mô tả đầy đủ
+
+    # --- Spotlight ---
+    CreateRedcommentRequest:
+      type: object
+      required: [format, title, targetType, targetName, overallRating]
+      properties:
+        format:
+          type: string
+          enum: [VIDEO_REEL, ARTICLE, PHOTO_ESSAY, COMPARISON]
+        title:
+          type: string
+          maxLength: 300
+        description:
+          type: string
+          maxLength: 500
+        video:
+          type: string
+          format: binary
+          description: Video file (cho VIDEO_REEL)
+        photos:
+          type: array
+          items:
+            type: string
+            format: binary
+          description: Ảnh (cho PHOTO_ESSAY)
+        coverImage:
+          type: string
+          format: binary
+        targetType:
+          type: string
+          enum: [PRODUCT, RESTAURANT, CAFE, HOTEL, TRAVEL, INSURANCE, EVENT, EXPERIENCE]
+        targetId:
+          type: string
+          format: uuid
+        targetName:
+          type: string
+        targetTags:
+          type: array
+          items:
+            type: string
+        merchantId:
+          type: string
+          format: uuid
+        overallRating:
+          type: number
+          minimum: 1
+          maximum: 5
+        ctaButtons:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+              action:
+                type: string
+                enum: [BOOK, CONSULT, BUY, CALL, EXTERNAL_LINK]
+              targetUrl:
+                type: string
+
+    ReelsFeedResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              redcommentNumber:
+                type: string
+              creator:
+                type: object
+              format:
+                type: string
+              title:
+                type: string
+              videoUrl:
+                type: string
+              thumbnailUrl:
+                type: string
+              targetType:
+                type: string
+              overallRating:
+                type: number
+              views:
+                type: integer
+              likes:
+                type: integer
+              isLiked:
+                type: boolean
+              ctaButtons:
+                type: array
+                items:
+                  type: object
+        nextCursor:
+          type: string
+        hasMore:
+          type: boolean
+
+    CreateReviewRequest:
+      type: object
+      required: [targetType, targetName, overallRating, body]
+      properties:
+        targetType:
+          type: string
+          enum: [PRODUCT, RESTAURANT, CAFE, HOTEL, TRAVEL, INSURANCE, EVENT, EXPERIENCE]
+        targetId:
+          type: string
+          format: uuid
+        targetName:
+          type: string
+        merchantId:
+          type: string
+          format: uuid
+        overallRating:
+          type: number
+          minimum: 1
+          maximum: 5
+        title:
+          type: string
+          maxLength: 200
+        body:
+          type: string
+        photos:
+          type: array
+          items:
+            type: string
+            format: binary
+        video:
+          type: string
+          format: binary

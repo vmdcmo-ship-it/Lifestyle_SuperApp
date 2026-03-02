@@ -1,0 +1,51 @@
+{
+  "name": "lifestyle-superapp-monorepo",
+  "version": "1.0.0",
+  "description": "Multi-Service Super App - Transportation, Insurance, Travel & More",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "apps/*",
+    "packages/*",
+    "backend/api-gateway"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --concurrency=16",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "dev:services": "concurrently \"npm:dev:user\" \"npm:dev:transport\" \"npm:dev:insurance\"",
+    "dev:user": "npm run dev --workspace=services/user-service",
+    "dev:transport": "npm run dev --workspace=services/transportation-service",
+    "dev:insurance": "npm run dev --workspace=services/insurance-service",
+    "dev:payment": "npm run dev --workspace=services/payment-service",
+    "dev:mobile": "npm run dev --workspace=apps/mobile-user",
+    "dev:driver": "npm run start --workspace=apps/mobile-driver",
+    "build:apk:user": "cd apps/mobile-user && eas build --profile preview --platform android",
+    "build:apk:driver": "cd apps/mobile-driver && eas build --profile preview --platform android",
+    "build:apk:merchant": "cd apps/mobile-merchant && eas build --profile preview --platform android",
+    "build:apk:all": "npm run build:apk:user && npm run build:apk:driver && npm run build:apk:merchant",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:web-admin": "npm run dev --workspace=apps/web-admin",
+    "dev:zalo": "pnpm --filter @lifestyle/zalo-mini-app run dev",
+    "dev:main-api": "npm run dev --workspace=main-api",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "concurrently": "^8.2.2",
+    "prettier": "^3.2.4",
+    "turbo": "^1.12.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "author": "Your Team",
+  "license": "PRIVATE"
+}

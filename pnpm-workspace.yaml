@@ -1,0 +1,13 @@
+packages:
+  - services/*
+  - apps/*
+  - packages/*
+  - backend/api-gateway
+
+ignoredBuiltDependencies:
+  - '@nestjs/core'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@scarf/scarf'
+  - prisma
+  - unrs-resolver

@@ -1,0 +1,12 @@
+export { authService } from './auth.service';
+export { walletService } from './wallet.service';
+export { bookingService } from './booking.service';
+export { driversService } from './drivers.service';
+export { merchantsService } from './merchants.service';
+export { ordersService } from './orders.service';
+export { notificationsService } from './notifications.service';
+export { loyaltyService } from './loyalty.service';
+export { insuranceService } from './insurance.service';
+export { searchService } from './search.service';
+export { addressesService } from './addresses.service';
+export { realtimeService } from './realtime.service';

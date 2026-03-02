@@ -1,0 +1,16 @@
+{
+  "name": "@lifestyle/shared",
+  "version": "1.0.0",
+  "description": "Shared business logic and utilities",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts",
+    "test": "jest"
+  },
+  "keywords": ["shared", "utilities"],
+  "author": "Your Team",
+  "license": "PRIVATE"
+}

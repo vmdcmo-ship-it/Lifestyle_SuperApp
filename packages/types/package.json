@@ -1,0 +1,15 @@
+{
+  "name": "@lifestyle/types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types and interfaces",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": ["types", "typescript"],
+  "author": "Your Team",
+  "license": "PRIVATE"
+}

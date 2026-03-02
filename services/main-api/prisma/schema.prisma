@@ -1,0 +1,2012 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["core", "driver", "merchant", "payment", "spotlight", "insurance"]
+}
+
+model User {
+  id                                                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                                              String               @db.VarChar(255)
+  phoneNumber                                        String?              @map("phone_number") @db.VarChar(20)
+  passwordHash                                       String               @map("password_hash") @db.VarChar(255)
+  firstName                                          String               @map("first_name") @db.VarChar(100)
+  lastName                                           String               @map("last_name") @db.VarChar(100)
+  displayName                                        String               @map("display_name") @db.VarChar(200)
+  avatar_url                                         String?
+  dateOfBirth                                        DateTime?            @map("date_of_birth") @db.Date
+  gender                                             gender?
+  isEmailVerified                                    Boolean              @default(false) @map("is_email_verified")
+  isPhoneVerified                                    Boolean              @default(false) @map("is_phone_verified")
+  isActive                                           Boolean              @default(true) @map("is_active")
+  ekycLevel                                          ekyc_level           @default(LEVEL_0) @map("ekyc_level")
+  ekyc_verified_at                                   DateTime?            @db.Timestamptz(6)
+  role                                               user_role            @default(CUSTOMER)
+  lastLoginAt                                        DateTime?            @map("last_login_at") @db.Timestamptz(6)
+  login_count                                        Int                  @default(0)
+  preferences                                        Json?                @default("{\"theme\": \"AUTO\", \"currency\": \"VND\", \"language\": \"vi\", \"notifications\": {\"sms\": true, \"push\": true, \"email\": true}}")
+  xuBalance                                          BigInt               @default(0) @map("xu_balance")
+  referralCode                                       String?              @unique @map("referral_code") @db.VarChar(20)
+  referred_by                                        String?              @db.Uuid
+  metadata                                           Json?                @default("{}")
+  mfa_enabled                                        Boolean              @default(false) @map("mfa_enabled")
+  mfa_secret                                         String?              @map("mfa_secret") @db.VarChar(64)
+  createdAt                                          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                                          DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt                                          DateTime?            @map("deleted_at") @db.Timestamptz(6)
+  authTokens                                         AuthToken[]
+  social_connections                                 social_connections[]
+  addresses                                          UserAddress[]
+  users                                              User?                @relation("usersTousers", fields: [referred_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_users                                        User[]               @relation("usersTousers")
+  driver                                             Driver?
+  merchant_staff                                     merchant_staff[]
+  merchants                                          merchants[]
+  bank_accounts                                      bank_accounts[]
+  transactions_transactions_recipient_user_idTousers Transaction[]        @relation("transactions_recipient_user_idTousers")
+  transactions_transactions_user_idTousers           Transaction[]        @relation("transactions_user_idTousers")
+  wallets                                            Wallet?
+  comments                                           Comment[]
+  creator                                            Creator?
+  reviews                                            Review[]
+  referralsAsReferrer                                Referral[]           @relation("ReferralReferrer")
+  referralsAsReferee                                 Referral[]           @relation("ReferralReferee")
+  redcomment_saves                                   RedcommentSave[]
+  creator_follows                                    CreatorFollow[]
+
+  @@index([createdAt(sort: Desc)], map: "idx_users_created")
+  @@index([displayName(ops: raw("gin_trgm_ops"))], map: "idx_users_display_name_trgm", type: Gin)
+  @@index([ekycLevel], map: "idx_users_ekyc")
+  @@index([role], map: "idx_users_role")
+  @@map("users")
+  @@schema("core")
+}
+
+model AuthToken {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  refresh_token String    @unique @db.VarChar(500)
+  deviceInfo    Json?     @map("device_info")
+  ipAddress     String?   @map("ip_address") @db.Inet
+  user_agent    String?
+  expiresAt     DateTime  @map("expires_at") @db.Timestamptz(6)
+  revoked_at    DateTime? @db.Timestamptz(6)
+  isRevoked     Boolean   @default(false) @map("is_revoked")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([refresh_token], map: "idx_auth_tokens_token")
+  @@index([userId], map: "idx_auth_tokens_user")
+  @@map("auth_tokens")
+  @@schema("core")
+}
+
+model UserAddress {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  label       String   @default("Home") @db.VarChar(50)
+  street      String   @db.VarChar(500)
+  ward        String?  @db.VarChar(200)
+  district    String?  @db.VarChar(200)
+  city        String   @db.VarChar(200)
+  country     String   @default("Vietnam") @db.VarChar(100)
+  postal_code String?  @db.VarChar(20)
+  latitude    Decimal? @db.Decimal(10, 8)
+  longitude   Decimal? @db.Decimal(11, 8)
+  fullAddress String   @map("full_address")
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([userId], map: "idx_user_addresses_user")
+  @@map("user_addresses")
+  @@schema("core")
+}
+
+model Driver {
+  id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String             @unique @map("user_id") @db.Uuid
+  driverNumber         String             @unique @map("driver_number") @db.VarChar(20)
+  status               driver_status      @default(PENDING_VERIFICATION)
+  onlineStatus         online_status      @default(OFFLINE) @map("online_status")
+  currentLat           Decimal?           @map("current_lat") @db.Decimal(10, 8)
+  currentLng           Decimal?           @map("current_lng") @db.Decimal(11, 8)
+  lastLocationAt       DateTime?          @map("last_location_at") @db.Timestamptz(6)
+  totalTrips           Int                @default(0) @map("total_trips")
+  totalDistanceKm      Decimal            @default(0) @map("total_distance_km") @db.Decimal(12, 2)
+  rating               Decimal            @default(5.00) @db.Decimal(3, 2)
+  total_ratings        Int                @default(0)
+  acceptanceRate       Decimal            @default(100.00) @map("acceptance_rate") @db.Decimal(5, 2)
+  cancellation_rate    Decimal            @default(0.00) @db.Decimal(5, 2)
+  totalEarnings        BigInt             @default(0) @map("total_earnings")
+  current_balance      BigInt             @default(0)
+  verified_at          DateTime?          @db.Timestamptz(6)
+  verified_by          String?            @db.Uuid
+  rejection_reason     String?
+  onboarding_step      Int                @default(1)
+  onboarding_completed Boolean            @default(false)
+  metadata             Json?              @default("{}")
+  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt            DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  driver_identities    driver_identities?
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  vehicles             Vehicle[]
+
+  @@index([createdAt(sort: Desc)], map: "idx_drivers_created")
+  @@index([driverNumber], map: "idx_drivers_number")
+  @@index([rating(sort: Desc)], map: "idx_drivers_rating")
+  @@index([status], map: "idx_drivers_status")
+  @@index([userId], map: "idx_drivers_user_id")
+  @@map("drivers")
+  @@schema("driver")
+}
+
+model Vehicle {
+  id                      String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverId                String              @map("driver_id") @db.Uuid
+  vehicleType             vehicle_type        @map("vehicle_type")
+  vehicle_class           String?             @map("vehicle_class") @db.VarChar(50)
+  licensePlate            String              @map("license_plate") @db.VarChar(20)
+  brand                   String              @db.VarChar(100)
+  model                   String              @db.VarChar(100)
+  year                    Int                 @db.SmallInt
+  color                   String              @db.VarChar(50)
+  front_image             String
+  back_image              String
+  left_image              String
+  right_image             String
+  plate_closeup_image     String
+  registration_number     String              @db.VarChar(50)
+  registration_issue_date DateTime            @db.Date
+  registration_expiry     DateTime?           @db.Date
+  registration_image      String
+  insurance_number        String              @db.VarChar(50)
+  insurance_provider      String              @db.VarChar(200)
+  insurance_issue_date    DateTime            @db.Date
+  insurance_expiry        DateTime            @db.Date
+  insurance_image         String
+  inspection_number       String?             @map("inspection_number") @db.VarChar(50)
+  inspection_issue_date   DateTime?           @map("inspection_issue_date") @db.Date
+  inspection_expiry       DateTime?           @map("inspection_expiry") @db.Date
+  verification_status     verification_status @default(PENDING)
+  verified_at             DateTime?           @db.Timestamptz(6)
+  verified_by             String?             @db.Uuid
+  rejection_reason        String?
+  is_primary              Boolean             @default(true)
+  isActive                Boolean             @default(true) @map("is_active")
+  createdAt               DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  driver                  Driver              @relation(fields: [driverId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([driverId], map: "idx_vehicles_driver")
+  @@index([insurance_expiry], map: "idx_vehicles_insurance_expiry")
+  @@index([vehicleType], map: "idx_vehicles_type")
+  @@map("vehicles")
+  @@schema("driver")
+}
+
+model Booking {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bookingNumber   String         @unique @map("booking_number") @db.VarChar(30)
+  userId          String         @map("user_id") @db.Uuid
+  driverId        String?        @map("driver_id") @db.Uuid
+  status          booking_status @default(SEARCHING_DRIVER)
+  vehicleType     vehicle_type   @map("vehicle_type")
+  pickupLat       Decimal        @map("pickup_lat") @db.Decimal(10, 8)
+  pickupLng       Decimal        @map("pickup_lng") @db.Decimal(11, 8)
+  pickupAddress   String         @map("pickup_address")
+  dropoffLat      Decimal        @map("dropoff_lat") @db.Decimal(10, 8)
+  dropoffLng      Decimal        @map("dropoff_lng") @db.Decimal(11, 8)
+  dropoffAddress  String         @map("dropoff_address")
+  distanceKm      Decimal        @map("distance_km") @db.Decimal(8, 2)
+  durationMin     Int            @map("duration_min")
+  basePrice       BigInt         @map("base_price")
+  distancePrice   BigInt         @map("distance_price")
+  timePrice       BigInt         @map("time_price")
+  totalPrice      BigInt         @map("total_price")
+  surgeMultiplier Decimal        @default(1.0) @map("surge_multiplier") @db.Decimal(3, 1)
+  currency        String         @default("VND") @db.VarChar(10)
+  paymentMethod   payment_method? @map("payment_method")
+  note            String?
+  cancelReason    String?        @map("cancel_reason")
+  cancelledBy     String?        @map("cancelled_by") @db.VarChar(20)
+  rating          Decimal?       @db.Decimal(3, 1)
+  ratingComment   String?        @map("rating_comment")
+  ratedAt         DateTime?      @map("rated_at") @db.Timestamptz(6)
+  acceptedAt      DateTime?      @map("accepted_at") @db.Timestamptz(6)
+  pickedUpAt      DateTime?      @map("picked_up_at") @db.Timestamptz(6)
+  completedAt     DateTime?      @map("completed_at") @db.Timestamptz(6)
+  cancelledAt     DateTime?      @map("cancelled_at") @db.Timestamptz(6)
+  metadata        Json?          @default("{}")
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId], map: "idx_bookings_user")
+  @@index([driverId], map: "idx_bookings_driver")
+  @@index([status], map: "idx_bookings_status")
+  @@index([bookingNumber], map: "idx_bookings_number")
+  @@index([createdAt(sort: Desc)], map: "idx_bookings_created")
+  @@map("bookings")
+  @@schema("driver")
+}
+
+model FareConfig {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vehicleType   String   @unique @map("vehicle_type") @db.VarChar(30)
+  baseFare      BigInt   @map("base_fare")
+  perKm         BigInt   @map("per_km")
+  perMin        BigInt   @map("per_min")
+  minFare       BigInt   @map("min_fare")
+  isActive      Boolean  @default(true) @map("is_active")
+  effectiveFrom DateTime @default(now()) @map("effective_from") @db.Timestamptz(6)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([vehicleType], map: "idx_fare_config_vehicle")
+  @@map("fare_config")
+  @@schema("driver")
+}
+
+model Creator {
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId              String             @unique @map("user_id") @db.Uuid
+  creator_number      String             @unique @db.VarChar(20)
+  affiliate_id        String             @unique @db.VarChar(20)
+  display_name        String             @db.VarChar(200)
+  bio                 String?
+  avatar_url          String?
+  cover_url           String?
+  tier                creator_tier       @default(NEWCOMER)
+  follower_count      Int                @default(0)
+  following_count     Int                @default(0)
+  totalViews          BigInt             @default(0) @map("total_views")
+  totalLikes          BigInt             @default(0) @map("total_likes")
+  total_redcomments   Int                @default(0)
+  total_earned        BigInt             @default(0)
+  pending_payout      BigInt             @default(0)
+  avg_content_rating  Decimal            @default(0.00) @db.Decimal(3, 2)
+  phone               String?            @db.VarChar(20)
+  email               String?            @db.VarChar(255)
+  social_links        Json?              @default("{}")
+  bank_name           String?            @db.VarChar(200)
+  bank_account_number String?            @db.VarChar(30)
+  bank_account_holder String?            @db.VarChar(200)
+  is_active           Boolean            @default(true)
+  isVerified          Boolean            @default(false) @map("is_verified")
+  verified_at         DateTime?          @db.Timestamptz(6)
+  categories          String[]           @default([])
+  metadata            Json?              @default("{}")
+  createdAt           DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  creator_earnings    creator_earnings[]
+  creator_follows     CreatorFollow[]
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  redcomments         Redcomment[]
+
+  @@index([affiliate_id], map: "idx_creators_affiliate")
+  @@index([follower_count(sort: Desc)], map: "idx_creators_followers")
+  @@index([creator_number], map: "idx_creators_number")
+  @@index([tier], map: "idx_creators_tier")
+  @@index([userId], map: "idx_creators_user")
+  @@map("creators")
+  @@schema("spotlight")
+}
+
+model SpotlightCategory {
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug       String       @unique @db.VarChar(100)
+  name       String       @db.VarChar(200)
+  order      Int          @default(0) @db.SmallInt
+  is_active  Boolean      @default(true) @map("is_active")
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  redcomments Redcomment[]
+
+  @@index([slug], map: "idx_spotlight_categories_slug")
+  @@map("spotlight_categories")
+  @@schema("spotlight")
+}
+
+model Redcomment {
+  id                    String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  redcommentNumber      String             @unique @map("redcomment_number") @db.VarChar(30)
+  creatorId             String             @map("creator_id") @db.Uuid
+  spotlight_category_id String?            @map("spotlight_category_id") @db.Uuid
+  format                redcomment_format
+  title                 String             @db.VarChar(300)
+  description           String?
+  video_url             String?
+  video_source          String?             @map("video_source") @db.VarChar(20)
+  videoDuration         Int?               @map("video_duration") @db.SmallInt
+  thumbnailUrl          String?            @map("thumbnail_url")
+  photo_urls            String[]
+  cover_image_url       String
+  targetType       target_type        @map("target_type")
+  target_id        String?            @db.Uuid
+  target_name      String             @db.VarChar(300)
+  target_tags      String[]
+  merchant_id      String?            @db.Uuid
+  overall_rating   Decimal            @db.Decimal(3, 1)
+  category_ratings Json?
+  seo_slug         String             @unique @db.VarChar(300)
+  seoTitle         String?            @map("seo_title") @db.VarChar(200)
+  seoDescription   String?            @map("seo_description") @db.VarChar(500)
+  seo_keywords     String[]
+  ai_transcript    String?
+  views            BigInt             @default(0)
+  likes            BigInt             @default(0)
+  shares           Int                @default(0)
+  comments_count   Int                @default(0)
+  saves            Int                @default(0)
+  clicks           Int                @default(0)
+  conversions      Int                @default(0)
+  revenue          BigInt             @default(0)
+  status           content_status     @default(DRAFT)
+  rejection_reason rejection_reason?
+  rejection_note   String?
+  moderator_id     String?            @db.Uuid
+  moderated_at     DateTime?          @db.Timestamptz(6)
+  is_sponsored     Boolean            @default(false)
+  sponsor_name     String?            @db.VarChar(200)
+  is_featured      Boolean            @default(false)
+  is_pinned        Boolean            @default(false)
+  metadata         Json?              @default("{}")
+  publishedAt      DateTime?          @map("published_at") @db.Timestamptz(6)
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  comments          Comment[]
+  creator_earnings  creator_earnings[]
+  cta_buttons       cta_buttons[]
+  creator           Creator            @relation(fields: [creatorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  merchants         merchants?         @relation(fields: [merchant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  spotlight_category SpotlightCategory? @relation(fields: [spotlight_category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  redcomment_regions RedcommentRegion[]
+  redcomment_saves   RedcommentSave[]
+
+  @@index([createdAt(sort: Desc)], map: "idx_redcomments_created")
+  @@index([spotlight_category_id], map: "idx_redcomments_category")
+  @@index([creatorId], map: "idx_redcomments_creator")
+  @@index([format], map: "idx_redcomments_format")
+  @@index([redcommentNumber], map: "idx_redcomments_number")
+  @@index([seo_slug], map: "idx_redcomments_slug")
+  @@index([status], map: "idx_redcomments_status")
+  @@index([targetType, target_id], map: "idx_redcomments_target")
+  @@index([title(ops: raw("gin_trgm_ops"))], map: "idx_redcomments_title_trgm", type: Gin)
+  @@index([views(sort: Desc)], map: "idx_redcomments_views")
+  @@map("redcomments")
+  @@schema("spotlight")
+}
+
+model Review {
+  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewNumber         String         @unique @map("review_number") @db.VarChar(30)
+  userId               String         @map("user_id") @db.Uuid
+  is_verified_purchase Boolean        @default(false)
+  targetType           target_type    @map("target_type")
+  targetId             String?        @map("target_id") @db.Uuid
+  target_name          String         @db.VarChar(300)
+  merchant_id          String?        @db.Uuid
+  overall_rating       Decimal        @db.Decimal(3, 1)
+  title                String?        @db.VarChar(200)
+  body                 String
+  photo_urls           String[]
+  video_url            String?
+  likes                Int            @default(0)
+  merchant_reply       String?
+  merchant_reply_at    DateTime?      @db.Timestamptz(6)
+  status               content_status @default(PENDING_REVIEW)
+  metadata             Json?          @default("{}")
+  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt            DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  merchants            merchants?     @relation(fields: [merchant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user                 User           @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([createdAt(sort: Desc)], map: "idx_reviews_created")
+  @@index([reviewNumber], map: "idx_reviews_number")
+  @@index([overall_rating(sort: Desc)], map: "idx_reviews_rating")
+  @@index([status], map: "idx_reviews_status")
+  @@index([targetType, targetId], map: "idx_reviews_target")
+  @@index([userId], map: "idx_reviews_user")
+  @@map("reviews")
+  @@schema("spotlight")
+}
+
+model Comment {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  redcommentId   String     @map("redcomment_id") @db.Uuid
+  userId         String     @map("user_id") @db.Uuid
+  parentId       String?    @map("parent_id") @db.Uuid
+  body           String
+  likes          Int        @default(0)
+  is_hidden      Boolean    @default(false)
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  comments       Comment?   @relation("commentsTocomments", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_comments Comment[]  @relation("commentsTocomments")
+  redcomment     Redcomment @relation(fields: [redcommentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user           User       @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([redcommentId], map: "idx_comments_redcomment")
+  @@index([userId], map: "idx_comments_user")
+  @@map("comments")
+  @@schema("spotlight")
+}
+
+model RedcommentRegion {
+  redcomment_id String   @map("redcomment_id") @db.Uuid
+  region_id     String   @map("region_id") @db.Uuid
+  redcomment    Redcomment @relation(fields: [redcomment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  region        Region     @relation(fields: [region_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([redcomment_id, region_id])
+  @@index([region_id], map: "idx_redcomment_regions_region")
+  @@map("redcomment_regions")
+  @@schema("spotlight")
+}
+
+model RedcommentSave {
+  user_id       String     @map("user_id") @db.Uuid
+  redcomment_id String     @map("redcomment_id") @db.Uuid
+  created_at    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  user          User       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  redcomment    Redcomment @relation(fields: [redcomment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([user_id, redcomment_id])
+  @@index([user_id], map: "idx_redcomment_saves_user")
+  @@index([redcomment_id], map: "idx_redcomment_saves_redcomment")
+  @@map("redcomment_saves")
+  @@schema("spotlight")
+}
+
+model CreatorFollow {
+  user_id    String   @map("user_id") @db.Uuid
+  creator_id String   @map("creator_id") @db.Uuid
+  created_at DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  creator    Creator  @relation(fields: [creator_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([user_id, creator_id])
+  @@index([user_id], map: "idx_creator_follows_user")
+  @@index([creator_id], map: "idx_creator_follows_creator")
+  @@map("creator_follows")
+  @@schema("spotlight")
+}
+
+model Wallet {
+  id                                                     String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                                                 String        @unique @map("user_id") @db.Uuid
+  walletNumber                                           String        @unique @map("wallet_number") @db.VarChar(30)
+  balance                                                BigInt        @default(0)
+  reserved_balance                                       BigInt        @default(0)
+  xu_balance                                             BigInt        @default(0)
+  xu_earned_total                                        BigInt        @default(0)
+  xu_spent_total                                         BigInt        @default(0)
+  daily_top_up_limit                                     BigInt        @default(50000000)
+  daily_payment_limit                                    BigInt        @default(100000000)
+  daily_withdrawal_limit                                 BigInt        @default(50000000)
+  daily_top_up_used                                      BigInt        @default(0)
+  daily_payment_used                                     BigInt        @default(0)
+  daily_withdrawal_used                                  BigInt        @default(0)
+  daily_reset_at                                         DateTime      @default(dbgenerated("CURRENT_DATE")) @db.Date
+  total_top_up                                           BigInt        @default(0)
+  total_payment                                          BigInt        @default(0)
+  total_withdrawal                                       BigInt        @default(0)
+  total_earned                                           BigInt        @default(0)
+  status                                                 wallet_status @default(ACTIVE)
+  kyc_level                                              ekyc_level    @default(LEVEL_0)
+  currency                                               currency      @default(VND)
+  metadata                                               Json?         @default("{}")
+  createdAt                                              DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                                              DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  transactions_transactions_recipient_wallet_idTowallets Transaction[] @relation("transactions_recipient_wallet_idTowallets")
+  transactions                                           Transaction[]
+  user                                                   User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([createdAt(sort: Desc)], map: "idx_wallets_created")
+  @@index([walletNumber], map: "idx_wallets_number")
+  @@index([status], map: "idx_wallets_status")
+  @@index([userId], map: "idx_wallets_user")
+  @@map("wallets")
+  @@schema("payment")
+}
+
+model Transaction {
+  id                                                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transactionRef                                    String             @unique @map("transaction_ref") @db.VarChar(50)
+  walletId                                          String             @map("wallet_id") @db.Uuid
+  user_id                                           String             @db.Uuid
+  recipient_wallet_id                               String?            @db.Uuid
+  recipient_user_id                                 String?            @db.Uuid
+  type                                              transaction_type
+  status                                            transaction_status @default(PENDING)
+  amount                                            BigInt
+  fee                                               BigInt             @default(0)
+  net_amount                                        BigInt
+  currency                                          currency           @default(VND)
+  balance_before                                    BigInt             @default(0)
+  balance_after                                     BigInt             @default(0)
+  payment_method                                    payment_method?
+  gateway_transaction_id                            String?            @db.VarChar(100)
+  gateway_response                                  Json?
+  order_id                                          String?            @db.Uuid
+  service_type                                      String?            @db.VarChar(50)
+  service_id                                        String?            @db.VarChar(100)
+  description                                       String
+  note                                              String?
+  metadata                                          Json?              @default("{}")
+  createdAt                                         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                                         DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  completed_at                                      DateTime?          @db.Timestamptz(6)
+  failed_at                                         DateTime?          @db.Timestamptz(6)
+  xu_amount                                         BigInt?            @default(0)
+  xu_expires_at                                     DateTime?          @db.Timestamptz(6)
+  users_transactions_recipient_user_idTousers       User?              @relation("transactions_recipient_user_idTousers", fields: [recipient_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  wallets_transactions_recipient_wallet_idTowallets Wallet?            @relation("transactions_recipient_wallet_idTowallets", fields: [recipient_wallet_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_transactions_user_idTousers                 User               @relation("transactions_user_idTousers", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  wallet                                            Wallet             @relation(fields: [walletId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([createdAt(sort: Desc)], map: "idx_txn_created")
+  @@index([payment_method], map: "idx_txn_method")
+  @@index([transactionRef], map: "idx_txn_ref")
+  @@index([service_type, service_id], map: "idx_txn_service")
+  @@index([status], map: "idx_txn_status")
+  @@index([type], map: "idx_txn_type")
+  @@index([user_id], map: "idx_txn_user")
+  @@index([user_id, type, status, createdAt(sort: Desc)], map: "idx_txn_user_type_status")
+  @@index([walletId], map: "idx_txn_wallet")
+  @@map("transactions")
+  @@schema("payment")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model social_connections {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String    @db.Uuid
+  provider      String    @db.VarChar(50)
+  provider_id   String    @db.VarChar(255)
+  email         String?   @db.VarChar(255)
+  name          String?   @db.VarChar(200)
+  avatar_url    String?
+  access_token  String?
+  refresh_token String?
+  expires_at    DateTime? @db.Timestamptz(6)
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime  @default(now()) @db.Timestamptz(6)
+  users         User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([provider, provider_id])
+  @@unique([user_id, provider])
+  @@index([provider, provider_id], map: "idx_social_connections_provider")
+  @@index([user_id], map: "idx_social_connections_user")
+  @@schema("core")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model driver_identities {
+  id                         String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driver_id                  String               @unique @db.Uuid
+  citizen_id                 String               @unique(map: "idx_driver_identities_citizen") @db.VarChar(20)
+  citizen_id_issue_date      DateTime             @db.Date
+  citizen_id_issue_place     String               @db.VarChar(200)
+  citizen_id_expiry          DateTime?            @db.Date
+  citizen_id_front_image     String
+  citizen_id_back_image      String
+  face_image                 String
+  ekyc_verified_at           DateTime?            @db.Timestamptz(6)
+  driver_license_number      String               @db.VarChar(50)
+  driver_license_class       driver_license_class
+  driver_license_issue_date  DateTime             @db.Date
+  driver_license_expiry      DateTime             @db.Date
+  driver_license_image       String
+  criminal_record_number     String               @db.VarChar(50)
+  criminal_record_issue_date DateTime             @db.Date
+  criminal_record_image      String
+  verification_status        verification_status  @default(PENDING)
+  verified_at                DateTime?            @db.Timestamptz(6)
+  verified_by                String?              @db.Uuid
+  rejection_reason           String?
+  created_at                 DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime             @default(now()) @db.Timestamptz(6)
+  drivers                    Driver               @relation(fields: [driver_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([driver_id], map: "idx_driver_identities_driver")
+  @@index([verification_status], map: "idx_driver_identities_status")
+  @@schema("driver")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model merchant_staff {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchant_id String    @db.Uuid
+  user_id     String    @db.Uuid
+  role        String    @default("STAFF") @db.VarChar(50)
+  permissions String[]  @default([])
+  is_active   Boolean   @default(true)
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime  @default(now()) @db.Timestamptz(6)
+  merchants   merchants @relation(fields: [merchant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users       User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([merchant_id, user_id])
+  @@index([merchant_id], map: "idx_merchant_staff_merchant")
+  @@index([user_id], map: "idx_merchant_staff_user")
+  @@schema("merchant")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model merchants {
+  id                       String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  owner_user_id            String           @db.Uuid
+  merchant_number          String           @unique @db.VarChar(20)
+  name                     String           @db.VarChar(200)
+  slug                     String           @unique @db.VarChar(200)
+  type                     merchant_type
+  description              String?
+  logo_url                 String?
+  cover_images             String[]
+  brand_color              String?          @db.VarChar(7)
+  phone                    String           @db.VarChar(20)
+  email                    String?          @db.VarChar(255)
+  street                   String           @db.VarChar(500)
+  ward                     String?          @db.VarChar(200)
+  district                 String           @db.VarChar(200)
+  city                     String           @db.VarChar(200)
+  country                  String           @default("Vietnam") @db.VarChar(100)
+  postal_code              String?          @db.VarChar(20)
+  latitude                 Decimal          @db.Decimal(10, 8)
+  longitude                Decimal          @db.Decimal(11, 8)
+  full_address             String
+  business_hours           Json             @default("{\"friday\": {\"isOpen\": true, \"openTime\": \"08:00\", \"closeTime\": \"22:00\"}, \"monday\": {\"isOpen\": true, \"openTime\": \"08:00\", \"closeTime\": \"22:00\"}, \"sunday\": {\"isOpen\": true, \"openTime\": \"09:00\", \"closeTime\": \"21:00\"}, \"tuesday\": {\"isOpen\": true, \"openTime\": \"08:00\", \"closeTime\": \"22:00\"}, \"saturday\": {\"isOpen\": true, \"openTime\": \"08:00\", \"closeTime\": \"22:00\"}, \"thursday\": {\"isOpen\": true, \"openTime\": \"08:00\", \"closeTime\": \"22:00\"}, \"wednesday\": {\"isOpen\": true, \"openTime\": \"08:00\", \"closeTime\": \"22:00\"}}")
+  rating_overall           Decimal          @default(0.00) @db.Decimal(3, 2)
+  rating_product_quality   Decimal          @default(0.00) @db.Decimal(3, 2)
+  rating_fulfillment_speed Decimal          @default(0.00) @db.Decimal(3, 2)
+  rating_service           Decimal          @default(0.00) @db.Decimal(3, 2)
+  total_reviews            Int              @default(0)
+  negative_rate            Decimal          @default(0.00) @db.Decimal(5, 2)
+  follower_count           Int              @default(0)
+  total_orders             Int              @default(0)
+  total_revenue            BigInt           @default(0)
+  status                   merchant_status  @default(PENDING)
+  is_verified              Boolean          @default(false)
+  is_premium               Boolean          @default(false)
+  verified_at              DateTime?        @db.Timestamptz(6)
+  verified_by              String?          @db.Uuid
+  rejection_reason         String?
+  seo_title                String?          @db.VarChar(200)
+  seo_description          String?          @db.VarChar(500)
+  seo_keywords             String[]
+  business_license_number  String?          @db.VarChar(50)
+  business_license_image   String?
+  tax_id                   String?          @db.VarChar(20)
+  bank_name                String?          @db.VarChar(200)
+  bank_branch              String?          @db.VarChar(200)
+  bank_account_number      String?          @db.VarChar(30)
+  bank_account_holder      String?          @db.VarChar(200)
+  commission_rate          Decimal          @default(15.00) @db.Decimal(5, 2)
+  metadata                 Json?            @default("{}")
+  created_at               DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime         @default(now()) @db.Timestamptz(6)
+  last_active_at           DateTime?        @default(now()) @db.Timestamptz(6)
+  deleted_at               DateTime?        @db.Timestamptz(6)
+  merchant_staff           merchant_staff[]
+  users                    User             @relation(fields: [owner_user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  redcomments              Redcomment[]
+  reviews                  Review[]
+  categories               Category[]
+  products                 Product[]
+  orders                   Order[]
+
+  @@index([city, district], map: "idx_merchants_city")
+  @@index([created_at(sort: Desc)], map: "idx_merchants_created")
+  @@index([name(ops: raw("gin_trgm_ops"))], map: "idx_merchants_name_trgm", type: Gin)
+  @@index([merchant_number], map: "idx_merchants_number")
+  @@index([owner_user_id], map: "idx_merchants_owner")
+  @@index([rating_overall(sort: Desc)], map: "idx_merchants_rating")
+  @@index([slug], map: "idx_merchants_slug")
+  @@index([status], map: "idx_merchants_status")
+  @@index([type], map: "idx_merchants_type")
+  @@schema("merchant")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model bank_accounts {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String    @db.Uuid
+  bank_name      String    @db.VarChar(200)
+  bank_code      String?   @db.VarChar(20)
+  branch         String?   @db.VarChar(200)
+  account_number String    @db.VarChar(30)
+  account_holder String    @db.VarChar(200)
+  is_default     Boolean   @default(false)
+  is_verified    Boolean   @default(false)
+  verified_at    DateTime? @db.Timestamptz(6)
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime  @default(now()) @db.Timestamptz(6)
+  users          User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_bank_accounts_user")
+  @@schema("payment")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model payment_callbacks {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transaction_ref String         @db.VarChar(50)
+  gateway         payment_method
+  raw_data        Json
+  signature_valid Boolean?
+  processed       Boolean        @default(false)
+  process_result  Json?
+  ip_address      String?        @db.Inet
+  received_at     DateTime       @default(now()) @db.Timestamptz(6)
+  processed_at    DateTime?      @db.Timestamptz(6)
+
+  @@index([gateway], map: "idx_callbacks_gateway")
+  @@index([transaction_ref], map: "idx_callbacks_ref")
+  @@schema("payment")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model creator_earnings {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  creator_id      String        @db.Uuid
+  redcomment_id   String?       @db.Uuid
+  earning_type    earning_type
+  amount          BigInt
+  description     String
+  order_id        String?       @db.Uuid
+  commission_rate Decimal?      @db.Decimal(5, 2)
+  payout_status   payout_status @default(PENDING)
+  paid_at         DateTime?     @db.Timestamptz(6)
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  creators        Creator       @relation(fields: [creator_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  redcomments     Redcomment?   @relation(fields: [redcomment_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([creator_id], map: "idx_earnings_creator")
+  @@index([payout_status], map: "idx_earnings_payout")
+  @@schema("spotlight")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model cta_buttons {
+  id                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  redcomment_id        String       @db.Uuid
+  text                 String       @db.VarChar(50)
+  action               cta_action
+  target_url           String?
+  position             cta_position @default(BOTTOM_RIGHT)
+  link_type            String?      @map("link_type") @db.VarChar(20)
+  price_display        String?      @map("price_display") @db.VarChar(50)
+  internal_product_id  String?      @map("internal_product_id") @db.Uuid
+  clicks               Int          @default(0)
+  conversions          Int          @default(0)
+  sort_order           Int          @default(0) @db.SmallInt
+  created_at           DateTime     @default(now()) @db.Timestamptz(6)
+  redcomments          Redcomment   @relation(fields: [redcomment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([redcomment_id], map: "idx_cta_redcomment")
+  @@schema("spotlight")
+}
+
+enum ekyc_level {
+  LEVEL_0
+  LEVEL_1
+  LEVEL_2
+  LEVEL_3
+
+  @@schema("core")
+}
+
+enum gender {
+  MALE
+  FEMALE
+  OTHER
+
+  @@schema("core")
+}
+
+enum theme_preference {
+  LIGHT
+  DARK
+  AUTO
+
+  @@schema("core")
+}
+
+enum user_role {
+  CUSTOMER
+  DRIVER
+  RESTAURANT_OWNER
+  SELLER
+  ADMIN
+  ADMIN_TRANSPORT
+  ADMIN_MARKETING
+  ADMIN_INSURANCE
+  SUPERVISOR
+  CSKH
+  ACCOUNTANT
+
+  @@schema("core")
+}
+
+enum verification_status {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+
+  @@schema("core")
+}
+
+enum booking_status {
+  SEARCHING_DRIVER
+  DRIVER_ASSIGNED
+  DRIVER_ACCEPTED
+  DRIVER_ARRIVING
+  PICKED_UP
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_DRIVER_FOUND
+
+  @@schema("driver")
+}
+
+enum driver_license_class {
+  A1
+  A2
+  B1
+  B2
+  C
+  D
+  E
+  F
+
+  @@schema("driver")
+}
+
+enum driver_status {
+  PENDING_VERIFICATION
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  BANNED
+
+  @@schema("driver")
+}
+
+enum online_status {
+  ONLINE
+  OFFLINE
+  BUSY
+
+  @@schema("driver")
+}
+
+enum vehicle_type {
+  BIKE
+  CAR_4_SEATS
+  CAR_7_SEATS
+  TRUCK
+
+  @@schema("driver")
+}
+
+enum merchant_status {
+  PENDING
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  REJECTED
+
+  @@schema("merchant")
+}
+
+enum merchant_type {
+  RESTAURANT
+  CAFE
+  FOOD_STALL
+  SUPERMARKET
+  CONVENIENCE_STORE
+  GROCERY
+  BAKERY
+  PHARMACY
+  FASHION
+  ELECTRONICS
+  BEAUTY
+  HOME_GARDEN
+  BOOKS
+  TOYS
+  SPORTS
+  OTHER
+
+  @@schema("merchant")
+}
+
+enum currency {
+  VND
+  USD
+
+  @@schema("payment")
+}
+
+enum payment_method {
+  WALLET
+  VNPAY
+  MOMO
+  ZALOPAY
+  SHOPEEPAY
+  STRIPE
+  BANK_TRANSFER
+  COD
+  XU
+
+  @@schema("payment")
+}
+
+enum transaction_status {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+
+  @@schema("payment")
+}
+
+enum transaction_type {
+  TOP_UP
+  PAYMENT
+  WITHDRAWAL
+  REFUND
+  TRANSFER
+  COMMISSION
+  XU_EARN
+  XU_SPEND
+  XU_EXPIRED
+  BONUS
+  FEE
+  ADMIN_ADJUST
+
+  @@schema("payment")
+}
+
+enum wallet_status {
+  ACTIVE
+  FROZEN
+  SUSPENDED
+  CLOSED
+
+  @@schema("payment")
+}
+
+enum content_status {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  HIDDEN
+
+  @@schema("spotlight")
+}
+
+enum content_type {
+  REDCOMMENT
+  REVIEW
+
+  @@schema("spotlight")
+}
+
+enum creator_tier {
+  NEWCOMER
+  RISING
+  ESTABLISHED
+  INFLUENCER
+  CELEBRITY
+
+  @@schema("spotlight")
+}
+
+enum cta_action {
+  BOOK
+  CONSULT
+  BUY
+  CALL
+  EXTERNAL_LINK
+
+  @@schema("spotlight")
+}
+
+enum cta_position {
+  TOP_RIGHT
+  BOTTOM_RIGHT
+  BOTTOM_CENTER
+
+  @@schema("spotlight")
+}
+
+enum earning_type {
+  CONTENT_FEE
+  AFFILIATE_COMMISSION
+  BONUS
+  TIP
+
+  @@schema("spotlight")
+}
+
+enum payout_status {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+
+  @@schema("spotlight")
+}
+
+enum redcomment_format {
+  VIDEO_REEL
+  ARTICLE
+  PHOTO_ESSAY
+  COMPARISON
+
+  @@schema("spotlight")
+}
+
+enum rejection_reason {
+  INAPPROPRIATE_CONTENT
+  FALSE_INFORMATION
+  POOR_QUALITY
+  COPYRIGHT_VIOLATION
+  SPAM
+  OFFENSIVE_LANGUAGE
+
+  @@schema("spotlight")
+}
+
+enum target_type {
+  PRODUCT
+  RESTAURANT
+  CAFE
+  HOTEL
+  TRAVEL
+  INSURANCE
+  EVENT
+  EXPERIENCE
+
+  @@schema("spotlight")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MERCHANT: Category, Product, Order, OrderItem
+// ══════════════════════════════════════════════════════════════════════════════
+
+model Category {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId  String    @map("merchant_id") @db.Uuid
+  name        String    @db.VarChar(200)
+  slug        String    @db.VarChar(200)
+  description String?
+  imageUrl    String?   @map("image_url")
+  sortOrder   Int       @default(0) @map("sort_order") @db.SmallInt
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  merchant    merchants @relation(fields: [merchantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  products    Product[]
+
+  @@unique([merchantId, slug])
+  @@index([merchantId], map: "idx_categories_merchant")
+  @@map("categories")
+  @@schema("merchant")
+}
+
+model Product {
+  id                 String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId         String      @map("merchant_id") @db.Uuid
+  categoryId         String?     @map("category_id") @db.Uuid
+  sku                String      @unique @db.VarChar(50)
+  name               String      @db.VarChar(300)
+  slug               String      @db.VarChar(300)
+  description        String?
+  price              BigInt
+  comparePrice       BigInt?     @map("compare_price")
+  currency           String      @default("VND") @db.VarChar(10)
+  images             String[]
+  thumbnailUrl       String?     @map("thumbnail_url")
+  stock              Int         @default(0)
+  isAvailable        Boolean     @default(true) @map("is_available")
+  isActive           Boolean     @default(true) @map("is_active")
+  rating             Decimal     @default(0.00) @db.Decimal(3, 2)
+  totalReviews       Int         @default(0) @map("total_reviews")
+  totalSold          Int         @default(0) @map("total_sold")
+  preparationTimeMin Int?        @map("preparation_time_min")
+  tags               String[]    @default([])
+  options            Json?       @default("[]")
+  metadata           Json?       @default("{}")
+  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  merchant           merchants   @relation(fields: [merchantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  category           Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  orderItems         OrderItem[]
+
+  @@unique([merchantId, slug])
+  @@index([merchantId], map: "idx_products_merchant")
+  @@index([categoryId], map: "idx_products_category")
+  @@index([price], map: "idx_products_price")
+  @@map("products")
+  @@schema("merchant")
+}
+
+model Order {
+  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderNumber          String          @unique @map("order_number") @db.VarChar(30)
+  userId               String          @map("user_id") @db.Uuid
+  merchantId           String          @map("merchant_id") @db.Uuid
+  type                 order_type
+  status               order_status    @default(PENDING)
+  subtotal             BigInt
+  deliveryFee          BigInt          @default(0) @map("delivery_fee")
+  discount             BigInt          @default(0)
+  totalAmount          BigInt          @map("total_amount")
+  currency             String          @default("VND") @db.VarChar(10)
+  paymentMethod        payment_method? @map("payment_method")
+  paymentStatus        payment_order_status @default(UNPAID) @map("payment_status")
+  deliveryAddress      String?         @map("delivery_address")
+  deliveryLat          Decimal?        @map("delivery_lat") @db.Decimal(10, 8)
+  deliveryLng          Decimal?        @map("delivery_lng") @db.Decimal(11, 8)
+  deliveryNote         String?         @map("delivery_note")
+  estimatedDeliveryMin Int?            @map("estimated_delivery_min")
+  driverId             String?         @map("driver_id") @db.Uuid
+  note                 String?
+  cancelReason         String?         @map("cancel_reason")
+  rating               Decimal?        @db.Decimal(3, 1)
+  ratingComment        String?         @map("rating_comment")
+  confirmedAt          DateTime?       @map("confirmed_at") @db.Timestamptz(6)
+  preparingAt          DateTime?       @map("preparing_at") @db.Timestamptz(6)
+  readyAt              DateTime?       @map("ready_at") @db.Timestamptz(6)
+  pickedUpAt           DateTime?       @map("picked_up_at") @db.Timestamptz(6)
+  deliveredAt          DateTime?       @map("delivered_at") @db.Timestamptz(6)
+  cancelledAt          DateTime?       @map("cancelled_at") @db.Timestamptz(6)
+  metadata             Json?           @default("{}")
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  merchant             merchants       @relation(fields: [merchantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  items                OrderItem[]
+
+  @@index([userId], map: "idx_orders_user")
+  @@index([merchantId], map: "idx_orders_merchant")
+  @@index([status], map: "idx_orders_status")
+  @@index([orderNumber], map: "idx_orders_number")
+  @@index([createdAt(sort: Desc)], map: "idx_orders_created")
+  @@map("orders")
+  @@schema("merchant")
+}
+
+model OrderItem {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId    String  @map("order_id") @db.Uuid
+  productId  String  @map("product_id") @db.Uuid
+  name       String  @db.VarChar(300)
+  price      BigInt
+  quantity   Int
+  totalPrice BigInt  @map("total_price")
+  options    Json?   @default("{}")
+  note       String?
+  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  product    Product @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([orderId], map: "idx_order_items_order")
+  @@map("order_items")
+  @@schema("merchant")
+}
+
+enum order_type {
+  FOOD_DELIVERY
+  SHOPPING
+  PICKUP
+
+  @@schema("merchant")
+}
+
+enum order_status {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  PICKED_UP
+  DELIVERING
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+
+  @@schema("merchant")
+}
+
+enum payment_order_status {
+  UNPAID
+  PAID
+  REFUNDED
+  PARTIAL_REFUND
+
+  @@schema("merchant")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CORE: Notification, Coupon, Referral
+// ══════════════════════════════════════════════════════════════════════════════
+
+model AuditLog {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  userEmail  String    @map("user_email") @db.VarChar(255)
+  action     String    @db.VarChar(50)
+  resource   String    @db.VarChar(100)
+  resourceId String?   @map("resource_id") @db.VarChar(100)
+  details    Json?     @default("{}")
+  ipAddress  String?   @map("ip_address") @db.VarChar(45)
+  userAgent  String?   @map("user_agent") @db.VarChar(500)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([userId], map: "idx_audit_logs_user")
+  @@index([action], map: "idx_audit_logs_action")
+  @@index([resource], map: "idx_audit_logs_resource")
+  @@index([createdAt(sort: Desc)], map: "idx_audit_logs_created")
+  @@map("audit_logs")
+  @@schema("core")
+}
+
+model Notification {
+  id        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String            @map("user_id") @db.Uuid
+  type      notification_type
+  title     String            @db.VarChar(200)
+  body      String
+  imageUrl  String?           @map("image_url")
+  data      Json?             @default("{}")
+  isRead    Boolean           @default(false) @map("is_read")
+  readAt    DateTime?         @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([userId, isRead], map: "idx_notifications_user_read")
+  @@index([createdAt(sort: Desc)], map: "idx_notifications_created")
+  @@map("notifications")
+  @@schema("core")
+}
+
+/// Khu vực địa lý - dùng cho quản lý dịch vụ gọi xe, food, bách hóa
+model Region {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code       String           @unique @db.VarChar(50)
+  name       String           @db.VarChar(200)
+  level      region_level
+  parent_id  String?          @map("parent_id") @db.Uuid
+  province   String?          @db.VarChar(100)
+  city       String?          @db.VarChar(100)
+  district   String?          @db.VarChar(100)
+  is_active  Boolean          @default(true) @map("is_active")
+  metadata   Json?            @default("{}")
+  created_at DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  parent   Region?              @relation("RegionHierarchy", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children Region[]             @relation("RegionHierarchy")
+  services RegionServiceConfig[]
+  franchise_regions FranchiseRegion[]
+  pricing_table_regions PricingTableRegion[]
+  redcomment_regions RedcommentRegion[]
+
+  @@index([level], map: "idx_regions_level")
+  @@index([parent_id], map: "idx_regions_parent")
+  @@index([is_active], map: "idx_regions_active")
+  @@map("regions")
+  @@schema("core")
+}
+
+/// Cấu hình dịch vụ theo vùng: vùng nào có dịch vụ TRANSPORT/FOOD/GROCERY
+model RegionServiceConfig {
+  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  region_id      String              @map("region_id") @db.Uuid
+  service_type   region_service_type @map("service_type")
+  is_active      Boolean             @default(true) @map("is_active")
+  effective_from DateTime            @map("effective_from") @db.Timestamptz(6)
+  effective_to   DateTime?           @map("effective_to") @db.Timestamptz(6)
+  created_at     DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at     DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  region Region @relation(fields: [region_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([region_id, service_type], map: "uq_region_service")
+  @@index([region_id], map: "idx_region_service_region")
+  @@index([service_type], map: "idx_region_service_type")
+  @@map("region_service_config")
+  @@schema("core")
+}
+
+/// Đối tác nhượng quyền
+model FranchisePartner {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                String   @unique @db.VarChar(30)
+  name                String   @db.VarChar(200)
+  contact_email       String?  @map("contact_email") @db.VarChar(255)
+  contact_phone      String?  @map("contact_phone") @db.VarChar(20)
+  status              franchise_status @default(PENDING)
+  contract_signed_at  DateTime? @map("contract_signed_at") @db.Date
+  contract_expires_at DateTime? @map("contract_expires_at") @db.Date
+  metadata            Json?    @default("{}")
+  created_at          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  regions FranchiseRegion[]
+
+  @@index([status], map: "idx_franchise_status")
+  @@map("franchise_partners")
+  @@schema("core")
+}
+
+/// Đối tác nhượng quyền quản lý vùng nào, dịch vụ gì
+model FranchiseRegion {
+  id                   String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  franchise_partner_id String              @map("franchise_partner_id") @db.Uuid
+  region_id            String              @map("region_id") @db.Uuid
+  service_type         region_service_type @map("service_type")
+  is_active            Boolean             @default(true) @map("is_active")
+  created_at           DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at           DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  franchise_partner FranchisePartner @relation(fields: [franchise_partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  region            Region           @relation(fields: [region_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([franchise_partner_id, region_id, service_type], map: "uq_franchise_region")
+  @@index([franchise_partner_id], map: "idx_franchise_region_partner")
+  @@index([region_id], map: "idx_franchise_region_region")
+  @@map("franchise_regions")
+  @@schema("core")
+}
+
+/// Bảng giá - mỗi bảng có thể áp dụng cho 1 hoặc nhiều vùng địa lý
+model PricingTable {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code           String    @unique @db.VarChar(50)
+  name           String    @db.VarChar(200)
+  service_type   pricing_service_type @map("service_type")
+  effective_from DateTime  @map("effective_from") @db.Timestamptz(6)
+  effective_to   DateTime? @map("effective_to") @db.Timestamptz(6)
+  is_active      Boolean   @default(true) @map("is_active")
+  created_at     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  regions   PricingTableRegion[]
+  params    PricingParam[]
+  delivery_params DeliveryPricingParam[]
+
+  @@index([service_type], map: "idx_pricing_table_service")
+  @@index([is_active], map: "idx_pricing_table_active")
+  @@map("pricing_tables")
+  @@schema("core")
+}
+
+/// Bảng giá áp dụng cho vùng nào
+model PricingTableRegion {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pricing_table_id String       @map("pricing_table_id") @db.Uuid
+  region_id        String       @map("region_id") @db.Uuid
+  created_at      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  pricing_table PricingTable @relation(fields: [pricing_table_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  region        Region       @relation(fields: [region_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([pricing_table_id, region_id], map: "uq_pricing_table_region")
+  @@index([pricing_table_id], map: "idx_pricing_table_region_table")
+  @@index([region_id], map: "idx_pricing_table_region_region")
+  @@map("pricing_table_regions")
+  @@schema("core")
+}
+
+/// Tham số định giá GỌI XE (base_fare, per_km, per_min...)
+/// factors Json: { surgeEnabled, surgeMax, weatherEnabled, weatherMultiplier, trafficEnabled, trafficMultiplier }
+model PricingParam {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pricing_table_id String   @map("pricing_table_id") @db.Uuid
+  vehicle_type     String   @map("vehicle_type") @db.VarChar(30)
+  base_fare        BigInt   @map("base_fare")
+  per_km           BigInt   @map("per_km")
+  per_min          BigInt   @map("per_min")
+  min_fare         BigInt   @map("min_fare")
+  factors          Json?    @default("{}")
+  is_active        Boolean  @default(true) @map("is_active")
+  created_at       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  pricing_table PricingTable @relation(fields: [pricing_table_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([pricing_table_id, vehicle_type], map: "uq_pricing_param_table_vehicle")
+  @@index([pricing_table_id], map: "idx_pricing_param_table")
+  @@map("pricing_params")
+  @@schema("core")
+}
+
+/// Tham số định giá GIAO HÀNG: theo kg, CBM (D×R×C)/6000, size S/M/L/XL/BULKY
+/// Công thức: chargeable_kg = max(actual_kg, volumetric_kg); volumetric_kg = (D×R×C)/cbm_divisor
+model DeliveryPricingParam {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pricing_table_id String   @map("pricing_table_id") @db.Uuid
+  size_tier        delivery_size_tier @map("size_tier")
+  base_fee         BigInt   @map("base_fee")
+  per_kg           BigInt   @map("per_kg")
+  cbm_divisor      Int      @default(6000) @map("cbm_divisor")
+  factors          Json?    @default("{}")
+  is_active        Boolean  @default(true) @map("is_active")
+  created_at       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  pricing_table PricingTable @relation(fields: [pricing_table_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([pricing_table_id, size_tier], map: "uq_delivery_param_table_size")
+  @@index([pricing_table_id], map: "idx_delivery_param_table")
+  @@map("delivery_pricing_params")
+  @@schema("core")
+}
+
+enum delivery_size_tier {
+  S
+  M
+  L
+  XL
+  BULKY
+
+  @@schema("core")
+}
+
+enum pricing_service_type {
+  TRANSPORT
+  DELIVERY
+
+  @@schema("core")
+}
+
+enum region_level {
+  PROVINCE
+  DISTRICT
+  AREA
+
+  @@schema("core")
+}
+
+enum region_service_type {
+  TRANSPORT
+  FOOD
+  GROCERY
+
+  @@schema("core")
+}
+
+enum franchise_status {
+  ACTIVE
+  INACTIVE
+  PENDING
+
+  @@schema("core")
+}
+
+model legal_documents {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug            String    @db.VarChar(100)
+  locale          String    @default("vi") @db.VarChar(10)
+  title           String    @db.VarChar(300)
+  content         String
+  version         Int       @default(1)
+  effectiveFrom   DateTime  @map("effective_from") @db.Timestamptz(6)
+  effectiveTo     DateTime? @map("effective_to") @db.Timestamptz(6)
+  isActive        Boolean   @default(true) @map("is_active")
+  targetApps      String?   @map("target_apps") @db.VarChar(100)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([slug, locale], map: "uq_legal_documents_slug_locale")
+  @@index([slug, locale, effectiveFrom, effectiveTo], map: "idx_legal_documents_lookup")
+  @@index([effectiveFrom], map: "idx_legal_documents_effective")
+  @@map("legal_documents")
+  @@schema("core")
+}
+
+model training_category {
+  id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String             @unique @db.VarChar(100)
+  name        String             @db.VarChar(200)
+  description String?
+  sortOrder   Int                @default(0) @map("sort_order")
+  isActive    Boolean            @default(true) @map("is_active")
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  materials   training_material[]
+
+  @@index([sortOrder], map: "idx_training_category_sort")
+  @@map("training_categories")
+  @@schema("core")
+}
+
+model training_material {
+  id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryId   String            @map("category_id") @db.Uuid
+  slug         String            @db.VarChar(150)
+  title        String            @db.VarChar(300)
+  content      String
+  materialType training_material_type @map("material_type")
+  targetApps   String?           @map("target_apps") @db.VarChar(100)
+  sortOrder    Int               @default(0) @map("sort_order")
+  isPublished  Boolean           @default(false) @map("is_published")
+  publishedAt  DateTime?         @map("published_at") @db.Timestamptz(6)
+  locale       String            @default("vi") @db.VarChar(10)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  category     training_category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, slug, locale], map: "uq_training_material_category_slug_locale")
+  @@index([categoryId], map: "idx_training_material_category")
+  @@index([materialType], map: "idx_training_material_type")
+  @@map("training_materials")
+  @@schema("core")
+}
+
+enum training_material_type {
+  ARTICLE
+  QUIZ
+  FAQ
+
+  @@schema("core")
+}
+
+model news_article {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug           String    @unique @db.VarChar(200)
+  title          String    @db.VarChar(300)
+  excerpt        String?
+  content        String
+  featuredImage  String?   @map("featured_image") @db.VarChar(500)
+  seoTitle       String?   @map("seo_title") @db.VarChar(200)
+  seoDescription String?   @map("seo_description") @db.VarChar(400)
+  targetApps     String?   @map("target_apps") @db.VarChar(100)
+  isPublished    Boolean   @default(false) @map("is_published")
+  publishedAt    DateTime? @map("published_at") @db.Timestamptz(6)
+  locale         String    @default("vi") @db.VarChar(10)
+  author         String?   @db.VarChar(100)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([publishedAt(sort: Desc)], map: "idx_news_article_published")
+  @@index([slug], map: "idx_news_article_slug")
+  @@map("news_articles")
+  @@schema("core")
+}
+
+enum notification_type {
+  SYSTEM
+  BOOKING
+  ORDER
+  PAYMENT
+  PROMOTION
+  CHAT
+  REVIEW
+  SPOTLIGHT_COMMENT
+  SPOTLIGHT_NEW_VIDEO
+
+  @@schema("core")
+}
+
+model Coupon {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code           String        @unique @db.VarChar(30)
+  title          String        @db.VarChar(200)
+  description    String?
+  discountType   discount_type @map("discount_type")
+  discountValue  BigInt        @map("discount_value")
+  maxDiscount    BigInt?       @map("max_discount")
+  minOrderAmount BigInt?       @map("min_order_amount")
+  usageLimit     Int?          @map("usage_limit")
+  usedCount      Int           @default(0) @map("used_count")
+  perUserLimit   Int           @default(1) @map("per_user_limit")
+  applicableTo   String[]      @default([]) @map("applicable_to")
+  startDate      DateTime      @map("start_date") @db.Timestamptz(6)
+  endDate        DateTime      @map("end_date") @db.Timestamptz(6)
+  isActive       Boolean       @default(true) @map("is_active")
+  metadata       Json?         @default("{}")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([code], map: "idx_coupons_code")
+  @@index([endDate], map: "idx_coupons_end_date")
+  @@map("coupons")
+  @@schema("core")
+}
+
+model Campaign {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String           @db.VarChar(200)
+  description String?
+  status      campaign_status  @default(DRAFT)
+  startDate   DateTime         @map("start_date") @db.Timestamptz(6)
+  endDate     DateTime         @map("end_date") @db.Timestamptz(6)
+  budget      BigInt?          @db.BigInt
+  metadata    Json?            @default("{}")
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status], map: "idx_campaigns_status")
+  @@index([startDate, endDate], map: "idx_campaigns_dates")
+  @@map("campaigns")
+  @@schema("core")
+}
+
+enum campaign_status {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ENDED
+
+  @@schema("core")
+}
+
+enum discount_type {
+  PERCENTAGE
+  FIXED_AMOUNT
+
+  @@schema("core")
+}
+
+model Referral {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  referrerId     String    @map("referrer_id") @db.Uuid
+  refereeId      String    @map("referee_id") @db.Uuid
+  referralCode   String    @map("referral_code") @db.VarChar(20)
+  referrerReward BigInt    @default(0) @map("referrer_reward")
+  refereeReward  BigInt    @default(0) @map("referee_reward")
+  status         String    @default("PENDING") @db.VarChar(20)
+  completedAt    DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  referrer User @relation("ReferralReferrer", fields: [referrerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  referee  User @relation("ReferralReferee", fields: [refereeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([referrerId], map: "idx_referrals_referrer")
+  @@index([refereeId], map: "idx_referrals_referee")
+  @@map("referrals")
+  @@schema("core")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LUCKY WHEEL: Vòng quay may mắn – khuyến mãi động cho Tài xế & User
+// ══════════════════════════════════════════════════════════════════════════════
+
+model LuckyWheelCampaign {
+  id                       String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                     String                  @db.VarChar(200)
+  description              String?
+  status                   lucky_wheel_campaign_status @default(DRAFT)
+  startDate                DateTime                @map("start_date") @db.Timestamptz(6)
+  endDate                  DateTime                @map("end_date") @db.Timestamptz(6)
+  budget                   BigInt                  @default(0)
+  budgetUsed               BigInt                  @default(0) @map("budget_used")
+  driverRevenuePerSpin     Int                     @default(100000) @map("driver_revenue_per_spin")
+  userTopUpPerSpin         Int                     @default(500000) @map("user_top_up_per_spin")
+  userOrderPerSpin         Int                     @default(1) @map("user_order_per_spin")
+  metadata                 Json?                   @default("{}")
+  createdAt                DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  prizes                   LuckyWheelPrize[]
+  creditGrants             LuckyWheelCreditGrant[]
+  spins                    LuckyWheelSpin[]
+  creditBalances           LuckyWheelCreditBalance[]
+
+  @@index([status], map: "idx_lw_campaigns_status")
+  @@index([startDate, endDate], map: "idx_lw_campaigns_dates")
+  @@map("lucky_wheel_campaigns")
+  @@schema("core")
+}
+
+enum lucky_wheel_campaign_status {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ENDED
+
+  @@schema("core")
+}
+
+enum lucky_wheel_prize_type {
+  VOUCHER
+  WALLET_CREDIT
+  PHYSICAL_GOODS
+  NO_PRIZE
+
+  @@schema("core")
+}
+
+model LuckyWheelPrize {
+  id               String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId       String                 @map("campaign_id") @db.Uuid
+  name             String                 @db.VarChar(200)
+  type             lucky_wheel_prize_type
+  weight           Int                    @default(1)
+  quantity         Int?                   @map("quantity")
+  quantityGiven    Int                    @default(0) @map("quantity_given")
+  valueJson        Json?                   @map("value_json")
+  metadata         Json?                   @default("{}")
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  campaign         LuckyWheelCampaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  spins            LuckyWheelSpin[]
+
+  @@index([campaignId], map: "idx_lw_prizes_campaign")
+  @@map("lucky_wheel_prizes")
+  @@schema("core")
+}
+
+enum lucky_wheel_credit_source {
+  BOOKING_REVENUE
+  ORDER
+  TOP_UP
+
+  @@schema("core")
+}
+
+model LuckyWheelCreditGrant {
+  id               String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId       String                    @map("campaign_id") @db.Uuid
+  userId           String                    @map("user_id") @db.Uuid
+  participantType  lucky_wheel_participant   @map("participant_type")
+  source           lucky_wheel_credit_source
+  sourceId         String?                   @map("source_id") @db.VarChar(100)
+  amount           BigInt                    @default(0)
+  creditsGranted   Int                       @map("credits_granted")
+  createdAt        DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  campaign         LuckyWheelCampaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([campaignId, userId], map: "idx_lw_credit_grants_campaign_user")
+  @@index([source, sourceId], map: "idx_lw_credit_grants_source")
+  @@map("lucky_wheel_credit_grants")
+  @@schema("core")
+}
+
+enum lucky_wheel_participant {
+  USER
+  DRIVER
+
+  @@schema("core")
+}
+
+model LuckyWheelCreditBalance {
+  id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId       String                @map("campaign_id") @db.Uuid
+  userId           String                @map("user_id") @db.Uuid
+  participantType  lucky_wheel_participant @map("participant_type")
+  balance          Int                    @default(0)
+  updatedAt        DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  campaign         LuckyWheelCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([campaignId, userId, participantType], map: "uq_lw_credit_balance_campaign_user")
+  @@index([campaignId], map: "idx_lw_credit_balances_campaign")
+  @@map("lucky_wheel_credit_balances")
+  @@schema("core")
+}
+
+model LuckyWheelSpin {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId       String             @map("campaign_id") @db.Uuid
+  userId           String             @map("user_id") @db.Uuid
+  participantType  lucky_wheel_participant @map("participant_type")
+  prizeId          String?            @map("prize_id") @db.Uuid
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  campaign         LuckyWheelCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  prize            LuckyWheelPrize?   @relation(fields: [prizeId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([campaignId], map: "idx_lw_spins_campaign")
+  @@index([userId, campaignId], map: "idx_lw_spins_user_campaign")
+  @@index([createdAt(sort: Desc)], map: "idx_lw_spins_created")
+  @@map("lucky_wheel_spins")
+  @@schema("core")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RUN TO EARN: Chạy kiếm tiền (chỉ App User)
+// ══════════════════════════════════════════════════════════════════════════════
+
+model RunToEarnCampaign {
+  id                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String                   @db.VarChar(200)
+  description       String?                  @db.Text
+  status            run_to_earn_status       @default(DRAFT)
+  startDate         DateTime                 @map("start_date") @db.Timestamptz(6)
+  endDate           DateTime                 @map("end_date") @db.Timestamptz(6)
+  stepsPerXu        Int                      @default(1000) @map("steps_per_xu")
+  budget            BigInt                   @default(0)
+  budgetUsed        BigInt                   @default(0) @map("budget_used")
+  metadata          Json?                    @default("{}")
+  createdAt         DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  prizes            RunToEarnPrize[]
+  participations    RunToEarnParticipation[]
+
+  @@index([status], map: "idx_rte_campaigns_status")
+  @@index([startDate, endDate], map: "idx_rte_campaigns_dates")
+  @@map("run_to_earn_campaigns")
+  @@schema("core")
+}
+
+enum run_to_earn_status {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ENDED
+
+  @@schema("core")
+}
+
+model RunToEarnPrize {
+  id          String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId  String               @map("campaign_id") @db.Uuid
+  name        String               @db.VarChar(200)
+  type        run_to_earn_prize_type
+  rankFrom    Int                  @map("rank_from")
+  rankTo      Int                  @map("rank_to")
+  xuAmount    Int?                 @map("xu_amount")
+  couponId    String?              @map("coupon_id") @db.Uuid
+  valueJson   Json?                @map("value_json")
+  quantity    Int                  @default(1)
+  quantityGiven Int                @default(0) @map("quantity_given")
+  campaign    RunToEarnCampaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([campaignId], map: "idx_rte_prizes_campaign")
+  @@map("run_to_earn_prizes")
+  @@schema("core")
+}
+
+enum run_to_earn_prize_type {
+  XU
+  VOUCHER
+  PHYSICAL_GOODS
+
+  @@schema("core")
+}
+
+model RunToEarnParticipation {
+  id          String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaignId  String               @map("campaign_id") @db.Uuid
+  userId      String               @map("user_id") @db.Uuid
+  totalSteps  Int                  @default(0) @map("total_steps")
+  rank        Int?                 @map("rank")
+  prizeId     String?              @map("prize_id") @db.Uuid
+  xuEarned    Int                  @default(0) @map("xu_earned")
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  campaign    RunToEarnCampaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([campaignId, userId], map: "uq_rte_participation_campaign_user")
+  @@index([campaignId], map: "idx_rte_participation_campaign")
+  @@index([userId], map: "idx_rte_participation_user")
+  @@map("run_to_earn_participations")
+  @@schema("core")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INSURANCE: Products, Policies, Claims
+// ══════════════════════════════════════════════════════════════════════════════
+
+model InsuranceProduct {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productCode     String             @unique @map("product_code") @db.VarChar(30)
+  name            String             @db.VarChar(300)
+  type            insurance_type
+  provider        String             @db.VarChar(200)
+  description     String?
+  coverageDetails Json?              @map("coverage_details") @default("{}")
+  premiumMonthly  BigInt             @map("premium_monthly")
+  premiumYearly   BigInt             @map("premium_yearly")
+  coverageAmount  BigInt             @map("coverage_amount")
+  currency        String             @default("VND") @db.VarChar(10)
+  termMonths      Int                @map("term_months")
+  minAge          Int?               @map("min_age")
+  maxAge          Int?               @map("max_age")
+  isActive        Boolean            @default(true) @map("is_active")
+  metadata        Json?              @default("{}")
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  policies        InsurancePolicy[]
+
+  @@index([type], map: "idx_ins_products_type")
+  @@map("insurance_products")
+  @@schema("insurance")
+}
+
+model InsurancePolicy {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  policyNumber     String           @unique @map("policy_number") @db.VarChar(30)
+  userId           String           @map("user_id") @db.Uuid
+  productId        String           @map("product_id") @db.Uuid
+  status           policy_status    @default(PENDING)
+  premiumAmount    BigInt           @map("premium_amount")
+  coverageAmount   BigInt           @map("coverage_amount")
+  currency         String           @default("VND") @db.VarChar(10)
+  startDate        DateTime         @map("start_date") @db.Date
+  endDate          DateTime         @map("end_date") @db.Date
+  beneficiaryName  String?          @map("beneficiary_name") @db.VarChar(200)
+  beneficiaryPhone String?          @map("beneficiary_phone") @db.VarChar(20)
+  metadata         Json?            @default("{}")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  product          InsuranceProduct @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  claims           InsuranceClaim[]
+
+  @@index([userId], map: "idx_ins_policies_user")
+  @@index([status], map: "idx_ins_policies_status")
+  @@map("insurance_policies")
+  @@schema("insurance")
+}
+
+model InsuranceClaim {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  claimNumber   String          @unique @map("claim_number") @db.VarChar(30)
+  policyId      String          @map("policy_id") @db.Uuid
+  userId        String          @map("user_id") @db.Uuid
+  status        claim_status    @default(SUBMITTED)
+  claimAmount   BigInt          @map("claim_amount")
+  approvedAmount BigInt?        @map("approved_amount")
+  currency      String          @default("VND") @db.VarChar(10)
+  reason        String
+  description   String?
+  documents     String[]        @default([])
+  reviewNote    String?         @map("review_note")
+  reviewedAt    DateTime?       @map("reviewed_at") @db.Timestamptz(6)
+  paidAt        DateTime?       @map("paid_at") @db.Timestamptz(6)
+  metadata      Json?           @default("{}")
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  policy        InsurancePolicy @relation(fields: [policyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([userId], map: "idx_ins_claims_user")
+  @@index([policyId], map: "idx_ins_claims_policy")
+  @@map("insurance_claims")
+  @@schema("insurance")
+}
+
+enum insurance_type {
+  HEALTH
+  LIFE
+  VEHICLE
+  TRAVEL
+  HOME
+  ACCIDENT
+  SOCIAL
+
+  @@schema("insurance")
+}
+
+enum policy_status {
+  PENDING
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  SUSPENDED
+
+  @@schema("insurance")
+}
+
+enum claim_status {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  PAID
+  CANCELLED
+
+  @@schema("insurance")
+}

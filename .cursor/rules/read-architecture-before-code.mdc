@@ -1,0 +1,14 @@
+---
+description: Luôn đọc README_ARCHITECTURE.md trước khi viết code, tuân thủ tech stack và Clean Code
+alwaysApply: true
+---
+
+# Kiến Trúc & Clean Code - Bắt Buộc
+
+**Trước khi viết/sửa bất kỳ đoạn code nào**, bạn PHẢI:
+
+1. **Đọc file** `docs/architecture/README_ARCHITECTURE.md`
+2. **Tuân thủ** tech stack đã định (NestJS, Next.js 14, React Native, TypeScript, v.v.)
+3. **Áp dụng** các quy tắc Clean Code trong đó (đặt tên, function, error handling, TypeScript strict, v.v.)
+
+Mọi code phải nhất quán với kiến trúc monorepo, dùng workspace packages (`@lifestyle/*`) khi có sẵn, và đảm bảo format + lint theo chuẩn dự án.

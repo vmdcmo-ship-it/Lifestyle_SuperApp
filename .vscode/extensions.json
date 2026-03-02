@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next",
+    "christian-kohler.path-intellisense",
+    "visualstudioexptteam.vscodeintellicode",
+    "ms-azuretools.vscode-docker",
+    "redhat.vscode-yaml",
+    "bradlc.vscode-tailwindcss",
+    "prisma.prisma",
+    "graphql.vscode-graphql",
+    "mikestead.dotenv"
+  ]
+}

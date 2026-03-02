@@ -1,0 +1,99 @@
+# ============================================================================
+# Dockerfile for Next.js Web Application
+# ============================================================================
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+
+RUN npm install -g pnpm@latest
+
+# Copy workspace config
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY .npmrc* ./
+
+# Copy each package's package.json into its correct directory
+COPY apps/web/package.json ./apps/web/package.json
+COPY packages/shared/package.json ./packages/shared/package.json
+COPY packages/types/package.json ./packages/types/package.json
+COPY packages/utils/package.json ./packages/utils/package.json
+COPY packages/design-system/package.json ./packages/design-system/package.json
+COPY packages/api-client/package.json ./packages/api-client/package.json
+COPY packages/validation/package.json ./packages/validation/package.json
+COPY packages/constants/package.json ./packages/constants/package.json
+
+RUN pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
+
+# ============================================================================
+# Stage 2: Build
+# ============================================================================
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+RUN npm install -g pnpm@latest
+
+# Copy installed deps
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy full source
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY .npmrc* ./
+COPY tsconfig.json ./
+COPY apps/web ./apps/web
+COPY packages ./packages
+
+# Rebuild workspace symlinks
+RUN pnpm install --frozen-lockfile --prefer-offline || pnpm install --no-frozen-lockfile --prefer-offline || true
+
+# Build shared packages (ignore failures for packages without build script)
+RUN cd packages/shared && pnpm build 2>/dev/null || true
+RUN cd packages/types && pnpm build 2>/dev/null || true
+RUN cd packages/utils && pnpm build 2>/dev/null || true
+RUN cd packages/constants && pnpm build 2>/dev/null || true
+RUN cd packages/design-system && pnpm build 2>/dev/null || true
+RUN cd packages/api-client && pnpm build 2>/dev/null || true
+RUN cd packages/validation && pnpm build 2>/dev/null || true
+
+# Build Next.js
+WORKDIR /app/apps/web
+
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_WS_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
+RUN pnpm build
+
+# ============================================================================
+# Stage 3: Production Runtime
+# ============================================================================
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
+RUN apk add --no-cache dumb-init
+
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./public
+
+ENV NODE_ENV=production
+ENV PORT=3001
+ENV HOSTNAME=0.0.0.0
+ENV NEXT_TELEMETRY_DISABLED=1
+
+USER nextjs
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+EXPOSE 3001
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server.js"]

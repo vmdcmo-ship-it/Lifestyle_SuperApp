@@ -1,0 +1,19 @@
+{
+  "name": "@lifestyle/api-client",
+  "version": "1.0.0",
+  "description": "API client library for backend services",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts",
+    "test": "jest"
+  },
+  "dependencies": {
+    "axios": "^1.6.7"
+  },
+  "keywords": ["api", "client", "http"],
+  "author": "Your Team",
+  "license": "PRIVATE"
+}

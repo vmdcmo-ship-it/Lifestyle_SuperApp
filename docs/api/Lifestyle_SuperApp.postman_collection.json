@@ -1,0 +1,610 @@
+{
+  "info": {
+    "name": "Lifestyle Super App API",
+    "description": "Complete API collection for Lifestyle Super App.\n\n**Base URL:** http://localhost:3000/api/v1\n\n**Auth:** Most endpoints require Bearer token. Login first, then token is auto-set.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "driverId", "value": "" },
+    { "key": "merchantId", "value": "" },
+    { "key": "walletId", "value": "" },
+    { "key": "redcommentId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Register (Email)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": { "type": "noauth" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@gmail.com\",\n  \"password\": \"Test@12345\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"phoneNumber\": \"0901111111\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.data && json.data.accessToken) {",
+                "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                "  pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                "  pm.collectionVariables.set('userId', json.data.user.id);",
+                "  pm.test('Registration successful', () => pm.response.to.have.status(201));",
+                "}"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Login (Email)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": { "type": "noauth" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nguyenvana@gmail.com\",\n  \"password\": \"Admin@2026!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "var json = pm.response.json();",
+                "if (json.data && json.data.accessToken) {",
+                "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                "  pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                "  pm.collectionVariables.set('userId', json.data.user.id);",
+                "  pm.test('Login successful', () => pm.response.to.have.status(200));",
+                "}"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Login (Phone)",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"0901234567\",\n  \"password\": \"Admin@2026!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Social Login (Google)",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"google\",\n  \"accessToken\": \"ya29.a0AfH6SM...\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login/social", "host": ["{{baseUrl}}"], "path": ["auth", "login", "social"] }
+          }
+        },
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target\": \"0901234567\",\n  \"type\": \"SMS\",\n  \"purpose\": \"VERIFY_PHONE\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/auth/send-otp", "host": ["{{baseUrl}}"], "path": ["auth", "send-otp"] }
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target\": \"0901234567\",\n  \"otp\": \"123456\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/auth/verify-otp", "host": ["{{baseUrl}}"], "path": ["auth", "verify-otp"] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/auth/refresh-token", "host": ["{{baseUrl}}"], "path": ["auth", "refresh-token"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] } }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Nguyễn Văn A Updated\",\n  \"gender\": \"MALE\",\n  \"dateOfBirth\": \"1995-06-15\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] }
+          }
+        },
+        {
+          "name": "Update Preferences",
+          "request": {
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"language\": \"vi\",\n  \"currency\": \"VND\",\n  \"theme\": \"DARK\",\n  \"notifications\": { \"email\": true, \"push\": true, \"sms\": false }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/users/me/preferences", "host": ["{{baseUrl}}"], "path": ["users", "me", "preferences"] }
+          }
+        },
+        {
+          "name": "Get My Addresses",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/users/me/addresses", "host": ["{{baseUrl}}"], "path": ["users", "me", "addresses"] } }
+        },
+        {
+          "name": "Add Address",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Nhà\",\n  \"street\": \"456 Lý Thường Kiệt\",\n  \"ward\": \"Phường 14\",\n  \"district\": \"Quận 10\",\n  \"city\": \"TP. Hồ Chí Minh\",\n  \"latitude\": 10.7721,\n  \"longitude\": 106.6602,\n  \"isDefault\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/users/me/addresses", "host": ["{{baseUrl}}"], "path": ["users", "me", "addresses"] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Admin@2026!\",\n  \"newPassword\": \"NewPass@2026!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/users/me/change-password", "host": ["{{baseUrl}}"], "path": ["users", "me", "change-password"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚗 Drivers",
+      "item": [
+        {
+          "name": "Register as Driver",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/drivers/register", "host": ["{{baseUrl}}"], "path": ["drivers", "register"] } }
+        },
+        {
+          "name": "Get My Driver Profile",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/drivers/me", "host": ["{{baseUrl}}"], "path": ["drivers", "me"] } }
+        },
+        {
+          "name": "Go Online",
+          "request": {
+            "method": "PATCH",
+            "body": { "mode": "raw", "raw": "{ \"onlineStatus\": \"ONLINE\" }", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/drivers/me/status", "host": ["{{baseUrl}}"], "path": ["drivers", "me", "status"] }
+          }
+        },
+        {
+          "name": "Go Offline",
+          "request": {
+            "method": "PATCH",
+            "body": { "mode": "raw", "raw": "{ \"onlineStatus\": \"OFFLINE\" }", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/drivers/me/status", "host": ["{{baseUrl}}"], "path": ["drivers", "me", "status"] }
+          }
+        },
+        {
+          "name": "Update Location",
+          "request": {
+            "method": "PUT",
+            "body": { "mode": "raw", "raw": "{\n  \"latitude\": 10.7769,\n  \"longitude\": 106.7009,\n  \"heading\": 180,\n  \"speed\": 25.5\n}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/drivers/me/location", "host": ["{{baseUrl}}"], "path": ["drivers", "me", "location"] }
+          }
+        },
+        {
+          "name": "Get Earnings (Today)",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/drivers/me/earnings?period=today", "host": ["{{baseUrl}}"], "path": ["drivers", "me", "earnings"], "query": [{ "key": "period", "value": "today" }] } }
+        },
+        {
+          "name": "Get Stats",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/drivers/me/stats", "host": ["{{baseUrl}}"], "path": ["drivers", "me", "stats"] } }
+        }
+      ]
+    },
+    {
+      "name": "🏪 Merchants",
+      "item": [
+        {
+          "name": "Register Merchant",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Quán Cà Phê Test\",\n  \"type\": \"CAFE\",\n  \"description\": \"Quán cà phê view đẹp\",\n  \"phone\": \"0901234567\",\n  \"street\": \"100 Nguyễn Du\",\n  \"district\": \"Quận 1\",\n  \"city\": \"TP. Hồ Chí Minh\",\n  \"latitude\": 10.7756,\n  \"longitude\": 106.6990\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/merchants/register", "host": ["{{baseUrl}}"], "path": ["merchants", "register"] }
+          }
+        },
+        {
+          "name": "Get Merchant (Public)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": { "raw": "{{baseUrl}}/merchants/{{merchantId}}", "host": ["{{baseUrl}}"], "path": ["merchants", "{{merchantId}}"] }
+          }
+        },
+        {
+          "name": "Search Merchants",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": {
+              "raw": "{{baseUrl}}/merchants/search?q=phở&type=RESTAURANT&lat=10.7769&lng=106.7009&radius=5&sortBy=distance",
+              "host": ["{{baseUrl}}"],
+              "path": ["merchants", "search"],
+              "query": [
+                { "key": "q", "value": "phở" },
+                { "key": "type", "value": "RESTAURANT" },
+                { "key": "lat", "value": "10.7769" },
+                { "key": "lng", "value": "106.7009" },
+                { "key": "radius", "value": "5" },
+                { "key": "sortBy", "value": "distance" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Business Hours",
+          "request": {
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monday\": { \"isOpen\": true, \"openTime\": \"07:00\", \"closeTime\": \"23:00\" },\n  \"sunday\": { \"isOpen\": true, \"openTime\": \"09:00\", \"closeTime\": \"21:00\" }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/merchants/{{merchantId}}/business-hours", "host": ["{{baseUrl}}"], "path": ["merchants", "{{merchantId}}", "business-hours"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💰 Wallets",
+      "item": [
+        {
+          "name": "Get My Wallet",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/wallets/me", "host": ["{{baseUrl}}"], "path": ["wallets", "me"] } }
+        },
+        {
+          "name": "Transaction History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/wallets/me/transactions?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallets", "me", "transactions"],
+              "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Get Bank Accounts",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/wallets/me/bank-accounts", "host": ["{{baseUrl}}"], "path": ["wallets", "me", "bank-accounts"] } }
+        },
+        {
+          "name": "Add Bank Account",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bankName\": \"Vietcombank\",\n  \"bankCode\": \"VCB\",\n  \"accountNumber\": \"1234567890\",\n  \"accountHolder\": \"NGUYEN VAN A\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/wallets/me/bank-accounts", "host": ["{{baseUrl}}"], "path": ["wallets", "me", "bank-accounts"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💳 Payments",
+      "item": [
+        {
+          "name": "Top-up (VNPay)",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 500000,\n  \"paymentMethod\": \"VNPAY\",\n  \"returnUrl\": \"lifestyle://wallet/top-up/result\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/payments/top-up", "host": ["{{baseUrl}}"], "path": ["payments", "top-up"] }
+          }
+        },
+        {
+          "name": "Top-up (Bank Transfer/SePay)",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1000000,\n  \"paymentMethod\": \"BANK_TRANSFER\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/payments/top-up", "host": ["{{baseUrl}}"], "path": ["payments", "top-up"] }
+          }
+        },
+        {
+          "name": "Pay Order (Wallet)",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"uuid-order-1\",\n  \"amount\": 155000,\n  \"paymentMethod\": \"WALLET\",\n  \"note\": \"Thanh toán đơn phở\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/payments/pay", "host": ["{{baseUrl}}"], "path": ["payments", "pay"] }
+          }
+        },
+        {
+          "name": "Withdraw to Bank",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 2000000,\n  \"bankAccountId\": \"uuid-bank-1\",\n  \"note\": \"Rút tiền về VCB\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/payments/withdraw", "host": ["{{baseUrl}}"], "path": ["payments", "withdraw"] }
+          }
+        },
+        {
+          "name": "⚡ SePay Webhook (Bank Transfer)",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [{ "key": "X-Sepay-Key", "value": "sepay_api_key_here" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 90242,\n  \"gateway\": \"MBBank\",\n  \"transactionDate\": \"2026-02-16 10:30:00\",\n  \"accountNumber\": \"0123456789\",\n  \"subAccount\": null,\n  \"transferType\": \"in\",\n  \"transferAmount\": 1000000,\n  \"accumulated\": 15000000,\n  \"code\": null,\n  \"content\": \"LS260216789013 NGUYEN VAN A chuyen tien\",\n  \"referenceCode\": \"FT26047123456\",\n  \"description\": \"LS260216789013 NGUYEN VAN A chuyen tien\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/payments/sepay-webhook", "host": ["{{baseUrl}}"], "path": ["payments", "sepay-webhook"] }
+          }
+        },
+        {
+          "name": "⚡ VNPay IPN Webhook",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vnp_TxnRef\": \"LS-TXN-260216-789012\",\n  \"vnp_Amount\": \"50000000\",\n  \"vnp_ResponseCode\": \"00\",\n  \"vnp_TransactionNo\": \"14128963\",\n  \"vnp_SecureHash\": \"abc123...\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/payments/vnpay-ipn", "host": ["{{baseUrl}}"], "path": ["payments", "vnpay-ipn"] }
+          }
+        },
+        {
+          "name": "⚡ MoMo IPN Webhook",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"partnerCode\": \"LIFESTYLE\",\n  \"orderId\": \"LS-TXN-260216-111222\",\n  \"amount\": 500000,\n  \"resultCode\": 0,\n  \"message\": \"Thành công.\",\n  \"signature\": \"abc123...\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/payments/momo-ipn", "host": ["{{baseUrl}}"], "path": ["payments", "momo-ipn"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⭐ Spotlight",
+      "item": [
+        {
+          "name": "Get Reels Feed",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": {
+              "raw": "{{baseUrl}}/spotlight/reels?format=VIDEO_REEL&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["spotlight", "reels"],
+              "query": [{ "key": "format", "value": "VIDEO_REEL" }, { "key": "limit", "value": "10" }]
+            }
+          }
+        },
+        {
+          "name": "Get Reels by Category",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": {
+              "raw": "{{baseUrl}}/spotlight/reels?category=RESTAURANT&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["spotlight", "reels"],
+              "query": [{ "key": "category", "value": "RESTAURANT" }, { "key": "limit", "value": "10" }]
+            }
+          }
+        },
+        {
+          "name": "Get Redcomment Detail",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": { "raw": "{{baseUrl}}/spotlight/redcomments/{{redcommentId}}", "host": ["{{baseUrl}}"], "path": ["spotlight", "redcomments", "{{redcommentId}}"] }
+          }
+        },
+        {
+          "name": "Like Redcomment",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/spotlight/redcomments/{{redcommentId}}/like", "host": ["{{baseUrl}}"], "path": ["spotlight", "redcomments", "{{redcommentId}}", "like"] }
+          }
+        },
+        {
+          "name": "Get Comments",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": { "raw": "{{baseUrl}}/spotlight/redcomments/{{redcommentId}}/comments?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["spotlight", "redcomments", "{{redcommentId}}", "comments"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] }
+          }
+        },
+        {
+          "name": "Post Comment",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Phở ngon thật! Mình cũng muốn thử\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/spotlight/redcomments/{{redcommentId}}/comments", "host": ["{{baseUrl}}"], "path": ["spotlight", "redcomments", "{{redcommentId}}", "comments"] }
+          }
+        },
+        {
+          "name": "Write Review",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"RESTAURANT\",\n  \"targetName\": \"Phở Nguyễn\",\n  \"merchantId\": \"{{merchantId}}\",\n  \"overallRating\": 4.5,\n  \"title\": \"Phở ngon, nước dùng tuyệt!\",\n  \"body\": \"Đã ăn 3 lần. Nước dùng trong vắt, thịt bò tươi mềm.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/spotlight/reviews", "host": ["{{baseUrl}}"], "path": ["spotlight", "reviews"] }
+          }
+        },
+        {
+          "name": "Get Merchant Reviews",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": {
+              "raw": "{{baseUrl}}/spotlight/reviews/merchant/{{merchantId}}?sortBy=newest&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["spotlight", "reviews", "merchant", "{{merchantId}}"],
+              "query": [{ "key": "sortBy", "value": "newest" }, { "key": "page", "value": "1" }, { "key": "limit", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Creator Dashboard",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/spotlight/creators/me", "host": ["{{baseUrl}}"], "path": ["spotlight", "creators", "me"] } }
+        }
+      ]
+    },
+    {
+      "name": "🎁 Loyalty",
+      "item": [
+        {
+          "name": "Get Xu Balance",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/loyalty/xu/balance", "host": ["{{baseUrl}}"], "path": ["loyalty", "xu", "balance"] } }
+        },
+        {
+          "name": "Xu History",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/loyalty/xu/history?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["loyalty", "xu", "history"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] } }
+        },
+        {
+          "name": "Get Referral Info",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/loyalty/referral", "host": ["{{baseUrl}}"], "path": ["loyalty", "referral"] } }
+        },
+        {
+          "name": "Apply Referral Code",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"referralCode\": \"LS8068F741\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/loyalty/referral/apply", "host": ["{{baseUrl}}"], "path": ["loyalty", "referral", "apply"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 Admin",
+      "item": [
+        {
+          "name": "Dashboard Stats",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/admin/dashboard/stats", "host": ["{{baseUrl}}"], "path": ["admin", "dashboard", "stats"] } }
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/admin/users?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users"],
+              "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Pending Drivers",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/admin/drivers/pending", "host": ["{{baseUrl}}"], "path": ["admin", "drivers", "pending"] } }
+        },
+        {
+          "name": "Approve Driver",
+          "request": {
+            "method": "POST",
+            "body": { "mode": "raw", "raw": "{ \"action\": \"APPROVE\" }", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/admin/drivers/{{driverId}}/verify", "host": ["{{baseUrl}}"], "path": ["admin", "drivers", "{{driverId}}", "verify"] }
+          }
+        },
+        {
+          "name": "Moderation Queue",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/admin/spotlight/moderation?status=PENDING_REVIEW", "host": ["{{baseUrl}}"], "path": ["admin", "spotlight", "moderation"], "query": [{ "key": "status", "value": "PENDING_REVIEW" }] } }
+        }
+      ]
+    }
+  ]
+}
