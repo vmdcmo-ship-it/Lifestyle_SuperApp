@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { KodoLogo } from '@/components/kodo-logo';
 
 export function MemberSignupForm() {
   const router = useRouter();
@@ -128,11 +129,9 @@ export function MemberSignupForm() {
       <div className="mx-auto max-w-md">
         {/* Logo & Header */}
         <div className="mb-8 text-center">
-          <Link href="/" className="inline-block">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg">
-              <span className="text-3xl font-bold text-white">L</span>
-            </div>
-          </Link>
+          <div className="mb-4 flex justify-center">
+            <KodoLogo size="lg" withWordmark className="[&_span]:!text-gray-900 dark:[&_span]:!text-gray-100" />
+          </div>
           <h1 className="mb-2 text-3xl font-bold">Đăng ký tài khoản</h1>
           <p className="text-gray-600 dark:text-gray-400">
             Tạo tài khoản để bắt đầu trải nghiệm

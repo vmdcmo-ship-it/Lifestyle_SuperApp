@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,20 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../theme';
-import { FINDNEAR_CATEGORIES } from '../data/mockData';
+import { FINDNEAR_CATEGORIES, MOCK_SPOTLIGHT_REELS } from '../data/mockData';
+
+// Map Findnear category → Spotlight filter (tags, category, targetType)
+const FINDNEAR_TO_VIDEO_FILTER: Record<string, { tags?: string[]; category?: string; targetType?: string[] }> = {
+  ev_charging: { tags: ['sạc', 'xe điện', 'vinfast'] },
+  gas_station: { tags: ['xăng', 'trạm xăng'] },
+  pharmacy: { tags: ['nhà thuốc', 'thuốc'], category: 'WELLNESS' },
+  clinic: { tags: ['phòng khám', 'đa khoa'], category: 'WELLNESS' },
+  cafe_hammock: { tags: ['café', 'cà phê', 'võng'], category: 'FOOD', targetType: ['CAFE'] },
+  spa_nearby: { tags: ['spa', 'massage', 'gội đầu'], category: 'WELLNESS', targetType: ['SPA', 'MASSAGE', 'WELLNESS'] },
+  gym: { tags: ['gym', 'phòng tập', 'fitness'], category: 'WELLNESS' },
+  atm: { tags: ['atm', 'ngân hàng'] },
+  parking: { tags: ['bãi xe', 'giữ xe'] },
+};
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -22,15 +35,84 @@ const MOCK_NEARBY_PLACES = [
   { id: 'p5', name: 'Trạm xăng Petrolimex Q5', category: 'gas_station', distance: '0.4 km', rating: 4.2, status: 'Đang mở', statusColor: Colors.success, detail: 'RON 95, E5 RON 92' },
 ];
 
+// Vị trí mặc định - dùng để filter video theo khu vực
+const DEFAULT_LOCATION = '227 Nguyễn Văn Cừ, Quận 5, TP.HCM';
+
+// Rút từ khóa vị trí từ địa chỉ (VD: "Quận 5, TP.HCM" → ["quận 5", "tp.hcm", "sài gòn"])
+function extractLocationKeywords(addr: string): string[] {
+  const lower = addr.toLowerCase();
+  const keywords: string[] = [];
+  const districtMatch = lower.match(/quận\s*\d+/);
+  if (districtMatch) keywords.push(districtMatch[0].replace(/\s/g, ' '));
+  if (lower.includes('hcm') || lower.includes('hồ chí minh') || lower.includes('tp.hcm')) {
+    keywords.push('sài gòn', 'tp.hcm', 'hcm');
+  }
+  return [...new Set(keywords)];
+}
+
+function filterRelatedVideos(
+  reels: typeof MOCK_SPOTLIGHT_REELS,
+  opts: { category?: string | null; searchText?: string; locationAddr?: string }
+): typeof MOCK_SPOTLIGHT_REELS {
+  const { category, searchText = '', locationAddr = DEFAULT_LOCATION } = opts;
+  const searchLower = searchText.toLowerCase().trim();
+  const locationKeywords = extractLocationKeywords(locationAddr);
+
+  return reels.filter((r) => {
+    const title = (r.title || '').toLowerCase();
+    const desc = (r.description || '').toLowerCase();
+    const tags = (r.tags || []).map((t) => t.toLowerCase());
+
+    // Lọc theo hashtag/từ khóa từ danh mục Findnear
+    if (category) {
+      const filter = FINDNEAR_TO_VIDEO_FILTER[category];
+      if (filter) {
+        const tagMatch = filter.tags?.some((t) => tags.some((tag) => tag.includes(t.toLowerCase())));
+        const catMatch = filter.category && (r as any).category === filter.category;
+        const typeMatch = filter.targetType?.includes((r as any).targetType);
+        if (!tagMatch && !catMatch && !typeMatch) return false;
+      }
+    }
+
+    // Lọc theo từ khóa tìm kiếm
+    if (searchLower) {
+      const inTitle = title.includes(searchLower);
+      const inDesc = desc.includes(searchLower);
+      const inTags = tags.some((t) => t.includes(searchLower));
+      if (!inTitle && !inDesc && !inTags) return false;
+    }
+
+    // Lọc theo vị trí (quận, TP.HCM, sài gòn)
+    if (locationKeywords.length > 0) {
+      const hasLocation = locationKeywords.some(
+        (kw) => tags.some((t) => t.includes(kw)) || title.includes(kw) || desc.includes(kw)
+      );
+      if (!hasLocation) return false;
+    }
+
+    return true;
+  });
+}
+
 export const FindNearScreen = ({ navigation }: any) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
+  const [locationAddr] = useState(DEFAULT_LOCATION);
 
   const filteredPlaces = selectedCategory
     ? MOCK_NEARBY_PLACES.filter((p) => p.category === selectedCategory)
     : MOCK_NEARBY_PLACES;
 
   const selectedCatInfo = FINDNEAR_CATEGORIES.find((c) => c.id === selectedCategory);
+
+  const relatedVideos = useMemo(
+    () => filterRelatedVideos(MOCK_SPOTLIGHT_REELS, {
+      category: selectedCategory,
+      searchText,
+      locationAddr,
+    }),
+    [selectedCategory, searchText, locationAddr]
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -157,6 +239,44 @@ export const FindNearScreen = ({ navigation }: any) => {
               <Text style={styles.emptyText}>
                 Không tìm thấy dịch vụ trong khu vực này
               </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Video liên quan - lọc theo hashtag, từ khóa, vị trí */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Video liên quan</Text>
+            <Text style={styles.resultCount}>{relatedVideos.length} video</Text>
+          </View>
+          {relatedVideos.length > 0 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.videoListContent}
+            >
+              {relatedVideos.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.videoCard}
+                  onPress={() => navigation?.navigate('Spotlight', { initialId: item.id })}
+                  activeOpacity={0.9}
+                >
+                  <View style={[styles.videoThumb, { backgroundColor: item.thumbnailColor }]}>
+                    <Text style={styles.videoPlayIcon}>▶</Text>
+                  </View>
+                  <Text style={styles.videoTitle} numberOfLines={2}>{item.title}</Text>
+                  <View style={styles.videoMeta}>
+                    <Text style={styles.videoViews}>👁 {(item.views >= 1000 ? (item.views / 1000).toFixed(1) + 'K' : item.views)}</Text>
+                    <Text style={styles.videoRating}>⭐ {item.rating}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyEmoji}>📹</Text>
+              <Text style={styles.emptyText}>Chưa có video phù hợp với bộ lọc</Text>
             </View>
           )}
         </View>
@@ -302,4 +422,35 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingVertical: Spacing.xxl },
   emptyEmoji: { fontSize: 48, marginBottom: Spacing.m },
   emptyText: { ...Typography.body, color: Colors.gray, textAlign: 'center' },
+
+  videoListContent: { paddingVertical: Spacing.s, paddingRight: Spacing.l },
+  videoCard: {
+    width: 160,
+    marginLeft: Spacing.l,
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.large,
+    overflow: 'hidden',
+    ...Shadows.level1,
+  },
+  videoThumb: {
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoPlayIcon: { fontSize: 36, color: 'rgba(255,255,255,0.9)' },
+  videoTitle: {
+    ...Typography.caption,
+    fontWeight: '600',
+    color: Colors.black,
+    padding: Spacing.s,
+    paddingBottom: 4,
+  },
+  videoMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.s,
+    paddingBottom: Spacing.s,
+  },
+  videoViews: { ...Typography.tiny, color: Colors.gray },
+  videoRating: { ...Typography.tiny, color: Colors.gold, fontWeight: '600' },
 });

@@ -1,31 +1,24 @@
 /**
  * Lifestyle Super App - Type Definitions
- * Central export for all TypeScript types
+ * Central export - tránh export * từ nhiều module có type trùng tên (conflicting star exports)
+ *
+ * Chiến lược:
+ * - Export * từ các module KHÔNG có xung đột
+ * - KHÔNG export driver, driver-app, pricing, revenue, accounting, merchant,
+ *   insurance, insurance-products, social-insurance, life-insurance, insurance-analytics, backend-api
+ *   từ barrel chính (có VehicleType, ServiceType, OrderStatus, etc. trùng)
+ * - Dùng subpath @lifestyle/types/driver-app, @lifestyle/types/pricing... khi cần
  */
 
 export * from './common';
 export * from './user';
-export * from './driver';
+export * from './api';
 export * from './food-delivery';
 export * from './ride-hailing';
 export * from './shopping';
-export * from './api';
+export * from './referral';
 export * from './loyalty';
 export * from './savings-package';
-export * from './user';
-export * from './driver';
-export * from './referral';
-export * from './driver-app';
 export * from './location-feedback';
-export * from './pricing';
-export * from './revenue';
-export * from './accounting';
-export * from './insurance';
-export * from './merchant';
-export * from './insurance-products';
-export * from './social-insurance';
-export * from './life-insurance';
-export * from './insurance-analytics';
 export * from './spotlight';
 export * from './run-to-earn';
-export * from './backend-api';

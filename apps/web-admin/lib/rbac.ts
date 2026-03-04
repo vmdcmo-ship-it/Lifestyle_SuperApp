@@ -20,6 +20,8 @@ export const PERMISSIONS = {
   AUDIT: 'audit:view',
   SETTINGS: 'settings:view',
   USERS: 'users:view',
+  WEALTH_LEADS: 'wealth_leads:view',
+  AN_CU_LEADS: 'an_cu_leads:view',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -46,9 +48,10 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.CONTENT,
     PERMISSIONS.TRAINING,
     PERMISSIONS.NEWS,
+    PERMISSIONS.WEALTH_LEADS,
     PERMISSIONS.SETTINGS,
   ],
-  ADMIN_INSURANCE: [PERMISSIONS.DASHBOARD, PERMISSIONS.SETTINGS],
+  ADMIN_INSURANCE: [PERMISSIONS.DASHBOARD, PERMISSIONS.WEALTH_LEADS, PERMISSIONS.SETTINGS],
   SUPERVISOR: [
     PERMISSIONS.DASHBOARD,
     PERMISSIONS.DRIVERS,
@@ -116,6 +119,8 @@ export const PATH_PERMISSIONS: Record<string, Permission> = {
   franchise: PERMISSIONS.FRANCHISE,
   audit: PERMISSIONS.AUDIT,
   settings: PERMISSIONS.SETTINGS,
+  wealth: PERMISSIONS.WEALTH_LEADS,
+  'an-cu-leads': PERMISSIONS.AN_CU_LEADS,
 };
 
 export function getRequiredPermissionForPath(pathname: string): Permission | null {

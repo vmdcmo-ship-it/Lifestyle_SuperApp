@@ -195,6 +195,10 @@ export function OrderMarketplaceScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Banner phiên bản thử nghiệm */}
+      <View style={styles.testBanner}>
+        <Text style={styles.testBannerText}>🧪 Phiên bản thử nghiệm — Các tính năng đã sẵn sàng để test</Text>
+      </View>
       {/* Header: avatar (→ Tài khoản) + Nhận đơn + Online toggle */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -352,6 +356,13 @@ export function OrderMarketplaceScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  testBanner: {
+    backgroundColor: Colors.info + '20',
+    paddingVertical: 8,
+    paddingHorizontal: Spacing.l,
+    alignItems: 'center',
+  },
+  testBannerText: { ...Typography.caption, color: Colors.info, fontWeight: '600' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

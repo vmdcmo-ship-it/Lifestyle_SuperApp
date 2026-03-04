@@ -293,12 +293,20 @@ export default function ShoppingPage(): JSX.Element {
               <p className="mb-8 text-lg opacity-90">
                 Đăng ký hôm nay để nhận voucher giảm 200K cho đơn hàng đầu tiên!
               </p>
-              <Link
-                href="/signup"
-                className="inline-flex items-center justify-center rounded-lg bg-white px-8 py-4 text-lg font-semibold text-purple-600 transition-transform hover:scale-105"
-              >
-                Đăng ký nhận ưu đãi
-              </Link>
+              <div className="flex flex-wrap items-center justify-center gap-4">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center rounded-lg bg-white px-8 py-4 text-lg font-semibold text-purple-600 transition-transform hover:scale-105"
+                >
+                  Đăng ký nhận ưu đãi
+                </Link>
+                <Link
+                  href="/dang-ky-doi-tac?group=GROCERY"
+                  className="inline-flex items-center justify-center rounded-lg border-2 border-white/60 px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-white/10"
+                >
+                  Cửa hàng đăng ký đối tác
+                </Link>
+              </div>
             </div>
           </div>
         </section>

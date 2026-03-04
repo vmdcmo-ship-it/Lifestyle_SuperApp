@@ -4,6 +4,11 @@ export const API_BASE = __DEV__
   ? (process.env.EXPO_PUBLIC_API_URL || 'https://api.vmd.asia/api/v1')
   : (process.env.EXPO_PUBLIC_API_URL || 'https://api.vmd.asia/api/v1');
 
+// Web app base URL - dùng cho Shopping Mall, deep links, mở trang web trong WebView
+// Production: https://lifestyle-app.com | Local: http://localhost:3001
+export const WEB_BASE_URL =
+  process.env.EXPO_PUBLIC_WEB_BASE_URL || 'https://lifestyle-app.com';
+
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/auth/login',

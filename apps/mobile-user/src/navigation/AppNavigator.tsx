@@ -24,6 +24,7 @@ import { CharityLotteryScreen } from '../screens/CharityLotteryScreen';
 import { LifestyleLocalScreen } from '../screens/LifestyleLocalScreen';
 import { FoodDeliveryScreen } from '../screens/FoodDeliveryScreen';
 import { ShoppingScreen } from '../screens/ShoppingScreen';
+import { ShoppingMallScreen } from '../screens/ShoppingMallScreen';
 import { MerchantStoreScreen } from '../screens/MerchantStoreScreen';
 import { RewardsScreen } from '../screens/RewardsScreen';
 import { GroupsScreen } from '../screens/GroupsScreen';
@@ -258,6 +259,11 @@ function RootStack() {
         <Stack.Screen
           name="Shopping"
           component={ShoppingScreen}
+          options={{ animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
+          name="ShoppingMall"
+          component={ShoppingMallScreen}
           options={{ animation: 'slide_from_right' }}
         />
         <Stack.Screen

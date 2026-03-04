@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { KodoLogo } from '@/components/kodo-logo';
 
 export const metadata: Metadata = {
   title: 'Đăng ký tài khoản - Lifestyle Super App',
@@ -16,14 +17,9 @@ export default function SignUpPage(): JSX.Element {
     <div className="flex min-h-[80vh] items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="rounded-2xl border bg-card p-8 shadow-lg">
-          {/* Logo */}
-          <div className="mb-8 text-center">
-            <Link href="/" className="inline-flex items-center gap-2">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-pink-600">
-                <span className="text-2xl font-bold text-white">L</span>
-              </div>
-              <span className="text-2xl font-bold">Lifestyle</span>
-            </Link>
+          {/* Logo KODO */}
+          <div className="mb-8 flex justify-center">
+            <KodoLogo size="lg" withWordmark className="[&_span]:!text-slate-900" />
           </div>
 
           <h1 className="mb-2 text-center text-3xl font-bold">Đăng ký</h1>

@@ -90,7 +90,7 @@ export function NotificationDropdown(): JSX.Element | null {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="relative flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className="brand-text relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:opacity-80"
         aria-label="Thông báo"
       >
         <svg

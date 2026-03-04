@@ -268,11 +268,38 @@ export default function RideHailingPage(): JSX.Element {
               <p className="mb-8 text-lg opacity-90">
                 Đăng ký ngay để nhận voucher giảm 100K cho chuyến đi đầu tiên!
               </p>
-              <Link
-                href="/signup"
-                className="inline-flex items-center justify-center rounded-lg bg-white px-8 py-4 text-lg font-semibold text-blue-600 transition-transform hover:scale-105"
-              >
-                Đăng ký nhận ưu đãi
+              <div className="flex flex-wrap justify-center gap-4">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center rounded-lg bg-white px-8 py-4 text-lg font-semibold text-blue-600 transition-transform hover:scale-105"
+                >
+                  Đăng ký nhận ưu đãi
+                </Link>
+                <Link
+                  href="/hop-tac"
+                  className="inline-flex items-center justify-center rounded-lg border-2 border-white/80 px-8 py-4 text-lg font-semibold text-white transition-all hover:bg-white/20"
+                >
+                  Trở thành tài xế
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="border-t py-12">
+          <div className="container mx-auto px-4 text-center">
+            <p className="mb-4 text-sm text-muted-foreground">Xem thêm</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link href="/hop-tac" className="text-sm font-medium text-primary hover:underline">
+                Hợp tác thuê mua VinFast
+              </Link>
+              <Link href="/partner" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                Đăng ký đối tác
+              </Link>
+              <Link href="/car-rental" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                Thuê xe tự lái
+              </Link>
+              <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                Trang chủ
               </Link>
             </div>
           </div>

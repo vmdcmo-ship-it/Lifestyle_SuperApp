@@ -3,8 +3,71 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { KodoLogo } from '@/components/kodo-logo';
 import { useXuBalance } from '@/lib/hooks/use-xu-balance';
 import { NotificationDropdown } from './notification-dropdown';
+
+const NAV_DICH_VU = [
+  { label: 'Gọi xe', href: '/ride-hailing' },
+  { label: 'Lái hộ', href: '/ride-hailing?service=driver' },
+  { label: 'Giao đồ ăn', href: '/food-delivery' },
+  { label: 'Mua sắm', href: '/shopping' },
+  { label: 'Ví Lifestyle', href: '/wallet' },
+  { label: 'Gói Tiết Kiệm', href: '/savings-packages' },
+  { label: 'Giới thiệu bạn bè', href: '/referral' },
+];
+
+/** Cộng đồng dropdown: Thể thao, tin tức, KODO Wealth, An Cư (đổi "Cộng đồng" → "Thể Thao & Tin tức") */
+const NAV_CONG_DONG = [
+  { label: 'Thể Thao & Tin tức', href: '/the-thao' },
+  { label: 'KODO Wealth', href: '/wealth' },
+  { label: 'An Cư Lạc Nghiệp', href: '/an-cu-lac-nghiep' },
+];
+
+function NavDropdown({
+  label,
+  items,
+}: {
+  label: string;
+  items: { label: string; href: string }[];
+}): JSX.Element {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        className="brand-text flex items-center gap-1 text-sm font-medium transition-colors hover:opacity-80"
+      >
+        {label}
+        <svg
+          className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border bg-background py-2 shadow-lg">
+          {items.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="block px-4 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function Header(): JSX.Element {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,82 +79,55 @@ export function Header(): JSX.Element {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="brand-header sticky top-0 z-50 w-full border-b shadow-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 to-pink-600">
-            <span className="text-xl font-bold text-white">L</span>
-          </div>
-          <span className="text-xl font-bold">Lifestyle</span>
-        </Link>
+        {/* Logo KODO */}
+        <KodoLogo size="sm" withWordmark className="brand-text" />
 
-        {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-6 md:flex">
+        {/* Desktop Navigation - Text xanh than */}
+        <nav className="brand-text hidden items-center gap-4 md:flex">
+          <NavDropdown label="Dịch vụ" items={NAV_DICH_VU} />
           <Link
             href="/spotlight"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="brand-text text-sm font-medium transition-colors hover:opacity-80"
           >
             Spotlight
+          </Link>
+          <Link
+            href="/shopping-mall"
+            className="brand-text text-sm font-medium transition-colors hover:opacity-80"
+          >
+            Shopping Mall
+          </Link>
+          <NavDropdown label="Cộng đồng" items={NAV_CONG_DONG} />
+          <Link
+            href="/hop-tac"
+            className="brand-text text-sm font-medium transition-colors hover:opacity-80"
+          >
+            Hợp tác
+          </Link>
+          <Link
+            href="/tai-ung-dung"
+            className="brand-text text-sm font-medium transition-colors hover:opacity-80"
+          >
+            Tải ứng dụng
           </Link>
           {isAuthenticated && (
             <>
               <Link
                 href="/spotlight/saved"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="brand-text text-sm font-medium transition-colors hover:opacity-80"
               >
                 Đã lưu
               </Link>
               <Link
                 href="/notifications"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="brand-text text-sm font-medium transition-colors hover:opacity-80"
               >
                 Thông báo
               </Link>
             </>
           )}
-          <Link
-            href="/food-delivery"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Giao đồ ăn
-          </Link>
-          <Link
-            href="/ride-hailing"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Đặt xe
-          </Link>
-          <Link
-            href="/shopping"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Mua sắm
-          </Link>
-          <Link
-            href="/wallet"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Ví Lifestyle
-          </Link>
-          <Link
-            href="/savings-packages"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Gói Tiết Kiệm
-          </Link>
-          <Link
-            href="/referral"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            👥 Giới thiệu
-          </Link>
-          <Link
-            href="/about"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Về chúng tôi
-          </Link>
         </nav>
 
         {/* CTA Buttons & User Section */}
@@ -104,11 +140,12 @@ export function Header(): JSX.Element {
               {/* Lifestyle Xu Widget */}
               <Link
                 href="/profile/my-coins"
-                className="group hidden items-center gap-2 rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 px-3 py-1.5 transition-all hover:shadow-md hover:scale-105 dark:border-amber-800 dark:from-amber-950 dark:to-yellow-950 sm:flex"
+                className="group hidden items-center gap-2 rounded-lg border px-3 py-1.5 transition-all hover:shadow-md hover:scale-105 sm:flex"
+                style={{ borderColor: 'rgba(30,58,95,0.4)', backgroundColor: 'rgba(255,255,255,0.4)' }}
                 title="Lifestyle Xu của bạn"
               >
                 <CoinIcon />
-                <span className="text-sm font-bold text-amber-700 dark:text-amber-400">
+                <span className="brand-text text-sm font-bold">
                   {userCoins.toLocaleString('vi-VN')} Xu
                 </span>
               </Link>
@@ -116,7 +153,8 @@ export function Header(): JSX.Element {
               {/* User Avatar */}
               <Link
                 href="/profile"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-pink-600 text-sm font-semibold text-white ring-2 ring-purple-200 transition-all hover:ring-4 dark:ring-purple-800"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold text-white ring-2 transition-all hover:ring-4"
+                style={{ backgroundColor: '#FFB800' }}
                 title="Tài khoản của bạn"
               >
                 {user?.firstName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
@@ -126,13 +164,14 @@ export function Header(): JSX.Element {
             <>
               <Link
                 href="/login"
-                className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
+                className="brand-text hidden text-sm font-medium transition-colors hover:opacity-80 sm:inline-block"
               >
                 Đăng nhập
               </Link>
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105 active:scale-95"
+                className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-90 hover:shadow-xl hover:scale-105 active:scale-95"
+                style={{ backgroundColor: '#1e3a5f' }}
               >
                 Đăng ký ngay
               </Link>
@@ -140,9 +179,9 @@ export function Header(): JSX.Element {
           )}
 
           {/* Mobile Menu Button */}
-          <button
-            type="button"
-            className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-foreground md:hidden"
+<button
+        type="button"
+        className="brand-text inline-flex items-center justify-center rounded-md p-2 transition-colors hover:opacity-80 md:hidden"
             onClick={toggleMobileMenu}
             aria-label="Toggle menu"
           >
@@ -173,114 +212,61 @@ export function Header(): JSX.Element {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - nền vàng, text xanh than */}
       {isMobileMenuOpen && (
-        <div className="border-t md:hidden">
-          <nav className="container mx-auto flex flex-col space-y-3 px-4 py-4">
-            <Link
-              href="/spotlight"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              onClick={toggleMobileMenu}
-            >
-              Spotlight
-            </Link>
+        <div className="brand-text border-t md:hidden" style={{ borderColor: 'rgba(255,183,0,0.5)', backgroundColor: '#FFE066' }}>
+          <nav className="container mx-auto flex flex-col space-y-4 px-4 py-4">
             {isAuthenticated && (
-              <Link
-                href="/spotlight/saved"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                onClick={toggleMobileMenu}
-              >
+              <Link href="/spotlight/saved" className="brand-text text-sm font-medium transition-colors hover:opacity-80" onClick={toggleMobileMenu}>
                 Đã lưu
               </Link>
             )}
             {isAuthenticated && (
-              <Link
-                href="/notifications"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                onClick={toggleMobileMenu}
-              >
+              <Link href="/notifications" className="brand-text text-sm font-medium transition-colors hover:opacity-80" onClick={toggleMobileMenu}>
                 Thông báo
               </Link>
             )}
             {isAuthenticated && (
               <Link
                 href="/profile/my-coins"
-                className="flex items-center gap-2 rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 px-3 py-2 transition-all hover:shadow-md dark:border-amber-800 dark:from-amber-950 dark:to-yellow-950"
+                className="brand-text flex items-center gap-2 rounded-lg border px-3 py-2 transition-all hover:shadow-md"
+                style={{ borderColor: 'rgba(30,58,95,0.4)' }}
                 onClick={toggleMobileMenu}
               >
                 <CoinIcon />
-                <span className="text-sm font-bold text-amber-700 dark:text-amber-400">
-                  {userCoins.toLocaleString('vi-VN')} Xu
-                </span>
+                <span className="text-sm font-bold">{userCoins.toLocaleString('vi-VN')} Xu</span>
               </Link>
             )}
 
-            <Link
-              href="/food-delivery"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              onClick={toggleMobileMenu}
-            >
-              Giao đồ ăn
-            </Link>
-            <Link
-              href="/ride-hailing"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              onClick={toggleMobileMenu}
-            >
-              Đặt xe
-            </Link>
-            <Link
-              href="/shopping"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              onClick={toggleMobileMenu}
-            >
-              Mua sắm
-            </Link>
-            <Link
-              href="/wallet"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              onClick={toggleMobileMenu}
-            >
-              Ví Lifestyle
-            </Link>
-            <Link
-              href="/savings-packages"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              onClick={toggleMobileMenu}
-            >
-              Gói Tiết Kiệm
-            </Link>
-            <Link
-              href="/referral"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              onClick={toggleMobileMenu}
-            >
-              👥 Giới thiệu
-            </Link>
-            <Link
-              href="/about"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              onClick={toggleMobileMenu}
-            >
-              Về chúng tôi
-            </Link>
-            <div className="border-t pt-3">
+            <div>
+              <p className="brand-text mb-2 text-xs font-semibold uppercase">Dịch vụ</p>
+              <div className="flex flex-wrap gap-2">
+                {NAV_DICH_VU.map((item) => (
+                  <Link key={item.href} href={item.href} className="brand-text rounded border px-3 py-1.5 text-sm transition-colors hover:opacity-80" style={{ borderColor: 'rgba(30,58,95,0.3)' }} onClick={toggleMobileMenu}>
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <Link href="/spotlight" className="brand-text text-sm font-medium" onClick={toggleMobileMenu}>Spotlight</Link>
+            <Link href="/shopping-mall" className="brand-text text-sm font-medium" onClick={toggleMobileMenu}>Shopping Mall</Link>
+            <div>
+              <p className="brand-text mb-2 text-xs font-semibold uppercase">Cộng đồng</p>
+              <div className="flex flex-wrap gap-2">
+                {NAV_CONG_DONG.map((item) => (
+                  <Link key={item.href} href={item.href} className="brand-text rounded border px-3 py-1.5 text-sm transition-colors hover:opacity-80" style={{ borderColor: 'rgba(30,58,95,0.3)' }} onClick={toggleMobileMenu}>
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <Link href="/hop-tac" className="brand-text text-sm font-medium" onClick={toggleMobileMenu}>Hợp tác</Link>
+            <Link href="/tai-ung-dung" className="brand-text text-sm font-medium" onClick={toggleMobileMenu}>Tải ứng dụng</Link>
+            <div className="border-t pt-3" style={{ borderColor: 'rgba(30,58,95,0.3)' }}>
               {isAuthenticated ? (
-                <Link
-                  href="/profile"
-                  className="block text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                  onClick={toggleMobileMenu}
-                >
-                  Tài khoản
-                </Link>
+                <Link href="/profile" className="brand-text block text-sm font-medium transition-colors hover:opacity-80" onClick={toggleMobileMenu}>Tài khoản</Link>
               ) : (
-                <Link
-                  href="/login"
-                  className="block text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                  onClick={toggleMobileMenu}
-                >
-                  Đăng nhập
-                </Link>
+                <Link href="/login" className="brand-text block text-sm font-medium transition-colors hover:opacity-80" onClick={toggleMobileMenu}>Đăng nhập</Link>
               )}
             </div>
           </nav>
@@ -296,22 +282,11 @@ export function Header(): JSX.Element {
  */
 function CoinIcon(): JSX.Element {
   return (
-    <svg
-      className="h-5 w-5 text-amber-500 transition-transform group-hover:rotate-12"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle cx="12" cy="12" r="10" className="fill-amber-400" />
-      <circle cx="12" cy="12" r="8" className="fill-amber-500" />
-      <path
-        d="M12 6v12M8 9h8M8 15h8"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        className="stroke-amber-600"
-      />
-      <circle cx="12" cy="12" r="10" className="fill-none stroke-amber-600" strokeWidth="1.5" />
+    <svg className="h-5 w-5 transition-transform group-hover:rotate-12" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style={{ color: '#FFB800' }}>
+      <circle cx="12" cy="12" r="10" fill="currentColor" fillOpacity={0.6} />
+      <circle cx="12" cy="12" r="8" fill="currentColor" />
+      <path d="M12 6v12M8 9h8M8 15h8" stroke="#1e3a5f" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <circle cx="12" cy="12" r="10" fill="none" stroke="#1e3a5f" strokeWidth="1.5" />
     </svg>
   );
 }

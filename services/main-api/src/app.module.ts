@@ -16,6 +16,8 @@ import { LuckyWheelModule } from './modules/lucky-wheel/lucky-wheel.module';
 import { RunToEarnModule } from './modules/run-to-earn/run-to-earn.module';
 import { MissionsModule } from './modules/missions/missions.module';
 import { InsuranceModule } from './modules/insurance/insurance.module';
+import { WealthModule } from './modules/wealth/wealth.module';
+import { AnCuLacNghiepModule } from './modules/an-cu-lac-nghiep/an-cu.module';
 import { SearchModule } from './modules/search/search.module';
 import { ContentModule } from './modules/content/content.module';
 import { TrainingModule } from './modules/training/training.module';
@@ -46,6 +48,8 @@ import { MetricsMiddleware } from './metrics.middleware';
     OrdersModule,
     WalletModule,
     InsuranceModule,
+    WealthModule,
+    AnCuLacNghiepModule,
     LoyaltyModule,
     LuckyWheelModule,
     RunToEarnModule,

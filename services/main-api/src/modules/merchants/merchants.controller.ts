@@ -14,6 +14,9 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { MerchantsService } from './merchants.service';
 import {
   CreateMerchantDto,
+  CreateSellerLeadDto,
+  SellerLeadQueryDto,
+  UpdateSellerLeadStatusDto,
   UpdateMerchantDto,
   VerifyMerchantDto,
   CreateCategoryDto,
@@ -31,6 +34,23 @@ import { Public } from '../auth/decorators/public.decorator';
 @Controller('merchants')
 export class MerchantsController {
   constructor(private readonly merchantsService: MerchantsService) {}
+
+  @Get('admin/seller-leads')
+  @Roles('ADMIN', 'ADMIN_TRANSPORT', 'SUPERVISOR', 'CSKH', 'ACCOUNTANT')
+  @ApiOperation({ summary: '[Admin] Danh sách Seller Leads (đăng ký bán hàng Shopping Mall)' })
+  async adminListSellerLeads(@Query() query: SellerLeadQueryDto) {
+    return this.merchantsService.listSellerLeads(query);
+  }
+
+  @Patch('admin/seller-leads/:id')
+  @Roles('ADMIN', 'ADMIN_TRANSPORT', 'SUPERVISOR', 'CSKH', 'ACCOUNTANT')
+  @ApiOperation({ summary: '[Admin] Cập nhật trạng thái Seller Lead' })
+  async adminUpdateSellerLeadStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateSellerLeadStatusDto,
+  ) {
+    return this.merchantsService.updateSellerLeadStatus(id, dto);
+  }
 
   @Get('admin/list')
   @Roles('ADMIN', 'ADMIN_TRANSPORT', 'SUPERVISOR', 'CSKH', 'ACCOUNTANT')
@@ -63,6 +83,14 @@ export class MerchantsController {
   @ApiResponse({ status: 201, description: 'Cửa hàng đã tạo' })
   async create(@CurrentUser() user: CurrentUserData, @Body() dto: CreateMerchantDto) {
     return this.merchantsService.create(user.id, dto);
+  }
+
+  @Public()
+  @Post('seller-lead')
+  @ApiOperation({ summary: 'Đăng ký bán hàng (lead)', description: 'Thu thập lead từ form Shopping Mall - không cần auth' })
+  @ApiResponse({ status: 201, description: 'Đã gửi thành công' })
+  async createSellerLead(@Body() dto: CreateSellerLeadDto) {
+    return this.merchantsService.createSellerLead(dto);
   }
 
   @Public()

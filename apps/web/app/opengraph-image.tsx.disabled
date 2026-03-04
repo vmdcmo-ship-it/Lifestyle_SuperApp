@@ -1,5 +1,8 @@
 import { ImageResponse } from 'next/og';
 
+// Dùng edge runtime (mặc định) - tương thích tốt hơn với @vercel/og, tránh Invalid URL trên Windows
+// export const runtime = 'nodejs';
+
 // Image metadata
 export const alt = 'Lifestyle Super App';
 export const size = {

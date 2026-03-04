@@ -77,6 +77,9 @@ export function MissionsScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Nhiệm vụ</Text>
         <Text style={styles.subtitle}>Hoàn thành thử thách để nhận thưởng</Text>
+        <View style={styles.testBadge}>
+          <Text style={styles.testBadgeText}>Đang thử nghiệm</Text>
+        </View>
       </View>
       <ScrollView
         style={styles.scroll}
@@ -136,6 +139,8 @@ const styles = StyleSheet.create({
   header: { padding: Spacing.l, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.lightGray },
   title: { ...Typography.h1, color: Colors.black },
   subtitle: { ...Typography.secondary, color: Colors.gray, marginTop: 4 },
+  testBadge: { marginTop: Spacing.s },
+  testBadgeText: { ...Typography.caption, color: Colors.info, fontWeight: '600' },
   scroll: { flex: 1 },
   scrollContent: { padding: Spacing.l },
   card: {

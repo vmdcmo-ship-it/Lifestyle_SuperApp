@@ -110,6 +110,8 @@ export const API_ENDPOINTS = {
     ADMIN_LIST: '/merchants/admin/list',
     ADMIN_BY_ID: (id: string) => `/merchants/admin/${id}`,
     ADMIN_VERIFY: (id: string) => `/merchants/admin/${id}/verify`,
+    SELLER_LEADS: '/merchants/admin/seller-leads',
+    SELLER_LEAD_UPDATE: (id: string) => `/merchants/admin/seller-leads/${id}`,
   },
   ORDERS: {
     ADMIN_LIST: '/orders/admin/list',
@@ -129,5 +131,15 @@ export const API_ENDPOINTS = {
     PARTNER_BY_ID: (id: string) => `/franchise/partners/${id}`,
     PARTNER_REGIONS: (id: string) => `/franchise/partners/${id}/regions`,
     ASSIGN_REGION: (id: string) => `/franchise/partners/${id}/regions`,
+  },
+  WEALTH: {
+    LEADS: '/wealth/consulting',
+    LEAD_BY_ID: (id: string) => `/wealth/consulting/${id}`,
+    UPDATE_LEAD: (id: string) => `/wealth/consulting/${id}`,
+  },
+  AN_CU: {
+    LEADS: '/an-cu-lac-nghiep/consulting',
+    LEAD_BY_ID: (id: string) => `/an-cu-lac-nghiep/consulting/${id}`,
+    UPDATE_LEAD: (id: string) => `/an-cu-lac-nghiep/consulting/${id}`,
   },
 } as const;

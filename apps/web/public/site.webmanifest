@@ -1,11 +1,11 @@
 {
-  "name": "Lifestyle Super App",
-  "short_name": "Lifestyle",
+  "name": "KODO - Lifestyle Super App",
+  "short_name": "KODO",
   "description": "Giao đồ ăn, đặt xe, mua sắm - Tất cả trong một ứng dụng",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#9333ea",
+  "theme_color": "#FFC10E",
   "icons": [
     {
       "src": "/favicon-16x16.png",

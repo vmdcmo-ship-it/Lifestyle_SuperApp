@@ -1,0 +1,10 @@
+# EAS Build - Giảm dung lượng, pre-install hook xử lý monorepo
+node_modules/
+**/node_modules/
+.expo/
+.git/
+*.log
+coverage/
+dist/
+build/
+.next/

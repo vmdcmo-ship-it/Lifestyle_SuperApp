@@ -27,6 +27,7 @@ import {
   UpdateDeliveryParamTogglesDto,
 } from './dto/pricing-tables.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 
 @ApiTags('Pricing')
 @Controller('pricing')
@@ -35,6 +36,14 @@ export class PricingController {
     private readonly pricingService: PricingService,
     private readonly pricingTablesService: PricingTablesService,
   ) {}
+
+  @Public()
+  @Get('public/delivery-mall')
+  @ApiOperation({ summary: 'Cấu hình phí giao hàng Kodo Mall (public)' })
+  @ApiResponse({ status: 200, description: 'standardFee, expressBaseFee, expressPerKm' })
+  async getMallDeliveryConfig() {
+    return this.pricingTablesService.getMallDeliveryConfig();
+  }
 
   @Get('fare-config')
   @Roles('ADMIN', 'ADMIN_TRANSPORT', 'ACCOUNTANT')

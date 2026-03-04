@@ -12,6 +12,7 @@ import {
   Max,
   MinLength,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export enum MerchantType {
   RESTAURANT = 'RESTAURANT',
@@ -212,6 +213,98 @@ export class MerchantListQueryDto {
   @IsOptional()
   @IsString()
   status?: string;
+}
+
+/** Nhóm kinh doanh - đối tác (không bao gồm tài xế) */
+export const BUSINESS_GROUPS = [
+  'FOOD_DELIVERY',
+  'GROCERY',
+  'LOCAL_SERVICE',
+  'SHOPPING_MALL',
+] as const;
+
+export type BusinessGroup = (typeof BUSINESS_GROUPS)[number];
+
+export class CreateSellerLeadDto {
+  @ApiProperty({ example: 'Luxe Fashion Store' })
+  @IsString()
+  @MinLength(2)
+  storeName!: string;
+
+  @ApiProperty({ example: 'Nguyễn Văn A' })
+  @IsString()
+  @MinLength(2)
+  contactName!: string;
+
+  @ApiProperty({ example: 'email@example.com' })
+  @IsString()
+  @MinLength(5)
+  email!: string;
+
+  @ApiProperty({ example: '0901234567' })
+  @IsString()
+  @MinLength(8)
+  phone!: string;
+
+  @ApiProperty({
+    example: 'SHOPPING_MALL',
+    description: 'FOOD_DELIVERY|GROCERY|LOCAL_SERVICE|SHOPPING_MALL',
+    enum: BUSINESS_GROUPS,
+  })
+  @IsString()
+  @IsIn(BUSINESS_GROUPS)
+  businessGroup!: BusinessGroup;
+
+  @ApiProperty({
+    example: 'fashion',
+    description: 'restaurant|cafe|spa|fashion|... tùy businessGroup',
+  })
+  @IsString()
+  @MinLength(1)
+  subCategory!: string;
+
+  @ApiPropertyOptional({ example: 'Giới thiệu về cửa hàng...' })
+  @IsOptional()
+  @IsString()
+  message?: string;
+
+  @ApiPropertyOptional({ example: 'partner_web' })
+  @IsOptional()
+  @IsString()
+  source?: string;
+}
+
+export class SellerLeadQueryDto {
+  @ApiPropertyOptional({ default: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @ApiPropertyOptional({ default: 20 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 20;
+
+  @ApiPropertyOptional({ description: 'PENDING | CONTACTED | DONE | REJECTED' })
+  @IsOptional()
+  @IsString()
+  status?: string;
+}
+
+export class UpdateSellerLeadStatusDto {
+  @ApiProperty({ enum: ['CONTACTED', 'DONE', 'REJECTED'], example: 'CONTACTED' })
+  @IsIn(['CONTACTED', 'DONE', 'REJECTED'])
+  status!: 'CONTACTED' | 'DONE' | 'REJECTED';
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  note?: string;
 }
 
 export class VerifyMerchantDto {

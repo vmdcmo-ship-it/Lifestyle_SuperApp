@@ -177,6 +177,9 @@ export const EarningsScreen = () => {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Ví tài xế</Text>
+          <View style={styles.testBadge}>
+            <Text style={styles.testBadgeText}>Rút tiền & Thu nhập — Đang thử nghiệm</Text>
+          </View>
         </View>
 
         {/* Số dư chính */}
@@ -395,6 +398,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   header: { backgroundColor: Colors.white, padding: Spacing.l },
   title: { ...Typography.h1, color: Colors.black },
+  testBadge: { marginTop: Spacing.s },
+  testBadgeText: { ...Typography.caption, color: Colors.info, fontWeight: '600' },
 
   periodRow: {
     flexDirection: 'row',

@@ -1,0 +1,14 @@
+# Giảm dung lượng upload và tránh file gây lỗi install
+node_modules/
+.expo/
+.expo-shared/
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+coverage/
+.git/
+.env.local
+*.log
+.DS_Store

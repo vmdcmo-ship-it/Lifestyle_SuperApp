@@ -292,12 +292,14 @@ export class SpotlightService {
     sort: 'latest' | 'popular' | 'trending' = 'latest',
     followingCreatorIds?: string[],
     tag?: string,
+    merchantId?: string,
   ) {
     const cappedLimit = Math.min(limit, 50);
     const skip = (page - 1) * cappedLimit;
     const where: any = { status: 'APPROVED', deletedAt: null };
     if (format) where.format = format;
     if (targetType) where.targetType = targetType;
+    if (merchantId) where.merchant_id = merchantId;
     if (category) {
       const cat = await this.prisma.spotlightCategory.findUnique({
         where: { slug: category },

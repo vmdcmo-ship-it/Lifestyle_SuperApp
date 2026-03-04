@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { KodoLogo } from '@/components/kodo-logo';
 
 export function LoginForm() {
   const router = useRouter();
@@ -71,14 +72,9 @@ export function LoginForm() {
     <div className="flex min-h-[80vh] items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="rounded-2xl border bg-card p-8 shadow-lg">
-          {/* Logo */}
+          {/* Logo KODO */}
           <div className="mb-8 text-center">
-            <Link href="/" className="inline-flex items-center gap-2">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-pink-600">
-                <span className="text-2xl font-bold text-white">L</span>
-              </div>
-              <span className="text-2xl font-bold">Lifestyle</span>
-            </Link>
+            <KodoLogo size="lg" withWordmark className="justify-center [&_span]:!text-slate-900" />
           </div>
 
           <h1 className="mb-2 text-center text-3xl font-bold">Đăng nhập</h1>

@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { api } from '@/lib/api/api';
 import { API_ENDPOINTS } from '@/lib/config/api';
-import { SpotlightFeedInfinite } from './spotlight-feed-infinite';
+import { SpotlightFeedInfinite, type ViewMode } from './spotlight-feed-infinite';
+
+const VIEW_KEY = 'spotlight-view-mode';
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -35,28 +37,36 @@ interface SpotlightFeedTabsProps {
   tab: 'for_you' | 'all' | 'following';
   initialData: VideoItem[];
   initialPagination: { page: number; limit: number; total: number; totalPages: number };
-  filters: { category?: string; regionId?: string; sort?: string; tag?: string };
+  filters: { category?: string; regionId?: string; sort?: string; tag?: string; merchantId?: string };
   categories: { id: string; slug: string; name: string }[];
   locations: { id: string; code: string; name: string }[];
+  /** Base path cho silo pages (vd: /spotlight/an-uong) */
+  basePath?: string;
 }
 
-function buildFeedUrl(overrides: Record<string, string | number | undefined>) {
+function buildFeedUrl(
+  overrides: Record<string, string | number | undefined>,
+  basePath?: string,
+): string {
   const p = new URLSearchParams();
   const merged = { ...overrides };
-  if (merged.category) p.set('category', merged.category as string);
+  const useBase = basePath && merged.tab !== 'following';
+  const base = useBase ? basePath : '/spotlight';
+  if (merged.category && !useBase) p.set('category', merged.category as string);
   if (merged.regionId) p.set('regionId', merged.regionId as string);
   if (merged.sort && merged.sort !== 'latest') p.set('sort', merged.sort as string);
   if (merged.tag) p.set('tag', merged.tag as string);
+  if (merged.merchantId) p.set('merchantId', merged.merchantId as string);
   if (merged.tab === 'for_you') p.set('tab', 'for_you');
   if (merged.tab === 'following') p.set('tab', 'following');
   const page = merged.page ?? 1;
   if (page > 1) p.set('page', String(page));
-  return `/spotlight${p.toString() ? `?${p}` : ''}`;
+  return `${base}${p.toString() ? `?${p}` : ''}`;
 }
 
 async function fetchFeedPage(
   page: number,
-  filters: { category?: string; regionId?: string; sort?: string; tag?: string },
+  filters: { category?: string; regionId?: string; sort?: string; tag?: string; merchantId?: string },
 ): Promise<{ data: VideoItem[]; pagination: { page: number; totalPages: number } }> {
   const p = new URLSearchParams();
   p.set('page', String(page));
@@ -66,6 +76,7 @@ async function fetchFeedPage(
   if (filters.regionId) p.set('regionId', filters.regionId);
   if (filters.sort && filters.sort !== 'latest') p.set('sort', filters.sort);
   if (filters.tag) p.set('tag', filters.tag);
+  if (filters.merchantId) p.set('merchantId', filters.merchantId);
   const res = await fetch(
     `${API_BASE.replace(/\/$/, '')}${API_PREFIX}/spotlight/feed?${p}`,
   );
@@ -91,9 +102,20 @@ export function SpotlightFeedTabs({
   filters,
   categories,
   locations,
+  basePath,
 }: SpotlightFeedTabsProps): JSX.Element {
   const { isAuthenticated, isLoading } = useAuth();
   const [tab, setTab] = React.useState<'for_you' | 'all' | 'following'>(initialTab);
+  const [viewMode, setViewMode] = React.useState<ViewMode>(() => {
+    if (typeof window === 'undefined') return 'grid';
+    return (localStorage.getItem(VIEW_KEY) as ViewMode) || 'grid';
+  });
+
+  const persistViewMode = (mode: ViewMode) => {
+    setViewMode(mode);
+    if (typeof window !== 'undefined') localStorage.setItem(VIEW_KEY, mode);
+  };
+
   const [followingData, setFollowingData] = React.useState<{
     data: VideoItem[];
     pagination: { page: number; limit: number; total: number; totalPages: number };
@@ -136,6 +158,7 @@ export function SpotlightFeedTabs({
     regionId: filters.regionId,
     sort: filters.sort || 'latest',
     tag: filters.tag,
+    merchantId: filters.merchantId,
   };
 
   const forYouFilters = {
@@ -145,10 +168,11 @@ export function SpotlightFeedTabs({
 
   return (
     <>
-      {/* Tabs */}
-      <div className="mb-6 flex gap-2 border-b">
+      {/* Tabs + View toggle */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b pb-4">
+        <div className="flex gap-2">
         <Link
-          href={buildFeedUrl({ tab: 'for_you', category: filters.category, regionId: filters.regionId, sort: 'trending', tag: filters.tag, page: 1 })}
+          href={buildFeedUrl({ tab: 'for_you', category: filters.category, regionId: filters.regionId, sort: 'trending', tag: filters.tag, merchantId: filters.merchantId, page: 1 }, basePath)}
           className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
             showForYou
               ? 'border-purple-600 text-purple-600'
@@ -158,7 +182,7 @@ export function SpotlightFeedTabs({
           Dành cho bạn
         </Link>
         <Link
-          href={buildFeedUrl({ tab: undefined, category: filters.category, regionId: filters.regionId, sort: filters.sort, tag: filters.tag, page: 1 })}
+          href={buildFeedUrl({ tab: undefined, category: filters.category, regionId: filters.regionId, sort: filters.sort, tag: filters.tag, merchantId: filters.merchantId, page: 1 }, basePath)}
           className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
             showAll
               ? 'border-purple-600 text-purple-600'
@@ -168,7 +192,7 @@ export function SpotlightFeedTabs({
           Tất cả
         </Link>
         <Link
-          href={buildFeedUrl({ tab: 'following', page: 1 })}
+          href={buildFeedUrl({ tab: 'following', page: 1 }, basePath)}
           className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
             showFollowing
               ? 'border-purple-600 text-purple-600'
@@ -177,6 +201,32 @@ export function SpotlightFeedTabs({
         >
           Đang theo dõi
         </Link>
+        </div>
+        {/* C3: Grid / List view toggle */}
+        <div className="flex items-center gap-1 rounded-lg border p-1">
+          <button
+            type="button"
+            onClick={() => persistViewMode('grid')}
+            className={`rounded-md p-2 transition-colors ${
+              viewMode === 'grid' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30' : 'text-muted-foreground hover:text-foreground'
+            }`}
+            title="Xem dạng lưới"
+            aria-pressed={viewMode === 'grid'}
+          >
+            <GridIcon />
+          </button>
+          <button
+            type="button"
+            onClick={() => persistViewMode('list')}
+            className={`rounded-md p-2 transition-colors ${
+              viewMode === 'list' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30' : 'text-muted-foreground hover:text-foreground'
+            }`}
+            title="Xem dạng danh sách"
+            aria-pressed={viewMode === 'list'}
+          >
+            <ListIcon />
+          </button>
+        </div>
       </div>
 
       {/* Dành cho bạn tab - trending feed */}
@@ -185,6 +235,8 @@ export function SpotlightFeedTabs({
           initialData={initialData}
           initialPagination={initialPagination}
           filters={forYouFilters}
+          viewMode={viewMode}
+          basePath={basePath}
         />
       )}
 
@@ -197,7 +249,7 @@ export function SpotlightFeedTabs({
                 Đăng nhập để xem video từ Creators bạn đang theo dõi
               </p>
               <Link
-                href={`/login?redirect=/spotlight?tab=following`}
+                href="/login?redirect=/spotlight?tab=following"
                 className="mt-4 inline-block rounded-lg bg-purple-600 px-4 py-2 font-medium text-white hover:bg-purple-700"
               >
                 Đăng nhập
@@ -217,6 +269,8 @@ export function SpotlightFeedTabs({
               initialPagination={followingData.pagination}
               filters={{}}
               useFollowingApi
+              viewMode={viewMode}
+              basePath={basePath}
             />
           ) : null}
         </>
@@ -228,8 +282,26 @@ export function SpotlightFeedTabs({
           initialData={initialData}
           initialPagination={initialPagination}
           filters={allFeedFilters}
+          viewMode={viewMode}
+          basePath={basePath}
         />
       )}
     </>
+  );
+}
+
+function GridIcon(): JSX.Element {
+  return (
+    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+    </svg>
+  );
+}
+
+function ListIcon(): JSX.Element {
+  return (
+    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+    </svg>
   );
 }

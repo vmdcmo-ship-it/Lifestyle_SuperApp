@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 5.0.0"
+    "version": ">= 5.0.0",
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
@@ -21,9 +22,10 @@
       "android": {
         "buildType": "apk"
       },
-      "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.vmd.asia/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://api.vmd.asia/api/v1",
+        "LIFESTYLE_BUILD_APP": "user",
+        "EAS_BUILD_DISABLE_MAVEN_CACHE": "1"
       }
     },
     "production": {

@@ -9,7 +9,11 @@ import {
   ScrollView,
   ViewToken,
   Animated,
+  Modal,
+  Pressable,
+  Linking,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Typography, Spacing, BorderRadius } from '../theme';
 import { Avatar, Badge } from '../components/ui';
@@ -39,15 +43,57 @@ const CTA_CONFIG: Record<string, { emoji: string; label: string }> = {
 
 // ─── Single Reel Item ───────────────────────────────────────────────────────
 
+/** Link mua sản phẩm: nội bộ (KODO) hoặc affiliate (Shopee, TikTok Shop) */
+type ProductLinkType = 'INTERNAL' | 'SHOPEE' | 'TIKTOK_SHOP';
+
 interface ReelItemProps {
-  item: (typeof MOCK_SPOTLIGHT_REELS)[0];
+  item: (typeof MOCK_SPOTLIGHT_REELS)[0] & {
+    productLinks?: Array<{ type: ProductLinkType; url: string; label?: string }>;
+  };
   isActive: boolean;
 }
 
+const PRODUCT_LINK_LABELS: Record<ProductLinkType, string> = {
+  INTERNAL: 'Mua trên KODO',
+  SHOPEE: 'Mua trên Shopee',
+  TIKTOK_SHOP: 'Mua trên TikTok Shop',
+};
+
+const SERVICE_OPTIONS = [
+  { id: 'motorbike', icon: '🏍️', label: 'Gọi xe máy', screen: 'Booking' as const, vehicleType: 'MOTORBIKE' },
+  { id: 'car', icon: '🚗', label: 'Gọi xe ô tô / taxi', screen: 'Booking' as const, vehicleType: 'CAR_4' },
+  { id: 'food', icon: '🍜', label: 'Đặt món', screen: 'FoodDelivery' as const },
+];
+
 const ReelItem: React.FC<ReelItemProps> = ({ item, isActive }) => {
+  const navigation = useNavigation<any>();
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
   const heartScale = useRef(new Animated.Value(1)).current;
+
+  const productLinks = (item as ReelItemProps['item']).productLinks ?? [];
+  const hasProductLinks = productLinks.length > 0;
+
+  const handleProductLink = (link: { type: ProductLinkType; url: string; label?: string }) => {
+    setShowProductModal(false);
+    if (link.type === 'INTERNAL') {
+      navigation.navigate('Shopping', { spotlightItemId: item.id });
+    } else {
+      Linking.openURL(link.url).catch(() => {});
+    }
+  };
+
+  const handleServiceOption = (opt: (typeof SERVICE_OPTIONS)[0]) => {
+    setShowServiceModal(false);
+    const destination = item.title; // Có thể mở rộng: item.address hoặc địa chỉ từ tags
+    if (opt.screen === 'Booking') {
+      navigation.navigate('Booking', { destination, vehicleType: opt.vehicleType });
+    } else {
+      navigation.navigate('FoodDelivery', { destination });
+    }
+  };
 
   const handleLike = () => {
     setLiked(!liked);
@@ -124,7 +170,101 @@ const ReelItem: React.FC<ReelItemProps> = ({ item, isActive }) => {
           <Text style={styles.actionIcon}>{saved ? '🔖' : '📑'}</Text>
           <Text style={styles.actionCount}>Lưu</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.actionItem}
+          onPress={() => setShowServiceModal(true)}
+        >
+          <Text style={styles.actionIcon}>🚗</Text>
+          <Text style={styles.actionCount}>Đi đến</Text>
+        </TouchableOpacity>
+
+        {hasProductLinks && (
+          <TouchableOpacity
+            style={styles.actionItem}
+            onPress={() => setShowProductModal(true)}
+          >
+            <Text style={styles.actionIcon}>🛒</Text>
+            <Text style={styles.actionCount}>Mua</Text>
+          </TouchableOpacity>
+        )}
       </View>
+
+      <Modal
+        visible={showProductModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowProductModal(false)}
+      >
+        <Pressable
+          style={styles.serviceModalOverlay}
+          onPress={() => setShowProductModal(false)}
+        >
+          <View
+            style={styles.serviceModalContent}
+            onStartShouldSetResponder={() => true}
+          >
+            <Text style={styles.serviceModalTitle}>Mua sản phẩm</Text>
+            {productLinks.map((link, i) => (
+              <TouchableOpacity
+                key={i}
+                style={styles.serviceOption}
+                onPress={() => handleProductLink(link)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.serviceOptionIcon}>
+                  {link.type === 'INTERNAL' ? '🛍️' : link.type === 'SHOPEE' ? '🛒' : '📦'}
+                </Text>
+                <Text style={styles.serviceOptionLabel}>
+                  {link.label || PRODUCT_LINK_LABELS[link.type]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.serviceCancel}
+              onPress={() => setShowProductModal(false)}
+            >
+              <Text style={styles.serviceCancelText}>Đóng</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        visible={showServiceModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowServiceModal(false)}
+      >
+        <Pressable
+          style={styles.serviceModalOverlay}
+          onPress={() => setShowServiceModal(false)}
+        >
+          <View
+            style={styles.serviceModalContent}
+            onStartShouldSetResponder={() => true}
+          >
+            <Text style={styles.serviceModalTitle}>Gọi dịch vụ di chuyển</Text>
+            {SERVICE_OPTIONS.map((opt) => (
+              <TouchableOpacity
+                key={opt.id}
+                style={styles.serviceOption}
+                onPress={() => handleServiceOption(opt)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.serviceOptionIcon}>{opt.icon}</Text>
+                <Text style={styles.serviceOptionLabel}>{opt.label}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.serviceCancel}
+              onPress={() => setShowServiceModal(false)}
+            >
+              <Text style={styles.serviceCancelText}>Đóng</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
 
       {/* Bottom info overlay */}
       <View style={styles.bottomOverlay}>
@@ -190,6 +330,7 @@ const ReelItem: React.FC<ReelItemProps> = ({ item, isActive }) => {
 // ─── Main Spotlight Screen ──────────────────────────────────────────────────
 
 export const SpotlightScreen = () => {
+  const navigation = useNavigation<any>();
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeCategory, setActiveCategory] = useState<SpotlightCategory>('FOR_YOU');
   const flatListRef = useRef<FlatList>(null);
@@ -225,9 +366,17 @@ export const SpotlightScreen = () => {
       <SafeAreaView edges={['top']} style={styles.topBar}>
         <View style={styles.topBarHeader}>
           <Text style={styles.topTitle}>Spotlight</Text>
-          <TouchableOpacity>
-            <Text style={{ fontSize: 20, color: Colors.white }}>🔍</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('FindNear')}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Text style={{ fontSize: 22, color: Colors.white }}>📍</Text>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <Text style={{ fontSize: 20, color: Colors.white }}>🔍</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Scrollable category tabs */}
@@ -526,6 +675,53 @@ const styles = StyleSheet.create({
     ...Typography.body,
     color: Colors.purpleDark,
     fontWeight: '700',
+  },
+
+  // Service modal (gọi xe / đặt món)
+  serviceModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  serviceModalContent: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: Spacing.l,
+    paddingTop: Spacing.l,
+    paddingBottom: Spacing.xxl,
+  },
+  serviceModalTitle: {
+    ...Typography.h3,
+    color: Colors.purpleDark,
+    marginBottom: Spacing.m,
+    textAlign: 'center',
+  },
+  serviceOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.m,
+    backgroundColor: Colors.offWhite,
+    borderRadius: BorderRadius.medium,
+    marginBottom: 8,
+    gap: 12,
+  },
+  serviceOptionIcon: { fontSize: 24 },
+  serviceOptionLabel: {
+    ...Typography.body,
+    color: Colors.purpleDark,
+    fontWeight: '600',
+  },
+  serviceCancel: {
+    marginTop: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  serviceCancelText: {
+    ...Typography.body,
+    color: Colors.gray,
+    fontWeight: '500',
   },
 
   // Empty state

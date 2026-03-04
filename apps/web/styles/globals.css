@@ -4,6 +4,10 @@
 
 @layer base {
   :root {
+    --brand-yellow: #FFC10E;
+    --brand-yellow-dark: #FFB800;
+    --brand-yellow-light: #FFE066;
+    --brand-text-on-yellow: #1e3a5f;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -22,7 +26,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 271.5 81.3% 55.9%;
+    --ring: 38 92% 50%;
     --radius: 0.5rem;
   }
 
@@ -45,7 +49,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 271.5 81.3% 55.9%;
+    --ring: 38 92% 50%;
   }
 }
 
@@ -92,4 +96,37 @@ html {
 /* Focus visible styles */
 :focus-visible {
   @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+}
+
+/* ===== Brand theme: Header & Footer ===== */
+.brand-header {
+  background-color: #FFC10E !important;
+  border-bottom-color: rgba(255, 183, 0, 0.5) !important;
+}
+.brand-header .brand-text,
+.brand-header.brand-text {
+  color: #1e3a5f !important;
+}
+.brand-header .brand-logo-box {
+  background-color: #FFB800 !important;
+}
+.brand-footer {
+  background-color: #FFC10E !important;
+  border-top-color: rgba(255, 183, 0, 0.5) !important;
+}
+.brand-footer .brand-text,
+.brand-footer p,
+.brand-footer h3,
+.brand-footer a {
+  color: #1e3a5f !important;
+}
+.brand-footer .brand-logo-box {
+  background-color: #FFB800 !important;
+  color: #fff !important;
+}
+.brand-footer a:hover {
+  opacity: 0.85;
+}
+.brand-footer .brand-logo-box {
+  background-color: #FFB800 !important;
 }

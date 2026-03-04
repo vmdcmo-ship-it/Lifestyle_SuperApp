@@ -610,9 +610,14 @@ export function SpotlightDetailClient({
         </div>
       </div>
 
-      {/* CTA buttons */}
+      {/* 🛒 Mua sản phẩm - CTA buttons */}
       {data.cta_buttons && data.cta_buttons.length > 0 ? (
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-6 rounded-xl border border-purple-200 bg-purple-50/50 p-4 dark:border-purple-800 dark:bg-purple-950/30">
+          <div className="mb-3 flex items-center gap-2 text-purple-700 dark:text-purple-300">
+            <span className="text-xl">🛒</span>
+            <span className="font-semibold">Mua sản phẩm</span>
+          </div>
+          <div className="flex flex-wrap gap-3">
           {data.cta_buttons.map((cta) => (
             <a
               key={cta.id}
@@ -631,6 +636,7 @@ export function SpotlightDetailClient({
               ) : null}
             </a>
           ))}
+          </div>
         </div>
       ) : null}
 

@@ -10,6 +10,7 @@
     "backend/api-gateway"
   ],
   "scripts": {
+    "eas-build-pre-install": "node scripts/eas-pre-install.js",
     "dev": "turbo run dev --concurrency=16",
     "build": "turbo run build",
     "test": "turbo run test",

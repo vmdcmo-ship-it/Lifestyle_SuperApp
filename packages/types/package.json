@@ -4,6 +4,21 @@
   "description": "Shared TypeScript types and interfaces",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./driver": "./src/driver.ts",
+    "./driver-app": "./src/driver-app.ts",
+    "./pricing": "./src/pricing.ts",
+    "./revenue": "./src/revenue.ts",
+    "./accounting": "./src/accounting.ts",
+    "./merchant": "./src/merchant.ts",
+    "./insurance": "./src/insurance.ts",
+    "./insurance-products": "./src/insurance-products.ts",
+    "./social-insurance": "./src/social-insurance.ts",
+    "./life-insurance": "./src/life-insurance.ts",
+    "./insurance-analytics": "./src/insurance-analytics.ts",
+    "./backend-api": "./src/backend-api.ts"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { KodoLogo } from '@/components/kodo-logo';
 import {
   DriverFormData,
   initialFormData,
@@ -294,11 +295,9 @@ export function DriverSignupWizard() {
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8 text-center">
-          <Link href="/" className="inline-block mb-4">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg">
-              <span className="text-3xl font-bold text-white">L</span>
-            </div>
-          </Link>
+          <div className="mb-4 flex justify-center">
+            <KodoLogo size="lg" withWordmark className="[&_span]:!text-gray-900 dark:[&_span]:!text-gray-100" />
+          </div>
           <h1 className="mb-2 text-4xl font-bold">Đăng ký Tài xế Đối tác</h1>
           <p className="text-gray-600 dark:text-gray-400">
             Thu nhập hấp dẫn, linh hoạt thời gian làm việc

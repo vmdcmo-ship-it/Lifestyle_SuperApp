@@ -83,6 +83,12 @@ export default function AboutPage(): JSX.Element {
               description="Combo dịch vụ siêu ưu đãi"
               href="/savings-packages"
             />
+            <ServiceCard
+              icon="🤝"
+              title="Hợp tác"
+              description="Thuê mua xe VinFast, trở thành tài xế đối tác"
+              href="/hop-tac"
+            />
           </div>
         </div>
       </section>

@@ -224,12 +224,20 @@ export default function FoodDeliveryPage(): JSX.Element {
               <p className="mb-8 text-lg opacity-90">
                 Nhận voucher giảm 50K cho đơn hàng đầu tiên khi đăng ký hôm nay!
               </p>
-              <Link
-                href="/signup"
-                className="inline-flex items-center justify-center rounded-lg bg-white px-8 py-4 text-lg font-semibold text-orange-600 transition-transform hover:scale-105"
-              >
-                Đăng ký nhận ưu đãi
-              </Link>
+              <div className="flex flex-wrap items-center justify-center gap-4">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center rounded-lg bg-white px-8 py-4 text-lg font-semibold text-orange-600 transition-transform hover:scale-105"
+                >
+                  Đăng ký nhận ưu đãi
+                </Link>
+                <Link
+                  href="/dang-ky-doi-tac?group=FOOD_DELIVERY"
+                  className="inline-flex items-center justify-center rounded-lg border-2 border-white/60 px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-white/10"
+                >
+                  Nhà hàng đăng ký đối tác
+                </Link>
+              </div>
             </div>
           </div>
         </section>

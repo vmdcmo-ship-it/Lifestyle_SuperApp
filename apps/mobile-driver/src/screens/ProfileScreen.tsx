@@ -79,7 +79,7 @@ export const DriverProfileScreen = () => {
 
   const tabNav = navigation.getParent()?.getParent();
 
-  type MenuItem = { icon: string; label: string; screen?: string; tab?: string; subItems?: MenuItem[]; comingSoon?: boolean };
+  type MenuItem = { icon: string; label: string; screen?: string; tab?: string; subItems?: MenuItem[]; comingSoon?: boolean; testPhase?: boolean };
   type Section = { title?: string; items: MenuItem[] };
 
   const [comingSoonFeature, setComingSoonFeature] = useState<string | null>(null);
@@ -89,7 +89,7 @@ export const DriverProfileScreen = () => {
       title: undefined,
       items: [
         { icon: '🏅', label: 'Hạng thành viên', comingSoon: true },
-        { icon: '🛡️', label: 'Bảo hiểm', screen: 'Insurance' },
+        { icon: '🛡️', label: 'Bảo hiểm', screen: 'Insurance', testPhase: true },
       ],
     },
     {
@@ -114,16 +114,17 @@ export const DriverProfileScreen = () => {
           icon: '👤',
           label: 'Thông tin tài khoản',
           screen: 'AccountInfo',
+          testPhase: true,
           subItems: [
-            { icon: '🏍️', label: 'Phương tiện', screen: 'Vehicles' },
-            { icon: '📄', label: 'Cập nhật giấy tờ', screen: 'UpdateDocuments' },
+            { icon: '🏍️', label: 'Phương tiện', screen: 'Vehicles', testPhase: true },
+            { icon: '📄', label: 'Cập nhật giấy tờ', screen: 'UpdateDocuments', testPhase: true },
           ],
         },
-        { icon: '📑', label: 'Bảng giá', screen: 'Pricing' },
-        { icon: '❓', label: 'Câu hỏi thường gặp', screen: 'FAQ' },
-        { icon: '🎧', label: 'Tổng đài hỗ trợ', screen: 'SupportHotline' },
-        { icon: '📥', label: 'Cài đặt nhận đơn', screen: 'OrderReceivingSettings' },
-        { icon: '⚙️', label: 'Cài đặt', screen: 'Settings' },
+        { icon: '📑', label: 'Bảng giá', screen: 'Pricing', testPhase: true },
+        { icon: '❓', label: 'Câu hỏi thường gặp', screen: 'FAQ', testPhase: true },
+        { icon: '🎧', label: 'Tổng đài hỗ trợ', screen: 'SupportHotline', testPhase: true },
+        { icon: '📥', label: 'Cài đặt nhận đơn', screen: 'OrderReceivingSettings', testPhase: true },
+        { icon: '⚙️', label: 'Cài đặt', screen: 'Settings', testPhase: true },
       ],
     },
   ];
@@ -274,7 +275,11 @@ export const DriverProfileScreen = () => {
                   >
                     <Text style={styles.menuIcon}>{item.icon}</Text>
                     <Text style={styles.menuLabel}>{item.label}</Text>
-                    {item.comingSoon ? (
+                    {item.testPhase ? (
+                      <View style={styles.testPhaseBadge}>
+                        <Text style={styles.testPhaseText}>Đang thử nghiệm</Text>
+                      </View>
+                    ) : item.comingSoon ? (
                       <View style={styles.comingSoonBadge}>
                         <Text style={styles.comingSoonText}>Sắp ra mắt</Text>
                       </View>
@@ -305,7 +310,10 @@ export const DriverProfileScreen = () => {
         </View>
 
         {/* Phiên bản */}
-        <Text style={styles.versionText}>Phiên bản 1.0.0</Text>
+        <View style={styles.versionRow}>
+          <Text style={styles.versionText}>Phiên bản 1.0.0</Text>
+          <Text style={styles.versionBadge}>Phiên bản thử nghiệm</Text>
+        </View>
 
         <ComingSoonModal
           visible={!!comingSoonFeature}
@@ -390,6 +398,13 @@ const styles = StyleSheet.create({
   menuBorder: { borderBottomWidth: 1, borderBottomColor: Colors.offWhite },
   menuIcon: { fontSize: 20, marginRight: Spacing.m },
   menuLabel: { ...Typography.body, color: Colors.black, flex: 1 },
+  testPhaseBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: Colors.info + '25',
+  },
+  testPhaseText: { ...Typography.caption, color: Colors.info, fontWeight: '600' },
   comingSoonBadge: {
     backgroundColor: Colors.gold + '30',
     paddingHorizontal: Spacing.s,
@@ -434,13 +449,9 @@ const styles = StyleSheet.create({
     borderColor: Colors.red,
   },
   logoutText: { ...Typography.body, color: Colors.red, fontWeight: '600' },
-  versionText: {
-    ...Typography.caption,
-    color: Colors.gray,
-    textAlign: 'center',
-    marginTop: Spacing.l,
-    marginBottom: Spacing.s,
-  },
+  versionRow: { alignItems: 'center', marginTop: Spacing.l, marginBottom: Spacing.s },
+  versionText: { ...Typography.caption, color: Colors.gray, textAlign: 'center' },
+  versionBadge: { ...Typography.caption, color: Colors.info, fontWeight: '600', marginTop: 4 },
   newDriverBanner: {
     padding: Spacing.l,
     backgroundColor: Colors.warning + '20',

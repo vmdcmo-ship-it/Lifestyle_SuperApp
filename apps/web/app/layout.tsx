@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
-import { Inter, Be_Vietnam_Pro } from 'next/font/google';
+import { Inter, Be_Vietnam_Pro, Playfair_Display } from 'next/font/google';
 import '../styles/globals.css';
 import { Header } from '@/components/header';
+import { Footer } from '@/components/footer';
 import { GoogleAnalytics } from '@/components/google-analytics';
 import { Providers } from './providers';
 
@@ -16,6 +17,13 @@ const beVietnamPro = Be_Vietnam_Pro({
   subsets: ['latin', 'vietnamese'],
   display: 'swap',
   variable: '--font-heading',
+});
+
+const playfair = Playfair_Display({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin', 'vietnamese'],
+  display: 'swap',
+  variable: '--font-playfair',
 });
 
 export const metadata: Metadata = {
@@ -111,7 +119,7 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps): JSX.Element {
   return (
-    <html lang="vi" className={`${inter.variable} ${beVietnamPro.variable}`}>
+    <html lang="vi" className={`light ${inter.variable} ${beVietnamPro.variable} ${playfair.variable}`}>
       <head>
         {/* Preconnect to external domains for faster loading */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
@@ -128,29 +136,7 @@ export default function RootLayout({ children }: RootLayoutProps): JSX.Element {
           
           <main className="flex-1">{children}</main>
           
-          <footer className="border-t">
-            <div className="container mx-auto px-4 py-8">
-              <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-                <p className="text-center text-sm text-muted-foreground md:text-left">
-                  &copy; {new Date().getFullYear()} Lifestyle Super App. Bảo lưu mọi quyền.
-                </p>
-                <nav className="flex gap-4 text-sm text-muted-foreground">
-                  <a href="/help" className="hover:text-foreground">
-                    Trợ giúp
-                  </a>
-                  <a href="/privacy" className="hover:text-foreground">
-                    Chính sách bảo mật
-                  </a>
-                  <a href="/terms" className="hover:text-foreground">
-                    Điều khoản sử dụng
-                  </a>
-                  <a href="/contact" className="hover:text-foreground">
-                    Liên hệ
-                  </a>
-                </nav>
-              </div>
-            </div>
-          </footer>
+          <Footer />
         </div>
         </Providers>
       </body>

@@ -49,6 +49,8 @@ Ba app có **package khác nhau** → có thể cài đồng thời trên cùng 
 
 ### Phase 2: Build APK từng app
 
+**Lưu ý**: Monorepo dùng pre-install hook (`scripts/eas-pre-install.js`) để isolate app khi build. Mỗi app có env `LIFESTYLE_BUILD_APP` trong eas.json (user, driver, merchant).
+
 | Bước | Ứng dụng | Lệnh |
 |------|-----------|------|
 | 2.1 | App User | `cd apps/mobile-user && eas build --profile preview --platform android` |
@@ -132,7 +134,17 @@ npm run build:apk:all
 
 ---
 
-## 5. Cập nhật khi có thay đổi code
+## 5. Kiến trúc pre-install (monorepo)
+
+| File | Mục đích |
+|------|----------|
+| `scripts/eas-pre-install.js` | Hook chạy trước `npm install` trên EAS. Đọc `LIFESTYLE_BUILD_APP` (user/driver/merchant), isolate app đó lên root, xóa workspace khác → tránh lỗi `@lifestyle/* workspace:*`. |
+| Root `package.json` | `"eas-build-pre-install": "node scripts/eas-pre-install.js"` |
+| `eas.json` (mỗi app) | `"env": { "LIFESTYLE_BUILD_APP": "user" }` (hoặc driver/merchant) |
+
+---
+
+## 6. Cập nhật khi có thay đổi code
 
 Khi sửa code và cần build APK mới:
 
@@ -144,7 +156,7 @@ Khi sửa code và cần build APK mới:
 
 ---
 
-## 6. So sánh APK vs Expo Go (cho presentation)
+## 7. So sánh APK vs Expo Go (cho presentation)
 
 | Tiêu chí | Expo Go | APK (EAS Preview) |
 |----------|---------|---------------------|
@@ -156,7 +168,7 @@ Khi sửa code và cần build APK mới:
 
 ---
 
-## 7. Tài liệu liên quan
+## 8. Tài liệu liên quan
 
 - [LAUNCH_CHECKLIST.md](./LAUNCH_CHECKLIST.md) – Checklist chi tiết khi lên store
 - [EAS Build – Android](https://docs.expo.dev/build-reference/android-builds/)

@@ -7,7 +7,8 @@
     "start:tunnel": "expo start --tunnel",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "eas-build-pre-install": "node ../../scripts/eas-pre-install.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
@@ -26,7 +27,7 @@
     "react-native": "0.81.5",
     "react-native-gesture-handler": "~2.27.0",
     "react-native-pager-view": "~8.0.0",
-    "react-native-reanimated": "~3.18.0",
+    "react-native-reanimated": "4.1.6",
     "react-native-safe-area-context": "~5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-web": "^0.21.2"
@@ -34,6 +35,14 @@
   "devDependencies": {
     "@types/react": "~19.1.0",
     "typescript": "~5.9.2"
+  },
+  "overrides": {
+    "react-native-reanimated": "4.1.6"
+  },
+  "pnpm": {
+    "overrides": {
+      "react-native-reanimated": "4.1.6"
+    }
   },
   "private": true
 }

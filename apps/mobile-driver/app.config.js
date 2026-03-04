@@ -32,6 +32,8 @@ module.exports = ({ config }) => ({
     ios: {
       ...config.expo?.ios,
       supportsTablet: true,
+      bundleIdentifier: 'vn.lifestyle.superapp.driver',
+      buildNumber: '1',
       infoPlist: {
         NSCameraUsageDescription: 'Ứng dụng cần quyền camera để chụp ảnh khuôn mặt xác minh tài xế.',
         NSPhotoLibraryUsageDescription: 'Ứng dụng cần quyền ảnh để chọn ảnh giấy tờ hoặc ảnh chân dung.',
@@ -40,6 +42,8 @@ module.exports = ({ config }) => ({
     },
     android: {
       ...config.expo?.android,
+      package: 'vn.lifestyle.superapp.driver',
+      versionCode: 1,
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',
         backgroundColor: '#ffffff',
@@ -56,5 +60,12 @@ module.exports = ({ config }) => ({
     web: {
       favicon: './assets/favicon.png',
     },
+    extra: {
+      ...config.expo?.extra,
+      eas: {
+        projectId: 'b6baf0e3-b031-49e8-bc8c-4b14586ff043',
+      },
+    },
+    owner: 'kodo_superapp',
   },
 });

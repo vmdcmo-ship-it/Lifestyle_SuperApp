@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 12.0.0"
+    "version": ">= 12.0.0",
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
@@ -16,7 +17,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.vmd.asia/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://api.vmd.asia/api/v1",
+        "LIFESTYLE_BUILD_APP": "driver"
       }
     },
     "production": {

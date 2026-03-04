@@ -9,13 +9,13 @@ const nextConfig = {
   
   // Production optimizations
   output: 'standalone',
-  // Trỏ về monorepo root để Next.js trace đúng node_modules (fix "Cannot find module 'next'")
-  outputFileTracingRoot: path.join(__dirname, '../../'),
   compress: true,
   poweredByHeader: false,
   
   // Experimental features
   experimental: {
+    // Monorepo: trỏ trace về root để tìm đúng node_modules
+    outputFileTracingRoot: path.join(__dirname, '../../'),
     // Enable Server Actions
     serverActions: {
       allowedOrigins: ['localhost:3000', 'vmd.asia', 'www.vmd.asia'],
@@ -57,7 +57,11 @@ const nextConfig = {
   },
 
   // Webpack configuration
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
+    // Tắt cache webpack khi dev để tránh lỗi "Cannot read properties of undefined (reading 'call')"
+    if (dev) {
+      config.cache = false;
+    }
     // Optimize bundle
     if (!isServer) {
       config.resolve.fallback = {
@@ -67,7 +71,6 @@ const nextConfig = {
         tls: false,
       };
     }
-    
     return config;
   },
 
@@ -136,7 +139,9 @@ const nextConfig = {
   // Redirects
   async redirects() {
     return [
-      // Add any redirects here
+      // SEO: chuyển /cong-dong → /the-thao (301 permanent)
+      { source: '/cong-dong', destination: '/the-thao', permanent: true },
+      { source: '/cong-dong/:path*', destination: '/the-thao/:path*', permanent: true },
     ];
   },
 

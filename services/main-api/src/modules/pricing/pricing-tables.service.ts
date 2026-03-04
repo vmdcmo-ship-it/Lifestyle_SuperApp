@@ -343,6 +343,47 @@ export class PricingTablesService {
     };
   }
 
+  /**
+   * Lấy cấu hình phí giao hàng cho Kodo Mall (public, không cần auth).
+   * - standardFee: từ bảng DELIVERY, size M (baseFee)
+   * - express: từ bảng TRANSPORT, BIKE (minFare/baseFare + perKm)
+   */
+  async getMallDeliveryConfig(): Promise<{
+    standardFee: number;
+    expressBaseFee: number;
+    expressPerKm: number;
+  }> {
+    const defaults = { standardFee: 50000, expressBaseFee: 30000, expressPerKm: 8000 };
+
+    const [deliveryTable, transportTable] = await Promise.all([
+      this.prisma.pricingTable.findFirst({
+        where: { service_type: 'DELIVERY', is_active: true },
+        include: { delivery_params: { where: { is_active: true } } },
+      }),
+      this.prisma.pricingTable.findFirst({
+        where: { service_type: 'TRANSPORT', is_active: true },
+        include: { params: { where: { is_active: true } } },
+      }),
+    ]);
+
+    let standardFee = defaults.standardFee;
+    let expressBaseFee = defaults.expressBaseFee;
+    let expressPerKm = defaults.expressPerKm;
+
+    const mParam = deliveryTable?.delivery_params?.find((d) => d.size_tier === 'M');
+    if (mParam) standardFee = Number(mParam.base_fee);
+
+    const bikeParam = transportTable?.params?.find(
+      (p) => String(p.vehicle_type).toUpperCase() === 'BIKE'
+    );
+    if (bikeParam) {
+      expressBaseFee = Number(bikeParam.min_fare) || Number(bikeParam.base_fare) || defaults.expressBaseFee;
+      expressPerKm = Number(bikeParam.per_km) || defaults.expressPerKm;
+    }
+
+    return { standardFee, expressBaseFee, expressPerKm };
+  }
+
   private formatTable(
     table: {
       id: string;

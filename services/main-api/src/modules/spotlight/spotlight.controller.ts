@@ -86,6 +86,7 @@ export class SpotlightController {
   @ApiQuery({ name: 'regionId', required: false, description: 'UUID Region tỉnh/thành' })
   @ApiQuery({ name: 'sort', required: false, enum: ['latest', 'popular', 'trending'] })
   @ApiQuery({ name: 'tag', required: false, description: 'Hashtag/tag để filter (Phase 2.3)' })
+  @ApiQuery({ name: 'merchantId', required: false, description: 'UUID Merchant – video review của dịch vụ (Findnear)' })
   @ApiResponse({ status: 200, description: 'Danh sách redcomments' })
   async getFeed(
     @Query('page') page?: number,
@@ -96,6 +97,7 @@ export class SpotlightController {
     @Query('regionId') regionId?: string,
     @Query('sort') sort?: 'latest' | 'popular' | 'trending',
     @Query('tag') tag?: string,
+    @Query('merchantId') merchantId?: string,
   ) {
     return this.spotlightService.findAllRedcomments(
       page || 1,
@@ -107,6 +109,7 @@ export class SpotlightController {
       sort || 'latest',
       undefined,
       tag,
+      merchantId,
     );
   }
 

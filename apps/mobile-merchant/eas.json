@@ -17,7 +17,8 @@
       },
       "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.vmd.asia/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://api.vmd.asia/api/v1",
+        "LIFESTYLE_BUILD_APP": "merchant"
       }
     },
     "production": {

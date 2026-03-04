@@ -1,11 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { api } from '@/lib/api/api';
 import { API_ENDPOINTS } from '@/lib/config/api';
+
+function getVideoPreview(videoUrl: string): { embedUrl: string | null; thumbnail: string; source: 'youtube' | 'facebook' | null } {
+  const u = videoUrl.trim();
+  if (!u) return { embedUrl: null, thumbnail: 'https://placehold.co/640x360/1a1a2e/eee?text=Video', source: null };
+  if (/youtube\.com|youtu\.be/i.test(u)) {
+    const m1 = u.match(/[?&]v=([^&]+)/);
+    const m2 = u.match(/youtu\.be\/([^?]+)/);
+    const m3 = u.match(/youtube\.com\/embed\/([^?]+)/);
+    const videoId = m1?.[1] || m2?.[1] || m3?.[1] || '';
+    if (!videoId) return { embedUrl: null, thumbnail: 'https://placehold.co/640x360/1a1a2e/eee?text=YouTube', source: 'youtube' };
+    return {
+      embedUrl: `https://www.youtube.com/embed/${videoId}?rel=0`,
+      thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+      source: 'youtube',
+    };
+  }
+  if (/facebook\.com|fb\.watch|fb\.reel|fb\.com/i.test(u)) {
+    const encoded = encodeURIComponent(u);
+    return {
+      embedUrl: `https://www.facebook.com/plugins/video.php?href=${encoded}&show_text=false`,
+      thumbnail: 'https://placehold.co/640x360/1a1a2e/eee?text=Facebook+Video',
+      source: 'facebook',
+    };
+  }
+  return { embedUrl: null, thumbnail: 'https://placehold.co/640x360/1a1a2e/eee?text=Video', source: null };
+}
 
 const TARGET_TYPES = [
   { value: 'TRAVEL', label: 'Du lịch' },
@@ -38,6 +64,8 @@ export function SpotlightCreateForm({
   const { isAuthenticated, isLoading } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [suggestError, setSuggestError] = useState('');
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -88,6 +116,72 @@ export function SpotlightCreateForm({
     const next = [...form.ctaLinks];
     next[idx] = { ...next[idx], ...updates };
     updateForm({ ctaLinks: next });
+  };
+
+  const fetchSuggest = useCallback(async () => {
+    setSuggestLoading(true);
+    setSuggestError('');
+    try {
+      const category = categories.find((c) => c.slug === form.categorySlug);
+      const regionNames = form.regionIds
+        .map((id) => locations.find((r) => r.id === id)?.name)
+        .filter(Boolean) as string[];
+      const res = await fetch('/api/spotlight/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: form.title,
+          description: form.description || undefined,
+          tags: form.tags || undefined,
+          targetType: form.targetType,
+          categorySlug: form.categorySlug || undefined,
+          regionNames,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Gợi ý thất bại');
+      }
+      return data as { descriptions: string[]; keywords: string[] };
+    } catch (err) {
+      setSuggestError(err instanceof Error ? err.message : 'Gợi ý thất bại');
+      return null;
+    } finally {
+      setSuggestLoading(false);
+    }
+  }, [
+    form.title,
+    form.description,
+    form.tags,
+    form.categorySlug,
+    form.regionIds,
+    categories,
+    locations,
+  ]);
+
+  const handleSuggestDescription = async () => {
+    const data = await fetchSuggest();
+    if (!data?.descriptions?.length) return;
+    if (data.descriptions.length === 1) {
+      updateForm({ description: data.descriptions[0] });
+    } else {
+      const chosen = data.descriptions[0];
+      updateForm({ description: chosen });
+    }
+  };
+
+  const handleSuggestKeywords = async () => {
+    const data = await fetchSuggest();
+    if (!data?.keywords?.length) return;
+    const existing = form.tags
+      .split(',')
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
+    const newKeys = data.keywords.filter(
+      (k) => !existing.includes(k.trim().toLowerCase())
+    );
+    const merged = [...new Set([...existing, ...newKeys])].join(', ');
+    updateForm({ tags: merged });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -187,18 +281,31 @@ export function SpotlightCreateForm({
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium">
-          Mô tả
-        </label>
+        <div className="flex items-center justify-between gap-2">
+          <label htmlFor="description" className="block text-sm font-medium">
+            Mô tả
+          </label>
+          <button
+            type="button"
+            onClick={handleSuggestDescription}
+            disabled={suggestLoading}
+            className="shrink-0 rounded-lg border border-purple-300 bg-purple-50 px-3 py-1.5 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-100 disabled:opacity-50 dark:border-purple-700 dark:bg-purple-950/40 dark:text-purple-300 dark:hover:bg-purple-900/40"
+          >
+            {suggestLoading ? 'Đang gợi ý...' : '✨ Gợi ý mô tả'}
+          </button>
+        </div>
         <textarea
           id="description"
           value={form.description}
           onChange={(e) => updateForm({ description: e.target.value })}
           maxLength={2000}
           rows={4}
-          placeholder="Mô tả ngắn gọn về video..."
+          placeholder="Mô tả ngắn gọn về video (hook thu hút → ấn tượng → độc đáo → di sản)..."
           className="mt-1 w-full rounded-lg border bg-background px-4 py-2.5"
         />
+        {suggestError ? (
+          <p className="mt-1 text-xs text-destructive">{suggestError}</p>
+        ) : null}
       </div>
 
       <div>
@@ -264,9 +371,19 @@ export function SpotlightCreateForm({
       </div>
 
       <div>
-        <label htmlFor="tags" className="block text-sm font-medium">
-          Tags (phân cách bằng dấu phẩy)
-        </label>
+        <div className="flex items-center justify-between gap-2">
+          <label htmlFor="tags" className="block text-sm font-medium">
+            Tags (phân cách bằng dấu phẩy)
+          </label>
+          <button
+            type="button"
+            onClick={handleSuggestKeywords}
+            disabled={suggestLoading}
+            className="shrink-0 rounded-lg border border-purple-300 bg-purple-50 px-3 py-1.5 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-100 disabled:opacity-50 dark:border-purple-700 dark:bg-purple-950/40 dark:text-purple-300 dark:hover:bg-purple-900/40"
+          >
+            {suggestLoading ? 'Đang gợi ý...' : '🏷️ Gợi ý từ khóa'}
+          </button>
+        </div>
         <input
           id="tags"
           type="text"
@@ -357,6 +474,69 @@ export function SpotlightCreateForm({
           </div>
         ))}
       </div>
+
+      {/* F2: Preview trước khi đăng */}
+      {(form.videoUrl.trim() || form.title.trim()) && (
+        <div className="rounded-xl border-2 border-dashed border-purple-300 bg-purple-50/50 p-6 dark:border-purple-700 dark:bg-purple-950/20">
+          <h3 className="mb-4 flex items-center gap-2 font-semibold text-purple-800 dark:text-purple-200">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            Xem trước bài đăng
+          </h3>
+          <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
+            <div className="relative aspect-video bg-muted">
+              {(() => {
+                const { embedUrl, thumbnail, source } = getVideoPreview(form.videoUrl);
+                return embedUrl ? (
+                  <iframe
+                    src={embedUrl}
+                    title="Preview"
+                    className="h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <img src={thumbnail} alt="Preview" className="h-full w-full object-cover" />
+                    {source && (
+                      <span className="absolute right-2 top-2 rounded bg-black/60 px-2 py-0.5 text-xs text-white">
+                        {source === 'youtube' ? 'YouTube' : 'Facebook'}
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+            <div className="p-4">
+              <h4 className="font-semibold text-foreground">
+                {form.title.trim() || '(Chưa có tiêu đề)'}
+              </h4>
+              {form.description.trim() ? (
+                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
+                  {form.description}
+                </p>
+              ) : null}
+              {form.ctaLinks.some((c) => c.text.trim() && c.url.trim()) ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {form.ctaLinks
+                    .filter((c) => c.text.trim() && c.url.trim())
+                    .map((cta, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center rounded-lg border border-purple-500/50 bg-purple-100 px-3 py-1.5 text-sm font-medium text-purple-800 dark:bg-purple-900/40 dark:text-purple-200"
+                      >
+                        {cta.text}
+                        {cta.priceDisplay ? ` · ${cta.priceDisplay}` : ''}
+                      </span>
+                    ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-4 pt-6">
         <button

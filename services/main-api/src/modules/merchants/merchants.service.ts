@@ -7,6 +7,9 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CreateMerchantDto,
+  CreateSellerLeadDto,
+  SellerLeadQueryDto,
+  UpdateSellerLeadStatusDto,
   UpdateMerchantDto,
   VerifyMerchantDto,
   CreateCategoryDto,
@@ -40,6 +43,72 @@ export class MerchantsService {
   }
 
   // ═══ MERCHANT CRUD ═══════════════════════════════════════════════════════
+
+  async createSellerLead(dto: CreateSellerLeadDto) {
+    const lead = await this.prisma.merchantSellerLead.create({
+      data: {
+        storeName: dto.storeName.trim(),
+        contactName: dto.contactName.trim(),
+        email: dto.email.trim(),
+        phone: dto.phone.trim(),
+        businessGroup: dto.businessGroup,
+        subCategory: dto.subCategory.trim(),
+        category: dto.subCategory.trim(),
+        message: dto.message?.trim() || null,
+        source: dto.source || 'partner_web',
+      },
+    });
+    return { id: lead.id, message: 'Đăng ký đã được gửi thành công' };
+  }
+
+  async listSellerLeads(query: SellerLeadQueryDto) {
+    const page = Math.max(1, query.page ?? 1);
+    const limit = Math.min(100, Math.max(1, query.limit ?? 20));
+    const skip = (page - 1) * limit;
+
+    const where: Record<string, unknown> = {};
+    if (query.status) where.status = query.status;
+
+    const [data, total] = await Promise.all([
+      this.prisma.merchantSellerLead.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.merchantSellerLead.count({ where }),
+    ]);
+
+    return {
+      data: data.map((l) => ({
+        id: l.id,
+        storeName: l.storeName,
+        contactName: l.contactName,
+        email: l.email,
+        phone: l.phone,
+        businessGroup: l.businessGroup,
+        subCategory: l.subCategory,
+        category: l.category,
+        message: l.message,
+        source: l.source,
+        status: l.status,
+        createdAt: l.createdAt.toISOString(),
+      })),
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async updateSellerLeadStatus(id: string, dto: UpdateSellerLeadStatusDto) {
+    const lead = await this.prisma.merchantSellerLead.findUnique({ where: { id } });
+    if (!lead) throw new NotFoundException('Lead không tồn tại');
+    const updated = await this.prisma.merchantSellerLead.update({
+      where: { id },
+      data: { status: dto.status },
+    });
+    return { id: updated.id, status: updated.status };
+  }
 
   async create(userId: string, dto: CreateMerchantDto) {
     const merchantNumber = await this.generateMerchantNumber();

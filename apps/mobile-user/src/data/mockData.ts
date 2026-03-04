@@ -313,6 +313,10 @@ export const MOCK_SPOTLIGHT_REELS = [
     rating: 4.8,
     tags: ['outfit', 'công sở', 'tiết kiệm', 'thời trang'],
     duration: 60,
+    productLinks: [
+      { type: 'SHOPEE', url: 'https://shopee.vn/', label: 'Mua trên Shopee' },
+      { type: 'INTERNAL', url: '', label: 'Mua trên KODO' },
+    ],
   },
   {
     id: '31',
@@ -333,6 +337,7 @@ export const MOCK_SPOTLIGHT_REELS = [
     rating: 4.6,
     tags: ['street style', 'nguyễn huệ', 'gen z', 'trend'],
     duration: 55,
+    productLinks: [{ type: 'TIKTOK_SHOP', url: 'https://www.tiktok.com/shop/', label: 'Mua trên TikTok Shop' }],
   },
   {
     id: '32',
@@ -353,6 +358,7 @@ export const MOCK_SPOTLIGHT_REELS = [
     rating: 4.7,
     tags: ['local brand', 'việt nam', 'thương hiệu', 'chất lượng'],
     duration: 70,
+    productLinks: [{ type: 'INTERNAL', url: '', label: 'Mua trên sàn KODO' }],
   },
   {
     id: '33',
@@ -444,12 +450,13 @@ export const MOCK_SERVICES = [
 
   // ── Phase 3: Lifestyle Expansion ─────────────────
   { id: 'spotlight',       icon: '⭐', label: 'Spotlight',       color: '#FFD93D', screen: 'Spotlight',        badge: null,  enabled: true, order: 10, phase: 'P3' },
-  { id: 'insurance',       icon: '🛡️', label: 'Bảo hiểm',       color: '#6C5CE7', screen: 'Insurance',       badge: null,  enabled: true, order: 11, phase: 'P3' },
-  { id: 'travel',          icon: '✈️', label: 'Du lịch',         color: '#45B7D1', screen: null,              badge: null,  enabled: true, order: 12, phase: 'P3' },
-  { id: 'shop',            icon: '🛒', label: 'Mua sắm',        color: '#4ECDC4', screen: 'Shopping',        badge: null,  enabled: true, order: 13, phase: 'P3' },
+  { id: 'shoppingMall',    icon: '🛍️', label: 'Shopping\nMall', color: '#C9A227', screen: 'ShoppingMall',     badge: 'Luxe', enabled: true, order: 11, phase: 'P3' },
+  { id: 'insurance',       icon: '🛡️', label: 'Bảo hiểm',       color: '#6C5CE7', screen: 'Insurance',       badge: null,  enabled: true, order: 12, phase: 'P3' },
+  { id: 'travel',          icon: '✈️', label: 'Du lịch',         color: '#45B7D1', screen: null,              badge: null,  enabled: true, order: 13, phase: 'P3' },
+  { id: 'shop',            icon: '🛒', label: 'Mua sắm',        color: '#4ECDC4', screen: 'Shopping',        badge: null,  enabled: true, order: 14, phase: 'P3' },
 
   // ── Phase 4: Financial & Utility ─────────────────
-  { id: 'wallet',          icon: '💰', label: 'Ví tiền',         color: '#A8E6CF', screen: 'Wallet',          badge: null,  enabled: true, order: 14, phase: 'P4' },
+  { id: 'wallet',          icon: '💰', label: 'Ví tiền',         color: '#A8E6CF', screen: 'Wallet',          badge: null,  enabled: true, order: 15, phase: 'P4' },
   { id: 'pension',         icon: '🏦', label: 'Lương hưu',       color: '#2E5090', screen: 'PensionCalculator', badge: null, enabled: true, order: 15, phase: 'P4' },
   { id: 'familyAccount',   icon: '👨‍👩‍👧', label: 'Gia đình',       color: '#00B894', screen: 'FamilyAccount',   badge: null,  enabled: true, order: 16, phase: 'P4' },
   { id: 'giftCard',        icon: '🎁', label: 'Thẻ quà tặng',   color: '#FD79A8', screen: 'GiftCard',        badge: null,  enabled: true, order: 17, phase: 'P4' },

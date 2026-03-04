@@ -2,6 +2,17 @@
   "expo": {
     "name": "Lifestyle Đối tác",
     "slug": "lifestyle-merchant",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35
+          }
+        }
+      ]
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -35,6 +46,12 @@
         "projectId": "f79ca440-506c-4636-942a-8ef50cab1a59"
       }
     },
-    "owner": "kodo_superapp"
+    "owner": "kodo_superapp",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f79ca440-506c-4636-942a-8ef50cab1a59"
+    }
   }
 }

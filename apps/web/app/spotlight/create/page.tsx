@@ -53,6 +53,12 @@ export default async function SpotlightCreatePage(): Promise<JSX.Element> {
           Dán link video từ YouTube hoặc Facebook để chia sẻ với cộng đồng
         </p>
 
+        <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50/50 px-4 py-3 dark:border-emerald-800 dark:bg-emerald-950/20">
+          <p className="text-sm text-emerald-800 dark:text-emerald-200">
+            <strong>💡 Lưu ý:</strong> Nếu bạn review một dịch vụ cụ thể (quán cafe, nhà hàng, spa…) trên sàn KODO, hãy gán đúng merchant khi tạo video. Như vậy khách hàng mới tìm thấy video qua nút &quot;Xem video&quot; khi tìm dịch vụ trong Findnear (Dịch vụ gần bạn).
+          </p>
+        </div>
+
         <SpotlightCreateForm categories={categories} locations={locations} />
       </div>
     </div>
