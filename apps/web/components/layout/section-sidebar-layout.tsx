@@ -1,6 +1,6 @@
 /**
  * SectionSidebarLayout - Layout 3 cột: trái (nav) | giữa (content) | phải (banner/cross-sell)
- * Trái: đề mục section | Giữa: nội dung chính | Phải: banner nhỏ, cross-selling, tối ưu SEO
+ * Trái: đề mục section + slide banner 9:16 | Giữa: nội dung chính | Phải: banner nhỏ, cross-selling
  * Responsive: sidebar trái drawer trên mobile, cột phải ẩn trên tablet
  */
 
@@ -9,6 +9,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { SidebarBannerCarousel } from './sidebar-banner-carousel';
+import type { SidebarBanner } from '@/lib/config/sidebar-banners';
 
 export interface SectionNavItem {
   href: string;
@@ -27,6 +29,10 @@ interface SectionSidebarLayoutProps {
   children: React.ReactNode;
   /** Cột phải: banner, cross-sell links (optional) */
   rightSidebar?: React.ReactNode;
+  /** Slide banner 9:16 cột trái (tối đa 4) */
+  leftBanners?: SidebarBanner[];
+  /** Slide banner 9:16 cột phải (tối đa 4) */
+  rightBanners?: SidebarBanner[];
 }
 
 export function SectionSidebarLayout({
@@ -35,6 +41,8 @@ export function SectionSidebarLayout({
   navItems,
   children,
   rightSidebar,
+  leftBanners,
+  rightBanners,
 }: SectionSidebarLayoutProps): JSX.Element {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -155,6 +163,9 @@ export function SectionSidebarLayout({
               </div>
             ))}
           </nav>
+          {leftBanners && leftBanners.length > 0 && (
+            <SidebarBannerCarousel banners={leftBanners} className="mt-4" />
+          )}
         </div>
       </aside>
 
@@ -162,9 +173,12 @@ export function SectionSidebarLayout({
       <main className="min-w-0 flex-1 px-4 py-6 lg:px-6">{children}</main>
 
       {/* Cột phải - banner, cross-sell (ẩn trên mobile/tablet) */}
-      {rightSidebar && (
-        <aside className="sticky top-16 hidden w-64 shrink-0 flex-col self-start border-l border-amber-200/50 bg-white/80 p-4 xl:block">
+      {(rightSidebar || (rightBanners && rightBanners.length > 0)) && (
+        <aside className="sticky top-16 hidden w-64 shrink-0 self-start border-l border-amber-200/50 bg-white/80 p-4 xl:block">
           {rightSidebar}
+          {rightBanners && rightBanners.length > 0 && (
+            <SidebarBannerCarousel banners={rightBanners} className="mt-6" />
+          )}
         </aside>
       )}
       </div>

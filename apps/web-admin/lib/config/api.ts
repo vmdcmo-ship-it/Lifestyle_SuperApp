@@ -142,4 +142,13 @@ export const API_ENDPOINTS = {
     LEAD_BY_ID: (id: string) => `/an-cu-lac-nghiep/consulting/${id}`,
     UPDATE_LEAD: (id: string) => `/an-cu-lac-nghiep/consulting/${id}`,
   },
+  BDS: {
+    LEADS: '/bat-dong-san/find-requests',
+    LEAD_BY_ID: (id: string) => `/bat-dong-san/find-requests/${id}`,
+    UPDATE_LEAD: (id: string) => `/bat-dong-san/find-requests/${id}`,
+    ARTICLES: '/bat-dong-san/articles',
+    ARTICLE_BY_ID: (id: string) => `/bat-dong-san/articles/${id}`,
+    RENTAL_LISTINGS: '/bat-dong-san/rental-listings',
+    RENTAL_BY_ID: (id: string) => `/bat-dong-san/rental-listings/${id}`,
+  },
 } as const;

@@ -63,9 +63,9 @@ jobs:
           fi
 
           if [ "$SERVICE" = "all" ] || [ "$SERVICE" = "web" ]; then
-            echo ">>> Rebuilding web..."
+            echo ">>> Rebuilding web (--no-cache để sitemap/canonical dùng đúng domain)..."
             docker compose -f infrastructure/docker/docker-compose.production.yml \
-              --env-file .env build web
+              --env-file .env build --no-cache web
             docker compose -f infrastructure/docker/docker-compose.production.yml \
               --env-file .env up -d web
           fi

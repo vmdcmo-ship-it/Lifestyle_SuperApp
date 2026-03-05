@@ -148,5 +148,13 @@ export const API_ENDPOINTS = {
     BY_SLUG: (slug: string) => `/content/${slug}`,
   },
 
+  /** Bất động sản */
+  BAT_DONG_SAN: {
+    ARTICLES: '/bat-dong-san/articles',
+    ARTICLE: (slug: string) => `/bat-dong-san/articles/${slug}`,
+    RENTAL_LISTINGS: '/bat-dong-san/rental-listings',
+    FIND_REQUESTS: '/bat-dong-san/find-requests',
+  },
+
   HEALTH: '/health',
 } as const;

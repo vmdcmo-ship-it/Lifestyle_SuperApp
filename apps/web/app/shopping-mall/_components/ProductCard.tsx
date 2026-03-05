@@ -51,21 +51,21 @@ export function ProductCard({ product }: ProductCardProps): JSX.Element {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
         {product.brand && (
-          <span className="absolute left-3 top-3 rounded bg-black/50 px-2 py-0.5 font-serif text-xs text-amber-200">
+          <span className="absolute left-3 top-3 rounded bg-black/50 px-2 py-0.5 font-heading text-xs text-amber-200">
             {product.brand}
           </span>
         )}
       </div>
       <div className="p-4">
-        <h3 className="line-clamp-2 font-serif text-sm font-medium group-hover:opacity-80" style={{ color: '#1e3a5f' }}>
+        <h3 className="line-clamp-2 font-heading text-sm font-medium group-hover:opacity-80" style={{ color: '#1e3a5f' }}>
           {product.name}
         </h3>
         {displayPrice ? (
-          <p className="mt-2 font-serif text-xs font-medium" style={{ color: '#FFB800' }}>
+          <p className="mt-2 font-heading text-xs font-medium" style={{ color: '#FFB800' }}>
             {displayPrice}
           </p>
         ) : (
-          <p className="mt-2 font-serif text-xs italic text-slate-500">
+          <p className="mt-2 font-heading text-xs italic text-slate-500">
             Liên hệ để biết giá
           </p>
         )}

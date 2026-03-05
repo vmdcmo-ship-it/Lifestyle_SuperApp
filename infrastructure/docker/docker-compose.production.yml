@@ -320,11 +320,14 @@ services:
       args:
         NEXT_PUBLIC_API_URL: https://api.vmd.asia
         NEXT_PUBLIC_WS_URL: wss://api.vmd.asia
+        # Hardcode production domain - không phụ thuộc .env (tránh sitemap sai domain)
+        NEXT_PUBLIC_BASE_URL: https://www.vmd.asia
     container_name: lifestyle_web
     restart: always
     environment:
       NODE_ENV: production
       PORT: 3001
+      NEXT_PUBLIC_BASE_URL: https://www.vmd.asia
       NEXT_PUBLIC_API_URL: https://api.vmd.asia
       NEXT_PUBLIC_WS_URL: wss://api.vmd.asia
       NEXT_PUBLIC_GOOGLE_MAPS_KEY: ${GOOGLE_MAPS_API_KEY}

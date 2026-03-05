@@ -1,17 +1,21 @@
 import type { Metadata } from 'next';
 import { SectionSidebarLayout } from '@/components/layout/section-sidebar-layout';
 import { ContentRightSidebar } from '@/components/layout/content-right-sidebar';
+import {
+  WEALTH_BANNERS_LEFT,
+  WEALTH_BANNERS_RIGHT,
+} from '@/lib/config/sidebar-banners-sections';
 
 const WEALTH_RIGHT_LINKS = [
   { label: 'Trang chủ', href: '/' },
-  { label: 'An Cư Lạc Nghiệp', href: '/an-cu-lac-nghiep', description: 'Nhà ở xã hội' },
+  { label: 'Bất động sản', href: '/bat-dong-san', description: 'Tin tức, dự án BDS' },
   { label: 'Spotlight', href: '/spotlight', description: 'Video du lịch' },
   { label: 'Thể thao', href: '/the-thao', description: 'Thể thao & Run' },
   { label: 'Hợp tác', href: '/hop-tac', description: 'Thuê mua VinFast' },
   { label: 'Đặt xe', href: '/ride-hailing', description: 'Gọi xe' },
 ];
 
-const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL || 'https://lifestyle-app.com').replace(/\/$/, '');
+const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL || 'https://www.vmd.asia').replace(/\/$/, '');
 const DEFAULT_OG = `${BASE_URL}/og-image.png`;
 
 export const metadata: Metadata = {
@@ -59,6 +63,7 @@ const WEALTH_NAV = [
     ],
   },
   { href: '/wealth/products', label: 'Sản phẩm BH' },
+  { href: '/wealth/chat', label: 'Hỏi đáp AI' },
   { href: '/wealth/consulting', label: 'Tư vấn 1-1' },
 ];
 
@@ -77,6 +82,8 @@ export default function WealthLayout({
       }
       navItems={WEALTH_NAV}
       rightSidebar={<ContentRightSidebar title="Khám phá thêm" crossSellLinks={WEALTH_RIGHT_LINKS} variant="light" />}
+      leftBanners={WEALTH_BANNERS_LEFT}
+      rightBanners={WEALTH_BANNERS_RIGHT}
     >
       <div className="wealth-theme">{children}</div>
     </SectionSidebarLayout>

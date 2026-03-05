@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { ForgotPasswordForm } from './forgot-password-form';
 import { KodoLogo } from '@/components/kodo-logo';
 

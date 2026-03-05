@@ -6,10 +6,14 @@ const API_BASE =
 const API_PREFIX = '/api/v1';
 
 async function fetchContent(slug: string, locale = 'vi') {
-  const url = `${API_BASE.replace(/\/$/, '')}${API_PREFIX}/content/${slug}?locale=${locale}`;
-  const res = await fetch(url, { next: { revalidate: 60 } });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const url = `${API_BASE.replace(/\/$/, '')}${API_PREFIX}/content/${slug}?locale=${locale}`;
+    const res = await fetch(url, { next: { revalidate: 60 } });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 export const metadata: Metadata = {

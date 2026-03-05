@@ -25,6 +25,30 @@ export const SILO_CONFIG: Record<
     description:
       'Khám phá video phong cách sống, trải nghiệm và xu hướng từ cộng đồng Spotlight',
   },
+  'nghi-duong': {
+    categorySlug: 'resort',
+    title: 'Nghỉ dưỡng - Video resort, khách sạn, spa',
+    description:
+      'Khám phá video nghỉ dưỡng, resort, khách sạn, spa từ cộng đồng Spotlight',
+  },
+  'trai-nghiem': {
+    categorySlug: 'experience',
+    title: 'Trải nghiệm - Video review trải nghiệm thực tế',
+    description:
+      'Khám phá video trải nghiệm, review dịch vụ, hoạt động vui chơi từ cộng đồng Spotlight',
+  },
+  'tam-ly': {
+    categorySlug: 'psychology',
+    title: 'Tâm lý - Video mindset, self-improvement',
+    description:
+      'Khám phá video tâm lý, mindset, phát triển bản thân từ cộng đồng Spotlight',
+  },
+  'hoc-tap': {
+    categorySlug: 'learning',
+    title: 'Học tập - Video tips, how-to, kiến thức',
+    description:
+      'Khám phá video học tập, tips, hướng dẫn và kiến thức hữu ích từ cộng đồng Spotlight',
+  },
 };
 
 export async function fetchSiloFeed(params: {

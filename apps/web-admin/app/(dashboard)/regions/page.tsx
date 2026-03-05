@@ -97,19 +97,30 @@ export default function RegionsPage(): JSX.Element {
 
   const handleExport = () => {
     const rows = regions.map((r) => ({
-      Mã: r.code,
-      Tên: r.name,
-      Cấp: r.level,
-      Tỉnh: r.province ?? '',
-      Thành phố: r.city ?? '',
-      Quận: r.district ?? '',
-      Dịch vụ: (r.services ?? [])
+      'Mã': r.code,
+      'Tên': r.name,
+      'Cấp': r.level,
+      'Tỉnh': r.province ?? '',
+      'Thành phố': r.city ?? '',
+      'Quận': r.district ?? '',
+      'Dịch vụ': (r.services ?? [])
         .map((s) => SERVICE_LABELS[s.service_type] ?? s.service_type)
         .join(', '),
-      Kích hoạt: r.is_active ? 'Có' : 'Không',
+      'Kích hoạt': r.is_active ? 'Có' : 'Không',
       'Ngày tạo': formatDate(r.created_at),
     }));
-    exportToCsv(rows, `khu-vuc-dia-ly-${new Date().toISOString().slice(0, 10)}`);
+    const columns = [
+      { key: 'Mã', header: 'Mã' },
+      { key: 'Tên', header: 'Tên' },
+      { key: 'Cấp', header: 'Cấp' },
+      { key: 'Tỉnh', header: 'Tỉnh' },
+      { key: 'Thành phố', header: 'Thành phố' },
+      { key: 'Quận', header: 'Quận' },
+      { key: 'Dịch vụ', header: 'Dịch vụ' },
+      { key: 'Kích hoạt', header: 'Kích hoạt' },
+      { key: 'Ngày tạo', header: 'Ngày tạo' },
+    ];
+    exportToCsv(rows, 'khu-vuc-dia-ly', columns);
   };
 
   return (

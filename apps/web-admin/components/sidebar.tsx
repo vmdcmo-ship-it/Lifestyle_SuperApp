@@ -15,6 +15,7 @@ const MENU_ITEMS: Array<{ href: string; label: string; permission: Permission }>
   { href: '/news', label: 'Tin tức', permission: PERMISSIONS.NEWS },
   { href: '/wealth/leads', label: 'KODO Wealth Leads', permission: PERMISSIONS.WEALTH_LEADS },
   { href: '/an-cu-leads', label: 'An Cư Lạc Nghiệp Leads', permission: PERMISSIONS.AN_CU_LEADS },
+  { href: '/bat-dong-san', label: 'Bất động sản', permission: PERMISSIONS.BDS },
   { href: '/seller-leads', label: 'Seller Leads (Shopping Mall)', permission: PERMISSIONS.MERCHANTS },
   { href: '/pricing', label: 'Bảng giá', permission: PERMISSIONS.PRICING },
   { href: '/marketing', label: 'Trung tâm Marketing', permission: PERMISSIONS.MARKETING },

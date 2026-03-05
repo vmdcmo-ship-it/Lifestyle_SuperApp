@@ -33,7 +33,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const token = getToken();
         if (token) {
-          const profile = await authService.getProfile();
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 8000);
+          const profile = await authService.getProfile(controller.signal);
+          clearTimeout(timeout);
           setUser(profile);
         }
       } catch {

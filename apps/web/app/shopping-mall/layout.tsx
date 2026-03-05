@@ -1,6 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { GiftWidget } from './_components/GiftWidget';
+import { SidebarBannerCarousel } from '@/components/layout/sidebar-banner-carousel';
+import {
+  MALL_SIDEBAR_BANNERS_LEFT,
+  MALL_SIDEBAR_BANNERS_RIGHT,
+} from '@/lib/config/shopping-mall-sidebar-banners';
 
 export const metadata: Metadata = {
   title: 'Shopping Mall - The Essence of Luxury',
@@ -44,8 +49,8 @@ export default function ShoppingMallLayout({
     <div className="min-h-screen bg-white">
       <div className="mx-auto flex max-w-[1920px]">
         {/* Cột trái 20% - Sticky nav */}
-        <aside className="sticky top-16 hidden w-[20%] min-w-[200px] max-w-[260px] shrink-0 flex-col self-start border-r border-slate-200 bg-white p-6 lg:flex">
-          <h3 className="mb-4 font-serif text-xs font-semibold uppercase tracking-wider" style={{ color: '#1e3a5f' }}>
+        <aside className="sticky top-16 hidden w-[20%] min-w-[200px] max-w-[260px] shrink-0 self-start border-r border-slate-200 bg-white p-6 lg:block">
+          <h3 className="mb-4 font-heading text-xs font-semibold uppercase tracking-wider" style={{ color: '#1e3a5f' }}>
             Danh mục
           </h3>
           <nav className="flex flex-col gap-0.5">
@@ -53,7 +58,7 @@ export default function ShoppingMallLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-serif text-sm font-medium transition-colors hover:bg-amber-50"
+                className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-heading text-sm font-medium transition-colors hover:bg-amber-50"
                 style={{ color: '#1e3a5f' }}
               >
                 <span aria-hidden>{item.icon}</span>
@@ -77,6 +82,7 @@ export default function ShoppingMallLayout({
               Đăng ký bán hàng
             </Link>
           </div>
+          <SidebarBannerCarousel banners={MALL_SIDEBAR_BANNERS_LEFT} className="mt-6" />
         </aside>
 
         {/* Cột giữa 60% */}
@@ -84,9 +90,10 @@ export default function ShoppingMallLayout({
           {children}
         </main>
 
-        {/* Cột phải 20% - Gift Widget luôn hiện theo spec */}
-        <aside className="sticky top-16 hidden w-[20%] min-w-[200px] max-w-[260px] shrink-0 flex-col self-start border-l border-slate-200 bg-white p-6 xl:block">
+        {/* Cột phải 20% - Gift Widget + slide banner */}
+        <aside className="sticky top-16 hidden w-[20%] min-w-[200px] max-w-[260px] shrink-0 self-start border-l border-slate-200 bg-white p-6 xl:block">
           <GiftWidget />
+          <SidebarBannerCarousel banners={MALL_SIDEBAR_BANNERS_RIGHT} className="mt-6" />
         </aside>
       </div>
     </div>

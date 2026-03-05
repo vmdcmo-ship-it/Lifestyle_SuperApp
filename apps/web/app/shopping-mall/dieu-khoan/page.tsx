@@ -18,7 +18,7 @@ export default function ShoppingMallTermsPage(): JSX.Element {
         >
           ← Về Shopping Mall
         </Link>
-        <h1 className="font-serif text-3xl font-light text-amber-100 md:text-4xl">
+        <h1 className="font-heading text-3xl font-light text-amber-100 md:text-4xl">
           Điều khoản & Điều kiện Thương mại điện tử
         </h1>
         <p className="mt-2 text-sm text-slate-500">
@@ -26,7 +26,7 @@ export default function ShoppingMallTermsPage(): JSX.Element {
         </p>
       </header>
 
-      <article className="prose prose-invert max-w-none prose-headings:font-serif prose-headings:text-slate-200 prose-p:text-slate-400 prose-li:text-slate-400">
+      <article className="prose prose-invert max-w-none prose-headings:font-heading prose-headings:text-slate-200 prose-p:text-slate-400 prose-li:text-slate-400">
         <section className="mb-8">
           <h2 className="text-xl font-medium text-slate-200">1. Phạm vi áp dụng</h2>
           <p>

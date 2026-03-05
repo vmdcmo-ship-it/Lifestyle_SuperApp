@@ -59,44 +59,7 @@ export function GoogleAnalytics(): JSX.Element | null {
           `,
         }}
       />
-      {/* Web Vitals tracking */}
-      <Script
-        id="google-analytics-web-vitals"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.addEventListener('load', function() {
-              if ('web-vital' in window) return;
-              // Track Core Web Vitals
-              function sendToAnalytics(metric) {
-                if (window.gtag) {
-                  gtag('event', metric.name, {
-                    event_category: 'Web Vitals',
-                    value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
-                    event_label: metric.id,
-                    non_interaction: true,
-                  });
-                }
-              }
-              // Observe performance entries if available
-              if ('PerformanceObserver' in window) {
-                try {
-                  const observer = new PerformanceObserver((list) => {
-                    for (const entry of list.getEntries()) {
-                      if (entry.entryType === 'largest-contentful-paint') {
-                        sendToAnalytics({ name: 'LCP', value: entry.renderTime || entry.loadTime, id: entry.id });
-                      }
-                    }
-                  });
-                  observer.observe({ entryTypes: ['largest-contentful-paint'] });
-                } catch (e) {
-                  // Silent fail
-                }
-              }
-            });
-          `,
-        }}
-      />
+      {/* Core Web Vitals: gửi qua WebVitalsReporter (web-vitals package) */}
     </>
   );
 }

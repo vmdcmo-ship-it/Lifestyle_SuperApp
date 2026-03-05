@@ -1,5 +1,5 @@
 /**
- * Trang Đối tác - Hub đăng ký Tài xế, Nhà hàng, KOC
+ * Trang Đối tác - Hub đăng ký Tài xế, Nhà hàng, Nhà sáng tạo nội dung
  * Liên kết chéo: Hợp tác, Đặt xe, Cộng đồng, Trang chủ
  */
 
@@ -7,9 +7,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Đăng ký đối tác - Tài xế, Nhà hàng, KOC',
+  title: 'Đăng ký đối tác - Tài xế, Nhà hàng, Nhà sáng tạo nội dung',
   description:
-    'Gia nhập KODO với tư cách tài xế, nhà hàng hoặc KOC/MOL. Ưu đãi thuê mua xe VinFast cho tài xế.',
+    'Gia nhập KODO với tư cách tài xế, nhà hàng hoặc nhà sáng tạo nội dung. Ưu đãi thuê mua xe VinFast cho tài xế.',
   alternates: { canonical: '/partner' },
 };
 
@@ -53,14 +53,14 @@ export default function PartnerPage(): JSX.Element {
             Gia nhập đối tác KODO
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-slate-600">
-            Trở thành tài xế, đối tác nhà hàng hoặc KOC/MOL – xây dựng sự nghiệp cùng KODO.
+            Trở thành tài xế, đối tác nhà hàng hoặc nhà sáng tạo nội dung – xây dựng sự nghiệp cùng KODO.
           </p>
         </div>
 
         <div className="mb-16 grid gap-8 md:grid-cols-3">
           <PartnerCard
             title="Tài xế"
-            description="Thuê mua xe VinFast kinh doanh, ưu đãi đăng ký sớm. Vận hành như Xanh Platform."
+            description="Thuê để sở hữu xe VinFast tham gia vận hành dịch vụ cùng KODO Platform. Ưu đãi đăng ký sớm."
             href="/signup/driver"
             icon="🚗"
           />
@@ -71,7 +71,7 @@ export default function PartnerPage(): JSX.Element {
             icon="🏪"
           />
           <PartnerCard
-            title="KOC / MOL"
+            title="Nhà sáng tạo nội dung"
             description="Cộng tác viên nội dung, quảng bá dịch vụ và nhận hoa hồng."
             href="/contact?subject=partner-koc"
             icon="📱"

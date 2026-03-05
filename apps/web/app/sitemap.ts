@@ -15,9 +15,9 @@ async function fetchSlugs(endpoint: string): Promise<string[]> {
   }
 }
 
-async function fetchAnCuArticleSlugs(): Promise<string[]> {
+async function fetchBatDongSanArticleSlugs(): Promise<string[]> {
   try {
-    const url = `${API_BASE.replace(/\/$/, '')}${API_PREFIX}/an-cu-lac-nghiep/articles?limit=100`;
+    const url = `${API_BASE.replace(/\/$/, '')}${API_PREFIX}/bat-dong-san/articles?limit=100`;
     const res = await fetch(url, { next: { revalidate: 3600 } });
     if (!res.ok) return [];
     const json = (await res.json()) as { data?: { slug: string }[] };
@@ -27,8 +27,14 @@ async function fetchAnCuArticleSlugs(): Promise<string[]> {
   }
 }
 
+// Production domain hardcode - đảm bảo sitemap luôn dùng vmd.asia (không phụ thuộc env)
+const PRODUCTION_BASE = 'https://www.vmd.asia';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://lifestyle-app.com';
+  const baseUrl =
+    process.env.NODE_ENV === 'production'
+      ? PRODUCTION_BASE
+      : (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000');
 
   // Static pages (bao gồm đăng ký đối tác & tài xế)
   const routes = [
@@ -139,13 +145,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  // An Cư Lạc Nghiệp (Nhà ở xã hội)
-  const anCuRoutes = [
-    '/an-cu-lac-nghiep',
-    '/an-cu-lac-nghiep/chinh-sach',
-    '/an-cu-lac-nghiep/bai-viet',
-    '/an-cu-lac-nghiep/du-an',
-    '/an-cu-lac-nghiep/tu-van',
+  // Bất động sản
+  const batDongSanRoutes = [
+    '/bat-dong-san',
+    '/bat-dong-san/tin-bat-dong-san',
+    '/bat-dong-san/nha-o-xa-hoi',
+    '/bat-dong-san/du-an-chung-cu',
+    '/bat-dong-san/nha-cho-thue',
+    '/bat-dong-san/tim-bat-dong-san',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString(),
@@ -153,18 +160,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  // Dynamic: An Cư bài viết (fetch từ API, fallback static)
-  const anCuBaiVietSlugs = await fetchAnCuArticleSlugs();
-  const anCuBaiVietSlugsFallback = anCuBaiVietSlugs.length > 0
-    ? anCuBaiVietSlugs
+  // Dynamic: Tin cho thuê (fetch từ API, fallback static)
+  const RENTAL_IDS_STATIC = ['1', '2', '3'];
+  let bdsRentalIds: string[] = [];
+  try {
+    const rentalUrl = `${API_BASE.replace(/\/$/, '')}${API_PREFIX}/bat-dong-san/rental-listings?limit=100`;
+    const rentalRes = await fetch(rentalUrl, { next: { revalidate: 3600 } });
+    if (rentalRes.ok) {
+      const rentalJson = (await rentalRes.json()) as { data?: { id: string }[] };
+      bdsRentalIds = (rentalJson.data ?? []).map((i) => i.id);
+    }
+  } catch {
+    bdsRentalIds = [];
+  }
+  const bdsRentalIdsFallback = bdsRentalIds.length > 0 ? bdsRentalIds : RENTAL_IDS_STATIC;
+  const bdsRentalUrls = bdsRentalIdsFallback.map((id) => ({
+    url: `${baseUrl}/bat-dong-san/nha-cho-thue/${id}`,
+    lastModified: new Date().toISOString(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.85,
+  }));
+
+  // Dynamic: Tin Bất Động Sản bài viết (fetch từ API, fallback static)
+  const bdsArticleSlugs = await fetchBatDongSanArticleSlugs();
+  const bdsArticleSlugsFallback = bdsArticleSlugs.length > 0
+    ? bdsArticleSlugs
     : [
-        'dieu-kien-mua-nha-o-xa-hoi-2024',
-        'thue-mua-nha-o-xa-hoi-uu-nhuoc-diem',
-        'du-an-nha-o-xa-hoi-tphcm-moi-nhat',
-        'nha-o-xa-hoi-binh-duong-gia-re',
+        'bat-dong-san-2024-xu-huong',
+        'chinh-sach-lai-suat-moi-anh-huong-bds',
+        'du-an-chung-cu-moi-khai-truong-tphcm',
+        'nha-o-xa-hoi-quy-dinh-moi-2024',
       ];
-  const anCuBaiVietUrls = anCuBaiVietSlugsFallback.map((slug) => ({
-    url: `${baseUrl}/an-cu-lac-nghiep/bai-viet/${slug}`,
+  const bdsArticleUrls = bdsArticleSlugsFallback.map((slug) => ({
+    url: `${baseUrl}/bat-dong-san/tin-bat-dong-san/${slug}`,
     lastModified: new Date().toISOString(),
     changeFrequency: 'weekly' as const,
     priority: 0.85,
@@ -206,8 +234,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...congDongRoutes,
     ...phapLyRoutes,
     ...wealthRoutes,
-    ...anCuRoutes,
-    ...anCuBaiVietUrls,
+    ...batDongSanRoutes,
+    ...bdsRentalUrls,
+    ...bdsArticleUrls,
     ...newsUrls,
     ...contentUrls,
     ...trainingUrls,

@@ -45,14 +45,14 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 export const api = {
-  async get<T>(path: string, params?: Record<string, any>): Promise<T> {
+  async get<T>(path: string, params?: Record<string, any>, signal?: AbortSignal): Promise<T> {
     const url = new URL(`${BASE}${path}`);
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
         if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
       });
     }
-    const res = await fetch(url.toString(), { headers: getHeaders() });
+    const res = await fetch(url.toString(), { headers: getHeaders(), signal });
     return handleResponse<T>(res);
   },
 

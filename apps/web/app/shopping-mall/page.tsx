@@ -57,12 +57,12 @@ const FEATURED_PRODUCTS: ProductCardData[] = [
 export default function ShoppingMallPage(): JSX.Element {
   return (
     <>
-      {/* Header: Serif font, tagline below */}
+      {/* Header - font-heading (Be Vietnam Pro) đồng bộ với các trang khác */}
       <header className="mb-8">
-        <h1 className="font-serif text-4xl font-extralight tracking-wide md:text-5xl" style={{ color: '#1e3a5f' }}>
+        <h1 className="font-heading text-4xl font-bold tracking-wide md:text-5xl" style={{ color: '#1e3a5f' }}>
           Shopping Mall
         </h1>
-        <p className="mt-2 font-serif text-base" style={{ color: '#4a6b8a' }}>
+        <p className="mt-2 font-heading text-base" style={{ color: '#4a6b8a' }}>
           The Essence of Luxury
         </p>
       </header>
@@ -75,12 +75,12 @@ export default function ShoppingMallPage(): JSX.Element {
       {/* Boutiques preview */}
       <section className="mb-12">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="font-serif text-2xl font-light" style={{ color: '#1e3a5f' }}>
+          <h2 className="font-heading text-2xl font-semibold" style={{ color: '#1e3a5f' }}>
             Bộ sưu tập nổi bật
           </h2>
           <Link
             href="/shopping-mall/boutiques"
-            className="font-serif text-sm font-medium transition-colors hover:opacity-80"
+            className="font-heading text-sm font-medium transition-colors hover:opacity-80"
             style={{ color: '#FFB800' }}
           >
             Xem tất cả →
@@ -95,7 +95,7 @@ export default function ShoppingMallPage(): JSX.Element {
 
       {/* Cross-sell: Lái hộ, Tài chính */}
       <section className="rounded-xl border border-slate-200 bg-slate-50/50 p-6">
-        <h3 className="mb-4 font-serif text-lg font-medium" style={{ color: '#1e3a5f' }}>
+        <h3 className="mb-4 font-heading text-lg font-medium" style={{ color: '#1e3a5f' }}>
           Khám phá thêm từ KODO
         </h3>
         <div className="flex flex-wrap gap-3">

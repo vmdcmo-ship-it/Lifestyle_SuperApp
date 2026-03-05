@@ -1,18 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { SectionCategoryCard } from '@/components/shared/section-category-card';
+import { THE_THAO_CATEGORIES } from '@/lib/config/section-categories';
 
 export const metadata: Metadata = {
   title: 'Thể thao - Tennis, Pickleball & Run to Earn',
   description: 'Cộng đồng thể thao - Tin tức Tennis, Pickleball, CLB và Run to Earn',
   alternates: { canonical: '/the-thao' },
 };
-
-const SPORTS = [
-  { href: '/the-thao/tin-tuc', title: 'Tin tức thể thao', description: 'Tin tức Tennis, Pickleball, Run to Earn', icon: '📰' },
-  { href: '/the-thao/clb-ban-chuyen-nghiep/tennis', title: 'CLB Tennis', description: 'Câu lạc bộ Tennis bán chuyên', icon: '🎾' },
-  { href: '/the-thao/clb-ban-chuyen-nghiep/pickleball', title: 'CLB Pickleball', description: 'Câu lạc bộ Pickleball', icon: '🏓' },
-  { href: '/the-thao/run-to-earn', title: 'Run to Earn', description: 'Chạy bộ kiếm thưởng', icon: '🏃' },
-];
 
 export default function CongDongPage(): JSX.Element {
   return (
@@ -26,12 +21,8 @@ export default function CongDongPage(): JSX.Element {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {SPORTS.map((item) => (
-              <Link key={item.href} href={item.href} className="group flex flex-col rounded-2xl border bg-card p-6 transition-all hover:shadow-lg">
-                <span className="mb-4 block text-5xl" role="img" aria-label={item.title}>{item.icon}</span>
-                <h2 className="mb-2 font-semibold group-hover:text-primary">{item.title}</h2>
-                <p className="text-sm text-muted-foreground">{item.description}</p>
-              </Link>
+            {THE_THAO_CATEGORIES.map((item) => (
+              <SectionCategoryCard key={item.href} {...item} />
             ))}
           </div>
         </div>

@@ -1,5 +1,5 @@
 /**
- * Section Hợp tác - Thuê mua xe VinFast kinh doanh cùng KODO
+ * Section Hợp tác - Thuê để sở hữu xe VinFast vận hành dịch vụ cùng KODO Platform
  * Hiển thị trong cột 60% trang chủ
  */
 
@@ -14,13 +14,12 @@ export function HopTacSection(): JSX.Element {
             Hợp tác cùng KODO
           </h2>
           <p className="mb-4 text-slate-600">
-            Thuê mua xe máy, ô tô điện VinFast để vận hành kinh doanh dịch vụ – 
-            xây dựng tương lai và sự nghiệp cùng KODO.
+            Thuê để sở hữu xe máy, ô tô điện VinFast tham gia vận hành dịch vụ cùng KODO Platform.
           </p>
           <ul className="mb-6 space-y-2 text-sm text-slate-600">
             <li>• Ưu đãi chiết khấu cho tài xế đăng ký sớm</li>
-            <li>• Chính sách thuê mua linh hoạt</li>
-            <li>• Mô hình vận hành như Xanh Platform</li>
+            <li>• Chính sách thuê để sở hữu linh hoạt</li>
+            <li>• Tham gia vận hành dịch vụ cùng KODO Platform</li>
           </ul>
           <Link
             href="/hop-tac"

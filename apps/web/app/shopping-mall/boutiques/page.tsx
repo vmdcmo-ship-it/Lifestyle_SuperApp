@@ -79,7 +79,7 @@ export default function BoutiquesPage(): JSX.Element {
   return (
     <>
       <header className="mb-10">
-        <h1 className="font-serif text-3xl font-light md:text-4xl" style={{ color: '#1e3a5f' }}>
+        <h1 className="font-heading text-3xl font-light md:text-4xl" style={{ color: '#1e3a5f' }}>
           Boutiques
         </h1>
         <p className="mt-2" style={{ color: '#4a6b8a' }}>

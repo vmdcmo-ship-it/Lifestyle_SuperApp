@@ -59,7 +59,7 @@ const structuredData = {
     '@type': 'SearchAction',
     target: {
       '@type': 'EntryPoint',
-      urlTemplate: 'https://lifestyle-app.com/shopping/search?q={search_term_string}',
+      urlTemplate: (process.env.NEXT_PUBLIC_BASE_URL || 'https://www.vmd.asia') + '/shopping/search?q={search_term_string}',
     },
     'query-input': 'required name=search_term_string',
   },

@@ -1,4 +1,22 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+
+/**
+ * Đề mục Thư viện Kiến thức — ảnh minh họa phong cách báo chí
+ * Có thể thay bằng ảnh trong public/images/wealth/knowledge/ (path local)
+ * Tỷ lệ: 4:3 editorial
+ */
+const KNOWLEDGE_IMAGES = {
+  tuDuyTrieuPhu:
+    'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80',
+  congCuQuanTri:
+    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80',
+  cauChuyenThanhCong:
+    'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80',
+};
 
 const KNOWLEDGE_CATEGORIES = [
   {
@@ -6,20 +24,74 @@ const KNOWLEDGE_CATEGORIES = [
     title: 'Tư duy triệu phú',
     description: 'Quy tắc 6 chiếc lọ, lãi suất kép, Pareto 80/20',
     icon: '💡',
+    image: KNOWLEDGE_IMAGES.tuDuyTrieuPhu,
   },
   {
     slug: 'cong-cu-quan-tri',
     title: 'Công cụ quản trị',
     description: 'Bảng tính kế hoạch, App quản lý chi tiêu',
     icon: '📊',
+    image: KNOWLEDGE_IMAGES.congCuQuanTri,
   },
   {
     slug: 'cau-chuyen-thanh-cong',
     title: 'Câu chuyện thành công',
     description: 'Tự do tài chính tuổi 30, bí mật may mắn',
     icon: '🌟',
+    image: KNOWLEDGE_IMAGES.cauChuyenThanhCong,
   },
 ];
+
+function KnowledgeCategoryCard({
+  slug,
+  title,
+  description,
+  icon,
+  image,
+}: {
+  slug: string;
+  title: string;
+  description: string;
+  icon: string;
+  image?: string;
+}): JSX.Element {
+  const [imgError, setImgError] = useState(false);
+  const showImage = image && !imgError;
+
+  return (
+    <Link
+      href={`/wealth/knowledge?category=${slug}`}
+      className="group overflow-hidden rounded-2xl border border-amber-200/60 bg-[#FAF9F6] transition-all hover:border-[#D4AF37]/50 hover:shadow-lg"
+    >
+      {/* Ảnh minh họa phong cách báo chí — tỷ lệ editorial 4:3 */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-amber-100/50">
+        {showImage ? (
+          <Image
+            src={image}
+            alt={title}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, 33vw"
+            unoptimized={!image.includes('images.unsplash.com')}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <span className="text-5xl opacity-70" role="img" aria-hidden>
+              {icon}
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="p-6">
+        <h3 className="mb-2 font-semibold text-[#0D1B2A] group-hover:text-[#D4AF37]">
+          {title}
+        </h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+    </Link>
+  );
+}
 
 const FEATURED_ARTICLES = [
   { slug: 'bi-mat-cua-may-man', title: 'Bí mật của may mắn', excerpt: 'Tư duy tạo ra vận may trong tài chính' },
@@ -40,22 +112,10 @@ export function WealthKnowledgeSection(): JSX.Element {
           </p>
         </div>
 
-        {/* Categories */}
+        {/* Categories — ảnh minh họa phong cách báo chí */}
         <div className="mb-12 grid gap-6 sm:grid-cols-3">
           {KNOWLEDGE_CATEGORIES.map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/wealth/knowledge?category=${cat.slug}`}
-              className="group rounded-2xl border border-amber-200/60 bg-[#FAF9F6] p-6 transition-all hover:border-[#D4AF37]/50 hover:shadow-lg"
-            >
-              <span className="mb-3 block text-4xl" role="img" aria-label={cat.title}>
-                {cat.icon}
-              </span>
-              <h3 className="mb-2 font-semibold text-[#0D1B2A] group-hover:text-[#D4AF37]">
-                {cat.title}
-              </h3>
-              <p className="text-sm text-muted-foreground">{cat.description}</p>
-            </Link>
+            <KnowledgeCategoryCard key={cat.slug} {...cat} />
           ))}
         </div>
 

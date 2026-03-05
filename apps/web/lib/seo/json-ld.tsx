@@ -3,7 +3,7 @@
  * BreadcrumbList, Article, Organization...
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://lifestyle-app.com';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.vmd.asia';
 
 function absoluteUrl(path: string): string {
   return path.startsWith('http') ? path : `${BASE_URL.replace(/\/$/, '')}${path.startsWith('/') ? '' : '/'}${path}`;
@@ -146,6 +146,91 @@ export function VideoObjectJsonLd({
     };
   }
 
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+/** Schema FAQPage cho SEO - câu hỏi thường gặp */
+export interface FaqJsonLdProps {
+  faqs: Array<{ question: string; answer: string }>;
+}
+
+export function FaqJsonLd({ faqs }: FaqJsonLdProps): JSX.Element {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+/** Schema cho tin cho thuê bất động sản - Product + Offer */
+export interface RentalListingJsonLdProps {
+  name: string;
+  description?: string;
+  url: string;
+  price?: number;
+  priceCurrency?: string;
+  area?: number;
+  address?: string;
+  itemCondition?: string;
+}
+
+export function RentalListingJsonLd({
+  name,
+  description,
+  url,
+  price,
+  priceCurrency = 'VND',
+  area,
+  address,
+  itemCondition = 'https://schema.org/UsedCondition',
+}: RentalListingJsonLdProps): JSX.Element {
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name,
+    description: description || name,
+    url: absoluteUrl(url),
+    category: 'Bất động sản cho thuê',
+  };
+  if (price != null && price > 0) {
+    schema.offers = {
+      '@type': 'Offer',
+      price,
+      priceCurrency,
+      availability: 'https://schema.org/InStock',
+    };
+  }
+  if (area != null && area > 0) {
+    schema.additionalProperty = {
+      '@type': 'PropertyValue',
+      name: 'Diện tích',
+      value: `${area} m²`,
+    };
+  }
+  if (address) {
+    schema.address = { '@type': 'PostalAddress', addressLocality: address };
+  }
+  if (itemCondition) {
+    schema.itemCondition = itemCondition;
+  }
   return (
     <script
       type="application/ld+json"

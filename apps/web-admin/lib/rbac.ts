@@ -22,6 +22,7 @@ export const PERMISSIONS = {
   USERS: 'users:view',
   WEALTH_LEADS: 'wealth_leads:view',
   AN_CU_LEADS: 'an_cu_leads:view',
+  BDS: 'bds:view',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -49,6 +50,8 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.TRAINING,
     PERMISSIONS.NEWS,
     PERMISSIONS.WEALTH_LEADS,
+    PERMISSIONS.AN_CU_LEADS,
+    PERMISSIONS.BDS,
     PERMISSIONS.SETTINGS,
   ],
   ADMIN_INSURANCE: [PERMISSIONS.DASHBOARD, PERMISSIONS.WEALTH_LEADS, PERMISSIONS.SETTINGS],
@@ -121,6 +124,7 @@ export const PATH_PERMISSIONS: Record<string, Permission> = {
   settings: PERMISSIONS.SETTINGS,
   wealth: PERMISSIONS.WEALTH_LEADS,
   'an-cu-leads': PERMISSIONS.AN_CU_LEADS,
+  'bat-dong-san': PERMISSIONS.BDS,
 };
 
 export function getRequiredPermissionForPath(pathname: string): Permission | null {

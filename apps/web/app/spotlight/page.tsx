@@ -195,22 +195,46 @@ export default async function SpotlightPage({
               </p>
               <nav className="mt-3 flex flex-wrap gap-2" aria-label="Danh mục Spotlight">
                 <Link
-                  href="/spotlight/an-uong"
-                  className="rounded-full bg-muted px-3 py-1 text-xs font-medium transition-colors hover:bg-muted/80 hover:text-foreground"
-                >
-                  Ẩm thực
-                </Link>
-                <Link
                   href="/spotlight/diem-den"
                   className="rounded-full bg-muted px-3 py-1 text-xs font-medium transition-colors hover:bg-muted/80 hover:text-foreground"
                 >
                   Điểm đến
                 </Link>
                 <Link
+                  href="/spotlight/an-uong"
+                  className="rounded-full bg-muted px-3 py-1 text-xs font-medium transition-colors hover:bg-muted/80 hover:text-foreground"
+                >
+                  Ẩm thực
+                </Link>
+                <Link
                   href="/spotlight/phong-cach"
                   className="rounded-full bg-muted px-3 py-1 text-xs font-medium transition-colors hover:bg-muted/80 hover:text-foreground"
                 >
                   Phong cách sống
+                </Link>
+                <Link
+                  href="/spotlight/nghi-duong"
+                  className="rounded-full bg-muted px-3 py-1 text-xs font-medium transition-colors hover:bg-muted/80 hover:text-foreground"
+                >
+                  Nghỉ dưỡng
+                </Link>
+                <Link
+                  href="/spotlight/trai-nghiem"
+                  className="rounded-full bg-muted px-3 py-1 text-xs font-medium transition-colors hover:bg-muted/80 hover:text-foreground"
+                >
+                  Trải nghiệm
+                </Link>
+                <Link
+                  href="/spotlight/tam-ly"
+                  className="rounded-full bg-muted px-3 py-1 text-xs font-medium transition-colors hover:bg-muted/80 hover:text-foreground"
+                >
+                  Tâm lý
+                </Link>
+                <Link
+                  href="/spotlight/hoc-tap"
+                  className="rounded-full bg-muted px-3 py-1 text-xs font-medium transition-colors hover:bg-muted/80 hover:text-foreground"
+                >
+                  Học tập
                 </Link>
               </nav>
             </div>
@@ -360,9 +384,11 @@ function SpotlightVideoGrid({ videos }: { videos: VideoItem[] }): JSX.Element {
           </Link>
           <span className="text-muted-foreground">hoặc</span>
           <div className="flex flex-wrap justify-center gap-2">
-            <Link href="/spotlight/an-uong" className="rounded-full bg-muted px-4 py-2 text-sm font-medium transition-colors hover:bg-muted/80 hover:text-foreground">🍜 Ẩm thực</Link>
             <Link href="/spotlight/diem-den" className="rounded-full bg-muted px-4 py-2 text-sm font-medium transition-colors hover:bg-muted/80 hover:text-foreground">✈️ Điểm đến</Link>
-            <Link href="/spotlight/phong-cach" className="rounded-full bg-muted px-4 py-2 text-sm font-medium transition-colors hover:bg-muted/80 hover:text-foreground">🌿 Phong cách sống</Link>
+            <Link href="/spotlight/an-uong" className="rounded-full bg-muted px-4 py-2 text-sm font-medium transition-colors hover:bg-muted/80 hover:text-foreground">🍜 Ẩm thực</Link>
+            <Link href="/spotlight/phong-cach" className="rounded-full bg-muted px-4 py-2 text-sm font-medium transition-colors hover:bg-muted/80 hover:text-foreground">🌿 Phong cách</Link>
+            <Link href="/spotlight/tam-ly" className="rounded-full bg-muted px-4 py-2 text-sm font-medium transition-colors hover:bg-muted/80 hover:text-foreground">🧠 Tâm lý</Link>
+            <Link href="/spotlight/hoc-tap" className="rounded-full bg-muted px-4 py-2 text-sm font-medium transition-colors hover:bg-muted/80 hover:text-foreground">📚 Học tập</Link>
           </div>
         </div>
       </div>

@@ -21,7 +21,7 @@ const NAV_DICH_VU = [
 const NAV_CONG_DONG = [
   { label: 'Thể Thao & Tin tức', href: '/the-thao' },
   { label: 'KODO Wealth', href: '/wealth' },
-  { label: 'An Cư Lạc Nghiệp', href: '/an-cu-lac-nghiep' },
+  { label: 'Bất động sản', href: '/bat-dong-san' },
 ];
 
 function NavDropdown({

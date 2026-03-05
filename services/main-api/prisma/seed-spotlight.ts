@@ -13,6 +13,8 @@ const SPOTLIGHT_CATEGORIES = [
   { slug: 'experience', name: 'Trải nghiệm', order: 4 },
   { slug: 'service_review', name: 'Review dịch vụ', order: 5 },
   { slug: 'lifestyle', name: 'Phong cách sống', order: 6 },
+  { slug: 'psychology', name: 'Tâm lý', order: 7 },
+  { slug: 'learning', name: 'Học tập', order: 8 },
 ];
 
 // 63 tỉnh/thành phố VN (theo mã GSO - Tổng cục Thống kê)

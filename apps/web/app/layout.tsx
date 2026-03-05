@@ -4,6 +4,7 @@ import '../styles/globals.css';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { GoogleAnalytics } from '@/components/google-analytics';
+import { WebVitalsReporter } from '@/components/web-vitals-reporter';
 import { Providers } from './providers';
 
 const inter = Inter({
@@ -51,7 +52,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://lifestyle-app.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://www.vmd.asia'),
   alternates: {
     canonical: '/',
   },
@@ -121,6 +122,11 @@ export default function RootLayout({ children }: RootLayoutProps): JSX.Element {
   return (
     <html lang="vi" className={`light ${inter.variable} ${beVietnamPro.variable} ${playfair.variable}`}>
       <head>
+        {/* Google Search Console - meta tag (dự phòng nếu metadata.verification không xuất) */}
+        <meta
+          name="google-site-verification"
+          content={process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || 'qdc8IG7BnyrvkhGgm1Jh4DDOU6rUhu0WpL8193qvcxM'}
+        />
         {/* Preconnect to external domains for faster loading */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
@@ -129,12 +135,20 @@ export default function RootLayout({ children }: RootLayoutProps): JSX.Element {
         {/* Local fonts: place .woff2 files in public/fonts/ and preload here when needed */}
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
+        <noscript>
+          <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#fef3c7' }}>
+            <p style={{ fontSize: '1.125rem', color: '#1e3a5f' }}>
+              Ứng dụng cần JavaScript để hoạt động. Vui lòng bật JavaScript và tải lại trang.
+            </p>
+          </div>
+        </noscript>
         <GoogleAnalytics />
+        <WebVitalsReporter />
         <Providers>
         <div className="relative flex min-h-screen flex-col">
           <Header />
           
-          <main className="flex-1">{children}</main>
+          <main className="min-h-[60vh] flex-1">{children}</main>
           
           <Footer />
         </div>

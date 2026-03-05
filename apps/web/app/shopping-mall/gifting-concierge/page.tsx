@@ -43,7 +43,7 @@ export default function GiftingConciergePage(): JSX.Element {
   return (
     <>
       <header className="mb-10">
-        <h1 className="font-serif text-3xl font-light text-amber-100 md:text-4xl">
+        <h1 className="font-heading text-3xl font-light text-amber-100 md:text-4xl">
           Sử giá tặng quà
         </h1>
         <p className="mt-2 text-slate-400">
@@ -60,7 +60,7 @@ export default function GiftingConciergePage(): JSX.Element {
             className="group rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-amber-300"
           >
             <div className="mb-4 text-4xl">{opt.icon}</div>
-            <h2 className="mb-2 font-serif text-xl font-medium text-slate-200 group-hover:text-amber-200">
+            <h2 className="mb-2 font-heading text-xl font-medium text-slate-200 group-hover:text-amber-200">
               {opt.name}
             </h2>
             <p className="text-sm text-slate-500">{opt.description}</p>
@@ -69,7 +69,7 @@ export default function GiftingConciergePage(): JSX.Element {
       </div>
 
       <section className="mt-12 rounded-xl border border-slate-200 bg-slate-50 p-8">
-        <h2 className="mb-6 font-serif text-2xl font-light text-slate-200">
+        <h2 className="mb-6 font-heading text-2xl font-light text-slate-200">
           Tùy chọn gói quà
         </h2>
         <p className="mb-6 text-sm text-slate-500">

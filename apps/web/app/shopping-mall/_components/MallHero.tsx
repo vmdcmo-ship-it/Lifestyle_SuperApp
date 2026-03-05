@@ -112,15 +112,15 @@ export function MallHero(): JSX.Element {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.65)_100%)]" />
 
       <div className="relative flex h-full flex-col justify-end p-8 md:p-12">
-        <h2 className="font-serif text-3xl font-light tracking-wide text-white/95 md:text-4xl lg:text-5xl">
+        <h2 className="font-heading text-3xl font-semibold tracking-wide text-white/95 md:text-4xl lg:text-5xl">
           {slide.title}
         </h2>
-        <p className="mt-2 font-serif text-sm text-amber-200/90 md:text-base">
+        <p className="mt-2 font-heading text-sm text-amber-200/90 md:text-base">
           {slide.subtitle}
         </p>
         <Link
           href={slide.ctaHref}
-          className="mt-6 inline-flex w-fit items-center gap-2 rounded-lg border border-amber-500/60 bg-amber-500/10 px-6 py-3 font-serif text-sm font-medium text-amber-200 transition-all hover:bg-amber-500/20"
+          className="mt-6 inline-flex w-fit items-center gap-2 rounded-lg border border-amber-500/60 bg-amber-500/10 px-6 py-3 font-heading text-sm font-medium text-amber-200 transition-all hover:bg-amber-500/20"
         >
           {slide.ctaLabel}
           <span aria-hidden>→</span>

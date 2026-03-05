@@ -57,11 +57,8 @@ const nextConfig = {
   },
 
   // Webpack configuration
-  webpack: (config, { isServer, dev }) => {
-    // Tắt cache webpack khi dev để tránh lỗi "Cannot read properties of undefined (reading 'call')"
-    if (dev) {
-      config.cache = false;
-    }
+  webpack: (config, { isServer }) => {
+    // Giữ cache bật - tắt cache gây compile mỗi request, trang load 10+ phút
     // Optimize bundle
     if (!isServer) {
       config.resolve.fallback = {
@@ -76,6 +73,7 @@ const nextConfig = {
 
   // Headers for security and performance
   async headers() {
+    const isDev = process.env.NODE_ENV === 'development';
     return [
       {
         source: '/:path*',
@@ -109,7 +107,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: isDev ? 'no-store' : 'public, max-age=31536000, immutable',
           },
         ],
       },
@@ -119,17 +117,17 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: isDev ? 'no-store' : 'public, max-age=31536000, immutable',
           },
         ],
       },
       {
-        // Cache Next.js static files
+        // Cache Next.js static files - dev: no-store tranh ChunkLoadError timeout
         source: '/_next/static/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: isDev ? 'no-store, no-cache, must-revalidate' : 'public, max-age=31536000, immutable',
           },
         ],
       },
@@ -142,6 +140,13 @@ const nextConfig = {
       // SEO: chuyển /cong-dong → /the-thao (301 permanent)
       { source: '/cong-dong', destination: '/the-thao', permanent: true },
       { source: '/cong-dong/:path*', destination: '/the-thao/:path*', permanent: true },
+      // An Cư Lạc Nghiệp → Bất động sản
+      { source: '/an-cu-lac-nghiep', destination: '/bat-dong-san', permanent: true },
+      { source: '/an-cu-lac-nghiep/chinh-sach', destination: '/bat-dong-san/nha-o-xa-hoi', permanent: true },
+      { source: '/an-cu-lac-nghiep/bai-viet', destination: '/bat-dong-san/tin-bat-dong-san', permanent: true },
+      { source: '/an-cu-lac-nghiep/bai-viet/:slug', destination: '/bat-dong-san/tin-bat-dong-san/:slug', permanent: true },
+      { source: '/an-cu-lac-nghiep/du-an', destination: '/bat-dong-san/du-an-chung-cu', permanent: true },
+      { source: '/an-cu-lac-nghiep/tu-van', destination: '/bat-dong-san/tim-bat-dong-san', permanent: true },
     ];
   },
 

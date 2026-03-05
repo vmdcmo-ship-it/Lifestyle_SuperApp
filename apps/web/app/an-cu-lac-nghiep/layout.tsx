@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { SectionSidebarLayout } from '@/components/layout/section-sidebar-layout';
 import { ContentRightSidebar } from '@/components/layout/content-right-sidebar';
+import {
+  SECTION_BANNERS_LEFT,
+  SECTION_BANNERS_RIGHT,
+} from '@/lib/config/sidebar-banners-sections';
 
 const AN_CU_RIGHT_LINKS = [
   { label: 'Trang chủ', href: '/' },
@@ -11,7 +15,7 @@ const AN_CU_RIGHT_LINKS = [
   { label: 'Đặt xe', href: '/ride-hailing', description: 'Gọi xe' },
 ];
 
-const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL || 'https://lifestyle-app.com').replace(/\/$/, '');
+const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL || 'https://www.vmd.asia').replace(/\/$/, '');
 const DEFAULT_OG = `${BASE_URL}/og-image.png`;
 
 export const metadata: Metadata = {
@@ -73,6 +77,8 @@ export default function AnCuLacNghiepLayout({
       }
       navItems={AN_CU_NAV}
       rightSidebar={<ContentRightSidebar title="Khám phá thêm" crossSellLinks={AN_CU_RIGHT_LINKS} variant="light" />}
+      leftBanners={SECTION_BANNERS_LEFT}
+      rightBanners={SECTION_BANNERS_RIGHT}
     >
       <div className="an-cu-theme">{children}</div>
     </SectionSidebarLayout>

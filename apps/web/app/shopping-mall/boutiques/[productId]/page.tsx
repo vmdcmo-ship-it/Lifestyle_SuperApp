@@ -68,20 +68,20 @@ export default async function ProductDetailPage({
             priority
           />
           {product.brand && (
-            <span className="absolute left-4 top-4 rounded bg-black/60 px-3 py-1 font-serif text-sm text-amber-200">
+            <span className="absolute left-4 top-4 rounded bg-black/60 px-3 py-1 font-heading text-sm text-amber-200">
               {product.brand}
             </span>
           )}
         </div>
 
         <div>
-          <h1 className="font-serif text-2xl font-light text-amber-100 md:text-3xl">
+          <h1 className="font-heading text-2xl font-light text-amber-100 md:text-3xl">
             {product.name}
           </h1>
           {displayPrice ? (
-            <p className="mt-4 font-serif text-lg text-amber-400">{displayPrice}</p>
+            <p className="mt-4 font-heading text-lg text-amber-400">{displayPrice}</p>
           ) : (
-            <p className="mt-4 font-serif text-sm italic text-slate-500">
+            <p className="mt-4 font-heading text-sm italic text-slate-500">
               Liên hệ để biết giá
             </p>
           )}
@@ -106,7 +106,7 @@ export default async function ProductDetailPage({
       </div>
 
       <section className="mt-12 rounded-xl border border-slate-200 bg-slate-50 p-6">
-        <h2 className="mb-4 font-serif text-lg font-medium text-slate-200">
+        <h2 className="mb-4 font-heading text-lg font-medium text-slate-200">
           Thông tin giao hàng
         </h2>
         <p className="text-sm text-slate-400">

@@ -93,11 +93,11 @@ export default function FranchisePage(): JSX.Element {
 
   const handleExport = () => {
     const rows = partners.map((p) => ({
-      Mã: p.code,
-      Tên: p.name,
-      Email: p.contact_email ?? '',
-      SĐT: p.contact_phone ?? '',
-      Trạng thái: p.status,
+      'Mã': p.code,
+      'Tên': p.name,
+      'Email': p.contact_email ?? '',
+      'SĐT': p.contact_phone ?? '',
+      'Trạng thái': p.status,
       'Ký HĐ': p.contract_signed_at ? formatDate(p.contract_signed_at) : '',
       'Hết HĐ': p.contract_expires_at ? formatDate(p.contract_expires_at) : '',
       'Vùng': (p.regions ?? [])
@@ -105,7 +105,18 @@ export default function FranchisePage(): JSX.Element {
         .join('; '),
       'Ngày tạo': formatDate(p.created_at),
     }));
-    exportToCsv(rows, `doi-tac-nhuong-quyen-${new Date().toISOString().slice(0, 10)}`);
+    const columns = [
+      { key: 'Mã', header: 'Mã' },
+      { key: 'Tên', header: 'Tên' },
+      { key: 'Email', header: 'Email' },
+      { key: 'SĐT', header: 'SĐT' },
+      { key: 'Trạng thái', header: 'Trạng thái' },
+      { key: 'Ký HĐ', header: 'Ký HĐ' },
+      { key: 'Hết HĐ', header: 'Hết HĐ' },
+      { key: 'Vùng', header: 'Vùng' },
+      { key: 'Ngày tạo', header: 'Ngày tạo' },
+    ];
+    exportToCsv(rows, 'doi-tac-nhuong-quyen', columns);
   };
 
   const STATUS_LABELS: Record<string, string> = {

@@ -9,6 +9,11 @@
 'use client';
 
 import Link from 'next/link';
+import {
+  SIDEBAR_BANNERS_LEFT,
+  SIDEBAR_BANNERS_RIGHT,
+} from '@/lib/config/sidebar-banners';
+import { SidebarBannerCarousel } from './sidebar-banner-carousel';
 
 interface MasterLayout206020Props {
   /** Nội dung cột giữa - thường là HeroCarousel + nội dung chính */
@@ -23,23 +28,39 @@ const APP_STORE_URL = process.env.NEXT_PUBLIC_APP_STORE_URL || '#';
 const GOOGLE_PLAY_URL = process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL || '#';
 
 /**
- * CTA Tải App - Luôn nổi bật theo spec
+ * CTA Tải App - Chỉ hiển thị bên trái.
+ * Hàng 1: iOS | CH Play (2 cột).
+ * Hàng 2: Gia nhập ngay.
  */
 function CtaDownloadApp(): JSX.Element {
   return (
     <div className="flex flex-col gap-3">
-      <Link
-        href={APP_STORE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-800 shadow transition-all hover:bg-slate-200"
-        aria-label="Tải App từ App Store"
-      >
-        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01z" />
-        </svg>
-        Tải App
-      </Link>
+      <div className="grid grid-cols-2 gap-2">
+        <Link
+          href={APP_STORE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 rounded-xl bg-slate-100 px-3 py-2.5 text-xs font-semibold text-slate-800 shadow transition-all hover:bg-slate-200"
+          aria-label="Tải App iOS"
+        >
+          <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01z" />
+          </svg>
+          App Store
+        </Link>
+        <Link
+          href={GOOGLE_PLAY_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 rounded-xl bg-slate-100 px-3 py-2.5 text-xs font-semibold text-slate-800 shadow transition-all hover:bg-slate-200"
+          aria-label="Tải App CH Play"
+        >
+          <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.227 6.141 7.925-8.443zm3.199-3.198l2.807 1.567a.996.996 0 0 1 0 1.814l-2.807 1.567L9.973 12l7.725-4.493zM5.864 2.658L16.133 8.81l-2.302 2.302-7.967-8.454z" />
+          </svg>
+          CH Play
+        </Link>
+      </div>
       <Link
         href="/partner"
         className="flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm font-semibold transition-all hover:border-slate-300 hover:bg-slate-50"
@@ -79,7 +100,7 @@ function DefaultLeftSidebar(): JSX.Element {
             href="/partner?type=koc"
             className="rounded-lg bg-white border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-amber-50 hover:border-amber-200"
           >
-            KOC / MOL
+            Nhà sáng tạo nội dung
           </Link>
         </nav>
       </div>
@@ -104,6 +125,7 @@ function DefaultLeftSidebar(): JSX.Element {
         </nav>
       </div>
       <CtaDownloadApp />
+      <SidebarBannerCarousel banners={SIDEBAR_BANNERS_LEFT} className="mt-4" />
     </aside>
   );
 }
@@ -145,7 +167,7 @@ function DefaultRightSidebar(): JSX.Element {
           </Link>
         </nav>
       </div>
-      <CtaDownloadApp />
+      <SidebarBannerCarousel banners={SIDEBAR_BANNERS_RIGHT} className="mt-2" />
     </aside>
   );
 }

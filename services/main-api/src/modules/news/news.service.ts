@@ -130,7 +130,7 @@ export class NewsService {
     const webBaseUrl =
       process.env.WEB_APP_URL ||
       process.env.NEXT_PUBLIC_BASE_URL ||
-      'https://lifestyle-app.com';
+      'https://www.vmd.asia';
 
     const filtered = articles
       .filter((a) => this.matchesAudience(a.targetApps, audience))

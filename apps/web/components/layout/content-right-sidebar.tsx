@@ -31,7 +31,7 @@ interface ContentRightSidebarProps {
 const DEFAULT_CROSS_SELL: CrossSellLink[] = [
   { label: 'Trang chủ', href: '/' },
   { label: 'KODO Wealth', href: '/wealth', description: 'Tài chính & Bảo hiểm' },
-  { label: 'An Cư Lạc Nghiệp', href: '/an-cu-lac-nghiep', description: 'Nhà ở xã hội' },
+  { label: 'Bất động sản', href: '/bat-dong-san', description: 'Tin tức, dự án BDS' },
   { label: 'Spotlight', href: '/spotlight', description: 'Video du lịch & phong cách' },
   { label: 'Cộng đồng', href: '/the-thao', description: 'Thể thao & Run to Earn' },
   { label: 'Hợp tác', href: '/hop-tac', description: 'Thuê mua VinFast' },
@@ -89,9 +89,6 @@ export function ContentRightSidebar({
           {crossSellLinks.map((link) => (
             <Link key={link.href} href={link.href} className={linkClass}>
               <span className="font-medium">{link.label}</span>
-              {link.description != null && link.description !== '' && (
-                <span className="block text-xs text-muted-foreground">{link.description}</span>
-              )}
             </Link>
           ))}
         </nav>

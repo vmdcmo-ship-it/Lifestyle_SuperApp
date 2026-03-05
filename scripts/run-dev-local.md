@@ -1,12 +1,24 @@
 # Chạy Web + API local để xem Spotlight
 
-## Khắc phục lỗi "Cannot read properties of undefined (reading 'call')"
+## Khắc phục lỗi runtime
 
-Nếu trang /spotlight báo lỗi runtime này:
+### Lỗi "Cannot read properties of undefined (reading 'call')"
 1. Dừng Next.js (Ctrl+C)
 2. Xóa cache: `Remove-Item -Recurse -Force apps/web/.next`
-3. Khởi động lại web (next.config đã tắt webpack cache khi dev)
-4. Xóa Service Worker trong Chrome: DevTools → Application → Storage → Clear site data
+3. Khởi động lại web
+4. Xóa Service Worker: Chrome DevTools → Application → Storage → Clear site data
+
+### Lỗi "ChunkLoadError: Loading chunk app/layout failed (timeout)"
+1. Dừng Next.js (Ctrl+C)
+2. Xóa cache: `Remove-Item -Recurse -Force apps/web/.next`
+3. Xóa cache trình duyệt hoặc mở tab ẩn danh (Ctrl+Shift+N)
+4. Khởi động lại web – lần đầu có thể chậm (30–60s)
+
+### Lỗi "Cannot find module middleware-manifest.json"
+1. Dừng Next.js (Ctrl+C)
+2. Xóa hoàn toàn thư mục .next: `Remove-Item -Recurse -Force apps/web/.next`
+3. Khởi động lại: `npx next dev -p 3010` (không dùng --turbo)
+4. Đợi đến khi thấy "Ready" trong terminal rồi mới mở trình duyệt
 
 ---
 

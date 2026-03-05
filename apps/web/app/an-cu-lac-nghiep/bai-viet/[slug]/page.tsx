@@ -92,7 +92,7 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL || 'https://lifestyle-app.com').replace(/\/$/, '');
+const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL || 'https://www.vmd.asia').replace(/\/$/, '');
 const DEFAULT_OG = `${BASE_URL}/og-image.png`;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

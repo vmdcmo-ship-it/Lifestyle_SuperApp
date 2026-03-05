@@ -28,7 +28,7 @@ export default function SellerRegistrationPage(): JSX.Element {
         >
           ← Shopping Mall
         </Link>
-        <h1 className="font-serif text-3xl font-light text-amber-600 md:text-4xl">
+        <h1 className="font-heading text-3xl font-light text-amber-600 md:text-4xl">
           Đăng ký bán hàng
         </h1>
         <p className="mt-2 text-slate-600">

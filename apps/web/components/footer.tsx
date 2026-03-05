@@ -14,7 +14,7 @@ import {
   FOOTER_SECTIONS,
   FOOTER_SECTIONS_SPORT,
   FOOTER_SECTIONS_RUN_TO_EARN,
-  FOOTER_SECTIONS_AN_CU,
+  FOOTER_SECTIONS_BAT_DONG_SAN,
   FOOTER_SECTIONS_SHOPPING_MALL,
 } from '@/lib/config/footer-links';
 import type { FooterSection } from '@/lib/config/footer-links';
@@ -32,8 +32,8 @@ function getSectionsForPath(pathname: string): FooterSection[] {
   if (pathname.includes('/the-thao/run-to-earn')) {
     return FOOTER_SECTIONS_RUN_TO_EARN;
   }
-  if (pathname.includes('/an-cu-lac-nghiep')) {
-    return FOOTER_SECTIONS_AN_CU;
+  if (pathname.includes('/bat-dong-san')) {
+    return FOOTER_SECTIONS_BAT_DONG_SAN;
   }
   return FOOTER_SECTIONS;
 }

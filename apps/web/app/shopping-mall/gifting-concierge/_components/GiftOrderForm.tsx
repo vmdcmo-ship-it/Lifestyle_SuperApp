@@ -83,7 +83,7 @@ export function GiftOrderForm({ giftType, action, deliveryConfig }: GiftOrderFor
     return (
       <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-8 text-center">
         <div className="mb-4 text-5xl">✓</div>
-        <h3 className="mb-2 font-serif text-xl font-medium text-amber-200">
+        <h3 className="mb-2 font-heading text-xl font-medium text-amber-200">
           Đơn đặt quà đã được gửi!
         </h3>
         <p className="text-slate-400">
@@ -190,7 +190,7 @@ export function GiftOrderForm({ giftType, action, deliveryConfig }: GiftOrderFor
 
       {/* --- Tùy chọn gói quà --- */}
       <hr className="border-slate-700" />
-      <h3 className="font-serif text-lg text-amber-200">Tùy chọn gói quà</h3>
+      <h3 className="font-heading text-lg text-amber-200">Tùy chọn gói quà</h3>
 
       <div className="flex items-center gap-3">
         <input
@@ -253,7 +253,7 @@ export function GiftOrderForm({ giftType, action, deliveryConfig }: GiftOrderFor
 
       {/* --- Phương thức giao hàng --- */}
       <hr className="border-slate-700" />
-      <h3 className="font-serif text-lg text-amber-200">Phương thức giao hàng</h3>
+      <h3 className="font-heading text-lg text-amber-200">Phương thức giao hàng</h3>
       <div className="space-y-3">
         <label className="flex items-start gap-3 rounded-lg border border-slate-600 p-4 has-[:checked]:border-amber-500/50">
           <input
@@ -310,7 +310,7 @@ export function GiftOrderForm({ giftType, action, deliveryConfig }: GiftOrderFor
       {isSendGift && (
         <>
           <hr className="border-slate-700" />
-          <h3 className="font-serif text-lg text-amber-200">Thông tin người gửi</h3>
+          <h3 className="font-heading text-lg text-amber-200">Thông tin người gửi</h3>
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-400">
               Họ tên người gửi *

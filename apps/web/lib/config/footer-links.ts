@@ -52,7 +52,7 @@ export const FOOTER_SECTIONS: FooterSection[] = [
       { label: 'Mua sắm', href: '/shopping' },
       { label: 'Ví Lifestyle', href: '/wallet' },
       { label: 'KODO Wealth', href: '/wealth' },
-      { label: 'An Cư Lạc Nghiệp', href: '/an-cu-lac-nghiep' },
+      { label: 'Bất động sản', href: '/bat-dong-san' },
       { label: 'Spotlight', href: '/spotlight' },
       { label: 'Shopping Mall', href: '/shopping-mall' },
       { label: 'Run to Earn', href: '/the-thao/run-to-earn' },
@@ -65,7 +65,7 @@ export const FOOTER_SECTIONS: FooterSection[] = [
       { label: 'Hợp tác thuê mua VinFast', href: '/hop-tac' },
       { label: 'Tài xế', href: '/signup/driver' },
       { label: 'Đăng ký đối tác kinh doanh', href: '/dang-ky-doi-tac' },
-      { label: 'KOC / MOL', href: '/partner?type=koc' },
+      { label: 'Nhà sáng tạo nội dung', href: '/partner?type=koc' },
       { label: 'Chương trình thưởng', href: contentUrl('chuong-trinh-thuong') },
       { label: 'Cộng đồng đối tác', href: '/the-thao' },
     ],
@@ -97,17 +97,18 @@ export const FOOTER_SECTIONS_SPORT: FooterSection[] = [
 ];
 
 /**
- * Footer An Cư Lạc Nghiệp - Nhà ở xã hội
+ * Footer Bất động sản
  */
-export const FOOTER_SECTIONS_AN_CU: FooterSection[] = [
+export const FOOTER_SECTIONS_BAT_DONG_SAN: FooterSection[] = [
   {
-    title: 'An Cư Lạc Nghiệp',
+    title: 'Bất động sản',
     links: [
-      { label: 'Tổng quan', href: '/an-cu-lac-nghiep' },
-      { label: 'Chính sách & Văn bản', href: '/an-cu-lac-nghiep/chinh-sach' },
-      { label: 'Bài viết', href: '/an-cu-lac-nghiep/bai-viet' },
-      { label: 'Dự án nhà ở xã hội', href: '/an-cu-lac-nghiep/du-an' },
-      { label: 'Đăng ký tư vấn', href: '/an-cu-lac-nghiep/tu-van' },
+      { label: 'Tổng quan', href: '/bat-dong-san' },
+      { label: 'Tin Bất Động Sản', href: '/bat-dong-san/tin-bat-dong-san' },
+      { label: 'Nhà ở xã hội', href: '/bat-dong-san/nha-o-xa-hoi' },
+      { label: 'Dự án chung cư', href: '/bat-dong-san/du-an-chung-cu' },
+      { label: 'Nhà cho thuê', href: '/bat-dong-san/nha-cho-thue' },
+      { label: 'Tìm bất động sản', href: '/bat-dong-san/tim-bat-dong-san' },
     ],
   },
   {

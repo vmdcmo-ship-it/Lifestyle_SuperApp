@@ -7,17 +7,25 @@ const API_BASE =
 const API_PREFIX = '/api/v1';
 
 async function fetchCategories() {
-  const url = `${API_BASE.replace(/\/$/, '')}${API_PREFIX}/spotlight/categories`;
-  const res = await fetch(url, { next: { revalidate: 300 } });
-  if (!res.ok) return { data: [] };
-  return res.json();
+  try {
+    const url = `${API_BASE.replace(/\/$/, '')}${API_PREFIX}/spotlight/categories`;
+    const res = await fetch(url, { next: { revalidate: 300 } });
+    if (!res.ok) return { data: [] };
+    return res.json();
+  } catch {
+    return { data: [] };
+  }
 }
 
 async function fetchLocations() {
-  const url = `${API_BASE.replace(/\/$/, '')}${API_PREFIX}/spotlight/locations?level=PROVINCE`;
-  const res = await fetch(url, { next: { revalidate: 300 } });
-  if (!res.ok) return { data: [] };
-  return res.json();
+  try {
+    const url = `${API_BASE.replace(/\/$/, '')}${API_PREFIX}/spotlight/locations?level=PROVINCE`;
+    const res = await fetch(url, { next: { revalidate: 300 } });
+    if (!res.ok) return { data: [] };
+    return res.json();
+  } catch {
+    return { data: [] };
+  }
 }
 
 export const metadata: Metadata = {

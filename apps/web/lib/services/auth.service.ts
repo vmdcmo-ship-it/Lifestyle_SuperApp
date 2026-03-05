@@ -60,8 +60,8 @@ export const authService = {
     }
   },
 
-  async getProfile(): Promise<any> {
-    return api.get(API_ENDPOINTS.AUTH.PROFILE);
+  async getProfile(signal?: AbortSignal): Promise<any> {
+    return api.get(API_ENDPOINTS.AUTH.PROFILE, undefined, signal);
   },
 
   async refresh(refreshToken: string): Promise<LoginResponse> {

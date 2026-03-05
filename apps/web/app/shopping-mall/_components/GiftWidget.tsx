@@ -14,20 +14,10 @@ export function GiftWidget(): JSX.Element {
         <div className="flex h-12 w-12 items-center justify-center rounded-lg" style={{ backgroundColor: '#FFE066' }}>
           <LuxuryCarIcon className="h-7 w-7" style={{ color: '#1e3a5f' }} />
         </div>
-        <div>
-          <h3 className="font-serif text-base font-semibold" style={{ color: '#1e3a5f' }}>
-            Sứ giả tặng quà
-          </h3>
-          <p className="text-xs" style={{ color: '#4a6b8a' }}>
-            Gói quà • Thiệp • Giao xe hơi
-          </p>
-        </div>
+        <h3 className="font-heading text-base font-semibold" style={{ color: '#1e3a5f' }}>
+          Sứ giả tặng quà
+        </h3>
       </div>
-
-      <p className="text-sm" style={{ color: '#1e3a5f' }}>
-        Đặt Hamper, hoa tươi và quà tặng cao cấp. Chọn gói quà thủ công, thiệp
-        chúc mừng và giao hàng bằng xe hơi Premium.
-      </p>
 
       <div className="space-y-2">
         <Link

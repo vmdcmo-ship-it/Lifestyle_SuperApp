@@ -1,5 +1,5 @@
 /**
- * Trang Hợp tác - Thuê mua xe máy, ô tô điện VinFast để kinh doanh cùng KODO
+ * Trang Hợp tác - Thuê để sở hữu xe máy, ô tô điện VinFast vận hành dịch vụ cùng KODO Platform
  * Thông điệp: Xây dựng tương lai và sự nghiệp cùng KODO
  */
 
@@ -7,9 +7,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Hợp tác - Thuê mua xe VinFast kinh doanh cùng KODO',
+  title: 'Hợp tác - Thuê để sở hữu xe VinFast vận hành dịch vụ cùng KODO Platform',
   description:
-    'Chính sách thuê mua xe máy, ô tô điện VinFast để vận hành kinh doanh cùng KODO. Ưu đãi chiết khấu cho tài xế đăng ký sớm.',
+    'Thuê để sở hữu xe máy, ô tô điện VinFast tham gia vận hành dịch vụ cùng KODO Platform. Ưu đãi chiết khấu cho tài xế đăng ký sớm.',
   alternates: { canonical: '/hop-tac' },
 };
 
@@ -26,8 +26,7 @@ export default function HopTacPage(): JSX.Element {
             </span>
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-slate-600">
-            Thuê mua xe máy, ô tô điện VinFast để vận hành kinh doanh dịch vụ cùng KODO – 
-            mô hình hợp tác như Xanh Platform, mở rộng đội tài xế xanh.
+            Thuê để sở hữu xe máy, ô tô điện VinFast tham gia vận hành dịch vụ cùng KODO Platform.
           </p>
         </section>
 
@@ -35,7 +34,7 @@ export default function HopTacPage(): JSX.Element {
         <section className="mb-16 grid gap-8 md:grid-cols-2">
           <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-8">
             <h2 className="mb-4 text-xl font-semibold text-slate-800">
-              Chính sách thuê mua VinFast
+              Chính sách thuê để sở hữu VinFast
             </h2>
             <ul className="space-y-3 text-slate-600">
               <li>• Xe máy điện VinFast – linh hoạt trả góp</li>
