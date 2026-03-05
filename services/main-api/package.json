@@ -22,7 +22,8 @@
     "seed:admin": "ts-node prisma/seed-admin.ts",
     "seed:content": "ts-node prisma/seed-content.ts",
     "seed:audit": "ts-node prisma/seed-audit.ts",
-    "seed:spotlight": "ts-node prisma/seed-spotlight.ts"
+    "seed:spotlight": "ts-node prisma/seed-spotlight.ts",
+    "seed:training": "ts-node prisma/seed-training.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
