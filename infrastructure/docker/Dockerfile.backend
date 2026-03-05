@@ -119,6 +119,8 @@ ARG SERVICE_NAME
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/services/${SERVICE_NAME}/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/services/${SERVICE_NAME}/package.json ./package.json
+# Prisma (main-api có migrations; user-service có schema placeholder) - dùng cho migrate deploy
+COPY --from=builder --chown=nestjs:nodejs /app/services/${SERVICE_NAME}/prisma ./prisma
 
 # Tạo thư mục uploads với đúng quyền trước khi switch user
 RUN mkdir -p /app/uploads && chown -R nestjs:nodejs /app/uploads

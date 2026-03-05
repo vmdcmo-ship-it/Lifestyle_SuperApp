@@ -52,14 +52,27 @@ jobs:
           ssh ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'DEPLOY'
           cd ${{ env.DEPLOY_PATH }}
 
+          # Đảm bảo .env tồn tại (GitHub Actions dùng .env, rsync exclude nó)
+          if [ ! -f .env ] && [ -f infrastructure/.env.production ]; then
+            echo ">>> Tạo .env từ infrastructure/.env.production (cho deploy workflow)..."
+            cp infrastructure/.env.production .env
+          fi
+          if [ ! -f .env ]; then
+            echo "::error::Thiếu .env trên VPS. Tạo từ: cp infrastructure/.env.production .env"
+            exit 1
+          fi
+
           SERVICE="${{ github.event.inputs.service }}"
 
           if [ "$SERVICE" = "all" ] || [ "$SERVICE" = "main-api" ]; then
-            echo ">>> Rebuilding main-api..."
+            echo ">>> Rebuilding main-api (--no-cache để URL content/news/training dùng vmd.asia)..."
             docker compose -f infrastructure/docker/docker-compose.production.yml \
-              --env-file .env build main-api
+              --env-file .env build --no-cache main-api
             docker compose -f infrastructure/docker/docker-compose.production.yml \
               --env-file .env up -d main-api
+            echo ">>> Chạy Prisma migrate (trong main-api container)..."
+            sleep 5
+            docker exec lifestyle_main_api npx prisma migrate deploy 2>/dev/null || echo "Prisma migrate skip (chạy thủ công khi cần)"
           fi
 
           if [ "$SERVICE" = "all" ] || [ "$SERVICE" = "web" ]; then
@@ -71,20 +84,21 @@ jobs:
           fi
 
           echo ">>> Checking container status..."
-          docker compose -f infrastructure/docker/docker-compose.production.yml ps
+          docker compose -f infrastructure/docker/docker-compose.production.yml --env-file .env ps
 
           echo ">>> Deploy completed!"
           DEPLOY
 
       - name: Health Check
         run: |
-          sleep 15
+          sleep 20
           ssh ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'CHECK'
-          echo ">>> Health check main-api..."
-          curl -sf http://localhost:4000/api/v1/health || echo "main-api health check failed"
-
-          echo ">>> Container logs (last 20 lines)..."
-          docker logs lifestyle_main_api --tail 20 2>&1
+          echo ">>> Health check main-api (qua nginx port 80)..."
+          curl -sf http://localhost/api/v1/health && echo " OK" || echo "main-api health check failed"
+          echo ">>> Health check web (trong container)..."
+          docker exec lifestyle_web wget -qO- http://localhost:3001 2>/dev/null | head -1 || echo "web health check failed"
+          echo ">>> Container logs (main-api last 15 lines)..."
+          docker logs lifestyle_main_api --tail 15 2>&1
           CHECK
 
       - name: Notify on failure
