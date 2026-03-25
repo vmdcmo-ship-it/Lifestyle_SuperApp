@@ -92,6 +92,11 @@ export class SeedService implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
+    // Production: schema comes from migrations only (synchronize: false). Querying before
+    // migration:run would throw and crash the API → unhealthy container.
+    if (process.env.NODE_ENV === 'production') {
+      return;
+    }
     const count = await this.repo.count();
     if (count > 0) {
       return;
