@@ -17,6 +17,27 @@
 
 **Song song:** R0.3 có thể làm cùng R1.
 
+### R0 — Trạng thái & quy ước đã chốt (để R1+ tuân thủ)
+
+**Tiêu chí kỹ thuật (đã xác nhận trên monorepo):**
+
+| Mã | Trạng thái | Ghi chú |
+|----|------------|---------|
+| R0.1 | OK | `pnpm --filter @lifestyle/timnhaxahoi-service run build` và `pnpm --filter @lifestyle/web-timnhaxahoi run build` thành công; script dev: `pnpm dev:timnhaxahoi-api` / `pnpm dev:timnhaxahoi-web` (root `package.json`). |
+| R0.2 | Dev phải tự chạy trên DB local | Migration NOXH hiện có: `1742800000000-InitialTimnhaxahoiSchema` — chạy `migration:run` sau khi Postgres lên (Docker compose hoặc `DATABASE_*` trỏ localhost). |
+| R0.3 | Đã chốt bảng dưới | Dùng xuyên suốt code + migration R1. |
+| R0.4 | Nhánh `feature/timnhatro-mvp-b` | Mọi commit kênh trọ MVP B trên nhánh này; merge `main` khi R1 ổn hoặc theo sprint. |
+
+**Quy ước đặt tên (R0.3) — kênh Tìm nhà trọ**
+
+| Thành phần | Quy ước |
+|------------|---------|
+| **Bảng Postgres** | `rental_listings` (entity TypeORM: `RentalListing`). Báo cáo (R6): `rental_listing_reports`. Snake_case trong DB, camel trong TS theo chuẩn Nest/TypeORM. |
+| **REST API** | Prefix **`/api/v1/rental/`**: ví dụ `GET .../rental/listings`, `GET .../rental/listings/:id`, `POST .../rental/listings` (landlord), `POST .../rental/listings/:id/report`. Không dùng prefix `/api/v1/timnhatro/` để tránh nhầm với route Next.js. |
+| **Module Nest** | `services/timnhaxahoi-service/src/modules/rental/` (`RentalModule`, controller/service tách rõ public vs landlord). |
+| **Next.js App Router** | `apps/web-timnhaxahoi/app/timnhatro/` (vd. `page.tsx`, `[slug]/page.tsx`). |
+| **Client gọi API** | Dùng `NEXT_PUBLIC_API_URL` hiện có + path `/rental/...`. |
+
 ---
 
 ## R1 — Schema & migration (Postgres)
