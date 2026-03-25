@@ -1,0 +1,22 @@
+# Mẫu Caddy — timnhaxahoi.com (HTTPS tự động)
+# Chạy: caddy run --config /path/Caddyfile
+# NEXT_PUBLIC_API_URL=https://timnhaxahoi.com/api/v1
+
+timnhaxahoi.com, www.timnhaxahoi.com {
+    encode gzip zstd
+
+    # `path /api/*` can fail for multi-segment paths like /api/v1/health — route all /api/* to Nest.
+    @api expression `{path}.startsWith("/api/")`
+    handle @api {
+        reverse_proxy 127.0.0.1:3020
+    }
+
+    handle {
+        reverse_proxy 127.0.0.1:3040
+    }
+
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+    }
+}
