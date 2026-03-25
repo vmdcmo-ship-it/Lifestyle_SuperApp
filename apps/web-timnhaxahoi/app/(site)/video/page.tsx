@@ -1,0 +1,60 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { VIDEO_ITEMS } from '@/lib/video-placeholders';
+
+export const metadata: Metadata = {
+  title: 'Video',
+  description: 'Video ngắn về NOXH, thủ tục và tài chính — timnhaxahoi.com.',
+};
+
+export default function VideoHubPage() {
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-10 md:py-14">
+      <h1 className="text-3xl font-bold text-slate-900">Video</h1>
+      <p className="mt-3 max-w-2xl text-slate-600">
+        Cấu trúc gợi ý: hook → thực tế → pháp lý ngắn → CTA. Nội dung production sẽ thay thế placeholder bên dưới.
+      </p>
+
+      <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {VIDEO_ITEMS.map((v) => (
+          <li key={v.id} className="glass-panel overflow-hidden rounded-2xl">
+            <div className="aspect-video bg-gradient-to-br from-slate-200 to-slate-100">
+              {v.youtubeId ? (
+                <iframe
+                  title={v.title}
+                  src={`https://www.youtube-nocookie.com/embed/${v.youtubeId}`}
+                  className="h-full w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center">
+                  <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-slate-600">
+                    Sắp ra mắt
+                  </span>
+                  <span className="text-sm text-slate-500">{v.durationLabel}</span>
+                </div>
+              )}
+            </div>
+            <div className="p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-emerald-700">{v.topic}</p>
+              <h2 className="mt-1 font-semibold text-slate-900">{v.title}</h2>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-12 text-center text-sm text-slate-600">
+        Xem thêm{' '}
+        <Link href="/quiz" className="font-medium text-brand-navy hover:underline">
+          trắc nghiệm điều kiện
+        </Link>{' '}
+        hoặc{' '}
+        <Link href="/phap-ly" className="font-medium text-brand-navy hover:underline">
+          mục pháp lý
+        </Link>
+        .
+      </p>
+    </div>
+  );
+}
