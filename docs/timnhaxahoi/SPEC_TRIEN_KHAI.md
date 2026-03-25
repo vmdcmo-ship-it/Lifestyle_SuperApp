@@ -323,6 +323,20 @@ Các hạng mục dưới đây **không** bắt buộc cho MVP satellite web; t
 - **Một tab** trên cùng domain: **`https://timnhaxahoi.com/timnhatro`** (không subdomain `timnhatro.*`, không domain tách).
 - SEO, menu chính và biến môi trường web phải phản ánh route này khi triển khai.
 
+### 19.1a MVP B — phạm vi & quy tắc đã chốt (bắt buộc tuân thủ khi code)
+
+> Giai đoạn triển khai **đầu tiên** cho kênh nhà trọ: **list + detail + đăng/sửa tin** cơ bản; **chính chủ** dùng **tài khoản trên web** ngay từ đầu.
+
+| Hạng mục | Quyết địch |
+|----------|------------|
+| **Phạm vi** | **List + detail + đăng/sửa tin** trên `/timnhatro`. |
+| **Tài khoản chủ trọ** | **Đăng ký / đăng nhập trên web** timnhaxahoi (user satellite). **Nối Super App** (auth sync / SSO) **sau** — không chặn ship MVP. |
+| **Hiển thị sau khi đăng** | **Auto-publish:** tin hợp lệ **lên public ngay**; **không** chờ **duyệt Admin** trước khi hiển thị trong MVP này. |
+| **An toàn & moderation** | **Báo cáo tin** (report) + xử lý theo quy trình / log (tham §19.5); **không** thay bằng bước “duyệt trước” bắt buộc trong MVP. |
+| **TTL & SĐT** | Vẫn **bắt buộc** tuân **§19.8** (`expires_at`, ẩn SĐT khi hết hạn, ẩn tin sau 30 ngày không gia hạn). |
+
+- **§19.3** bên dưới mô tả **mô hình đầy đủ** (gói VIP/Thường + **duyệt Admin** trước khi bật đăng tin) — áp dụng **khi** sản phẩm chuyển sang giai đoạn đó; **không** dùng làm rào chắn **MVP B** trừ khi có quyết định sản phẩm mới ghi rõ tại đây.
+
 ### 19.2 Luồng người tìm trọ (MVP) — **không giao dịch tiền thuê trên nền tảng**
 
 - **Không** API / chức năng **đặt hàng, giữ chỗ, thanh toán cọc** giữa người thuê và chủ trọ. **Không** quản lý số tiền giao dịch giữa hai bên.
@@ -336,9 +350,11 @@ Các hạng mục dưới đây **không** bắt buộc cho MVP satellite web; t
 - **Lý do phân tách:** **Mua nhà (NOXH)** giá trị cao, cần **tư vấn kỹ**; người bán / đăng dự án thường **không muốn bị thăm dò, mời gọi lẫn nhau** qua số lộ công khai — nên dùng **form + lọc đối tượng (quiz/truth)** và **kênh liên hệ có kiểm soát** (§20). **Thuê trọ** giao dịch **nhẹ hơn**, tập quán **gọi trực tiếp** phổ biến; **thông tin liên hệ đầy đủ** (và form tuỳ chọn) giúp **tư vấn viên** hiểu nhu cầu **hiệu quả** khi có hỗ trợ.
 - **Form “thông minh” (tuỳ chọn):** nếu có, chỉ mang nghĩa **gắn đúng `listing_id`** / ngữ cảnh tin để CRM — **không** đồng nghĩa bật **quiz eligibility** như luồng `/du-an` publisher.
 
-### 19.3 Chủ trọ / người đăng tin — gói VIP & Thường, duyệt Admin
+### 19.3 Chủ trọ / người đăng tin — gói VIP & Thường, duyệt Admin (lộ trình sau MVP B)
 
-- Muốn **đăng tin & dùng workspace quản lý nhà trọ:** phải **đăng ký** và chọn **một trong hai gói: VIP / Thường** (thanh toán **chỉ** áp dụng cho **phí gói đăng tin**, không phải tiền thuê).
+> **MVP B** tuân **§19.1a** (tài khoản web, **auto-publish**, báo cáo). **Đoạn dưới** là **mô hình đầy đủ** khi bật **phí gói** và **duyệt trước** — triển khai khi SP chốt giai đoạn đó.
+
+- Muốn **đăng tin & dùng workspace quản lý nhà trọ** (trong mô hình đầy đủ): phải **đăng ký** và chọn **một trong hai gói: VIP / Thường** (thanh toán **chỉ** áp dụng cho **phí gói đăng tin**, không phải tiền thuê).
 - Sau khi **Admin duyệt**, mới **bật** quyền đăng tin + giao diện quản lý (Landlord workspace theo roadmap).
 - **Người chỉ tìm trọ:** tài khoản **người dùng thông thường**; **không** đồng nhất với role chủ trọ (không bắt buộc đăng ký gói để xem tin — trừ khi sau này có rule khác, mặc định đọc tin công khai).
 
@@ -379,7 +395,7 @@ Mọi **tin nhà trọ** phải có **thời hạn hiển thị** (ngày hết h
 
 ## 20. Đăng tin dự án NOXH (publisher) — gói VIP/Thường, workspace, lead có lọc
 
-> **Đối xứng với chủ trọ (§19)** ở: **đăng ký gói (VIP / Thường)** + **Admin duyệt** + **workspace** + moderation/thanh toán gói. **Không đối xứng** về **liên hệ & SĐT:** NOXH dùng **mô hình §20.3** (ẩn SĐT người đăng công khai, quiz/lọc, publisher chủ động gọi lại, email tóm tắt + workspace). **Nhà trọ** dùng **§19.2a** (SĐT có thể công khai, **không** áp quiz như NOXH).
+> **Đối xứng với chủ trọ (§19)** ở mô hình **đầy đủ** (§19.3): **đăng ký gói (VIP / Thường)** + **Admin duyệt** + **workspace** + moderation/thanh toán gói. **MVP B nhà trọ** (§19.1a) **không** bắt gói + duyệt trước khi đăng. **Không đối xứng** về **liên hệ & SĐT:** NOXH dùng **mô hình §20.3** (ẩn SĐT người đăng công khai, quiz/lọc, publisher chủ động gọi lại, email tóm tắt + workspace). **Nhà trọ** dùng **§19.2a** (SĐT có thể công khai, **không** áp quiz như NOXH).
 
 ### 20.1 Ai được đăng dự án NOXH lên site?
 
