@@ -1,19 +1,15 @@
 # Mẫu Caddy — timnhaxahoi.com (HTTPS tự động)
 # Chạy: caddy run --config /path/Caddyfile
 # NEXT_PUBLIC_API_URL=https://timnhaxahoi.com/api/v1
+#
+# Thứ tự: directive reverse_proxy có matcher đứng trước được ưu tiên (xem tài liệu Caddy reverse_proxy).
 
 timnhaxahoi.com, www.timnhaxahoi.com {
     encode gzip zstd
 
-    # Route every path under /api/ to Nest (avoids subtle `path` glob quirks vs /api/v1/...).
-    @api path_regexp ^/api/
-    handle @api {
-        reverse_proxy 127.0.0.1:3020
-    }
-
-    handle {
-        reverse_proxy 127.0.0.1:3040
-    }
+    # Cùng pattern chính thức trong docs Caddy — mọi path dưới /api/ → Nest (3020).
+    reverse_proxy /api/* 127.0.0.1:3020
+    reverse_proxy 127.0.0.1:3040
 
     header {
         X-Content-Type-Options nosniff
