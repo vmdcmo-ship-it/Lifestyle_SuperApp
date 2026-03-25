@@ -145,6 +145,8 @@ Các route chính (có thể tinh chỉnh slug nhưng giữ đủ mục đích):
 - **Email** — bắt buộc để nhận tư vấn đầy đủ và chăm sóc sau.
 - Điều kiện này là **cổng nhận báo cáo / file tư vấn** và là **nguồn lead bán hàng**.
 
+**Tái sử dụng khi gửi form liên hệ dự án (§20.3.2):** Nếu user đã có quiz/`quiz_analytic` lưu, **không** bắt nhập lại toàn bộ câu hỏi — chỉ hỏi **Có/Không** “cập nhật / điều chỉnh hồ sơ” rồi dùng dữ liệu đã có hoặc nhánh chỉnh sửa.
+
 ---
 
 ## 11. Phân loại lead (CRM) — bảng truth cần triển khai trong code
@@ -370,15 +372,34 @@ Các hạng mục dưới đây **không** bắt buộc cho MVP satellite web; t
 - Quản lý **danh sách dự án do mình đăng** (CRUD theo quyền), trạng thái tin, gói hiện tại, lead nhận được.
 - **Không** hiển thị SĐT publisher trên **API public** / **trang công khai** `/du-an/[slug]` (dữ liệu lưu phục vụ nội bộ & thông báo sau khi có lead hợp lệ).
 
-### 20.3 Liên hệ về dự án — chỉ form, có lọc như quiz
+### 20.3 Liên hệ về dự án — chỉ form, có lọc như quiz, bảo mật & tái dùng hồ sơ quiz
 
-- **Trang chi tiết dự án** (`/du-an/[slug]`): **không** show **hotline trực tiếp** của người đăng publisher (ẩn số; có thể vẫn hiển thị **CTA “Để lại thông tin — được tư vấn”** / tương đương).
-- Người dùng **bắt buộc** điền **form liên hệ** gồm:
-  - Thông tin liên lạc **người hỏi** (SĐT, email, …).  
-  - **Bước khai báo cơ bản** để **lọc đối tượng**: có thể **rút gọn** từ bộ quiz hiện có hoặc **module truth** cùng họ `lead_segment` / điểm (§11) — mục tiêu **đủ để đánh giá mức độ phù hợp** NOXH, tránh spam / lead loãng.
-- **Backend:** lưu `project_contact_lead` (hoặc mở rộng lead hiện có) với `project_id`, `publisher_id` (nếu có), `qualification_raw` (JSON), `segment`/`score`, nguồn `web`.
-- **Chất lượng lead:** cấu hình ngưỡng (vd chỉ **đẩy ưu tiên / Lark / email publisher** khi segment thuộc nhóm xanh/vàng; đỏ vẫn lưu nhưng nhãn “cần nurture”) — chi tiết công thức do SP + §11.
-- **Đồng bộ CRM:** có thể tái sử dụng **Lark Base** (§14) với cột bổ sung `project_slug`, `publisher_id`, `contact_type=NOXH_PROJECT`.
+#### 20.3.1 Hiển thị công khai & vai trò **người đăng chủ động gọi lại**
+
+- **Trang chi tiết** (`/du-an/[slug]`): **không** hiển thị **SĐT (hoặc kênh gọi trực tiếp)** của **người đăng** publisher trên UI/API public.
+- **Luồng ưu tiên bảo mật:** sau khi người hỏi gửi form hợp lệ, **người đăng** (publisher) **chủ động gọi lại** người hỏi — tránh lộ SĐT người đăng ra ngoài và **giảm rò rỉ** hồ sơ nhạy cảm qua kênh công cộng (chỉ dữ liệu cần thiết cho bên đã xác thực workspace).
+
+#### 20.3.2 Form liên hệ & lọc đối tượng
+
+- **CTA:** “Để lại thông tin — được tư vấn” (hoặc tương đương); **bắt buộc** qua form (không hiện số gọi thẳng người đăng).
+- **Tái sử dụng kết quả quiz đã lưu (§10, `quiz_analytic` / hồ sơ user):**  
+  - Nếu hệ thống đã có bản ghi quiz/hồ sơ cho người dùng hiện tại: **chỉ hiển thị một bước xác nhận** dạng **“Bạn có muốn cập nhật / điều chỉnh thông tin hồ sơ không?”** với lựa chọn **Có / Không**.  
+  - **Không:** dùng **snapshot hồ sơ & phân loại đã có** làm đầu vào lọc lead (có thể kèm `lead_segment` / điểm sẵn có) — **không** bắt làm lại toàn bộ bài quiz.  
+  - **Có:** mở luồng **điều chỉnh** (màn hình rút gọn hoặc full quiz tùy SP) rồi mới gửi lead.
+- Nếu **chưa có** hồ sơ quiz: áp dụng **bước khai báo / rút gọn quiz** như trước (module truth §11).
+- **Backend:** lưu `project_contact_lead` với `project_id`, `publisher_id`, `qualification_raw` (JSON, có thể tham chiếu `quiz_analytic_id` hoặc bản sao cố định lúc gửi), `segment`/`score`, nguồn `web`.
+- **Chất lượng lead:** ngưỡng ưu tiên / nhãn nurture như §11 (SP chốt).
+
+#### 20.3.3 Email thông báo cho người đăng tin — **bảng tóm tắt + phương thức liên hệ**
+
+- **Email** gửi publisher **không** thay thế toàn bộ chính sách bảo mật: nội dung **tối thiểu** gồm:
+  - **Bảng tóm tắt lead:** dự án (`slug`/tên), thời gian gửi, **segment** / mức phù hợp, các mục khai báo chính (dạng đã tóm tắt, không nhét nguyên JSON thô nếu không cần).
+  - **Phương thức liên hệ:** hướng dẫn **bước tiếp theo** để publisher **liên hệ lại người hỏi** trong **môi trường đã xác thực** — mặc định khuyến nghị: **đăng nhập NOXH Publisher workspace → mục Lead / chi tiết lead** để xem **SĐT & email người hỏi** và **chủ động gọi**. *(Tuỳ chính sách SP: có thể bổ sung OTP/“mở khóa lead” trước khi hiện đầy đủ SĐT.)*
+- **Lark / CRM:** nếu đồng bộ (§14), payload nên **cùng cấu trúc tóm tắt**; trường nhạy cảm chỉ trong luồng đã auth nơi có.
+
+#### 20.3.4 Đồng bộ CRM (giữ)
+
+- Có thể tái sử dụng **Lark Base** (§14) với cột: `project_slug`, `publisher_id`, `contact_type=NOXH_PROJECT`, cùng nguyên tắc **không lộ SĐT người đăng** ra bản ghi công khai.
 
 ### 20.4 Moderation & uy tín
 
