@@ -24,7 +24,7 @@
 
 ## 1. Mục tiêu sản phẩm
 
-- **Vai trò:** Hệ sinh thái chuyên sâu về **nhà ở xã hội (NOXH)** tại Việt Nam: tư vấn điều kiện, thẩm định sơ bộ hồ sơ (theo rule), hoạch định tài chính, danh mục dự án; **bổ sung vertical [Tìm nhà trọ](/timnhatro)** trên cùng domain để khép vòng **ở trọ → tích lũy → NOXH** (chi tiết §19).
+- **Vai trò:** Hệ sinh thái chuyên sâu về **nhà ở xã hội (NOXH)** tại Việt Nam: tư vấn điều kiện, thẩm định sơ bộ hồ sơ (theo rule), hoạch định tài chính, danh mục dự án; **bổ sung vertical [Tìm nhà trọ](/timnhatro)** trên cùng domain (§19); **đăng tin dự án NOXH bởi publisher có gói + workspace** và **lead qua form có lọc** (§20).
 - **Triết lý thương hiệu:** **Tech-Trust** — tin cậy nhờ công nghệ, nội dung chuyên gia và trải nghiệm rõ ràng.
 - **Định vị nền tảng:** Trọng tâm giao diện và thông điệp là **NOXH**. Các hướng tư vấn khác (ví dụ nhà thương mại giá rẻ) chỉ là **phần tư vấn viên xử lý khi trao đổi**, không làm lệch mục tiêu chung trên sản phẩm.
 
@@ -111,6 +111,8 @@ Các route chính (có thể tinh chỉnh slug nhưng giữ đủ mục đích):
 
 **Video:** 60–90s, cấu trúc hook → thực tế → pháp lý ngắn → CTA; **VideoObject** schema khi đủ dữ liệu.
 
+**Trang chi tiết `/du-an/[slug]` (publisher):** Trên giao diện công khai **không** hiển thị SĐT trực tiếp của người đăng tin publisher; CTA dẫn tới **form liên hệ có lọc** (§20.3).
+
 ---
 
 ## 8. Chuyên gia & ngôn ngữ
@@ -181,6 +183,10 @@ Các route chính (có thể tinh chỉnh slug nhưng giữ đủ mục đích):
 - `price_per_m2` hoặc khoảng giá, `total_units`, `status`  
 - `legal_score` (do admin / pháp lý cập nhật)  
 - `images`, `videos_url`, `legal_info` (text/JSON tùy thiết kế)
+- **Nguồn tin & publisher (mở rộng §20):**  
+  - `source`: `ADMIN` | `PUBLISHER` (dự án do **KODO/Admin nhập** hay do **tài khoản đăng tin NOXH** sau duyệt gói).  
+  - `publisher_account_id` (nullable FK → tài khoản publisher NOXH).  
+  - **SĐT / kênh liên hệ trực tiếp của người đăng:** lưu DB phục vụ workspace & thông báo; **API public + UI trang `/du-an/[slug]` không trả/hiển thị** (chỉ liên hệ qua form có lọc — §20).
 
 ### 12.3 `quiz_analytic`
 
@@ -196,8 +202,8 @@ Các route chính (có thể tinh chỉnh slug nhưng giữ đủ mục đích):
 ### 12.5 Tách **Rental** (nhà trọ) và **Buy** (NOXH / mua) trên cùng Postgres
 
 - **Một** instance PostgreSQL (cùng DB với satellite hiện tại trên VPS `103.72.99.131`), **hai nhóm bảng/schema logic** rõ ràng:  
-  - **Buy / NOXH:** vd `housing_projects`, `quiz_analytic`, … (đã có).  
-  - **Rental / timnhatro:** bảng mới cho tin phòng, chủ trọ, gói đăng tin, form liên hệ, moderation — **không** trộn bảng với NOXH trừ khi có FK có chủ đích (vd user nội bộ).  
+  - **Buy / NOXH:** vd `housing_projects`, `quiz_analytic`, **publisher NOXH** & lead dự án (§20), …  
+  - **Rental / timnhatro:** bảng cho tin phòng, chủ trọ, gói đăng tin, form liên hệ, moderation (§19) — **không** trộn bảng rental với bảng dự án trừ khi FK có chủ đích.  
 - Mục tiêu: truy vấn, migration và quyền vận hành **tách biệt khái niệm**, không bắt buộc hai database vật lý.
 
 ---
@@ -214,6 +220,8 @@ Base: `/api/v1`
 | POST | `/ai/eligibility-check` | Input: payload quiz; Output: segment, score, message, gợi ý dự án |
 | GET | `/user/dashboard` | Dashboard sau quiz (cần auth/session theo thiết kế) |
 | POST | `/leads/convert` | Ghi nhận chuyển tư vấn sâu (đồng bộ Lark Base) |
+| *(mở rộng §20)* | `POST /projects/:slug/contact` *(tên path tùy chốt)* | Form liên hệ **dự án NOXH:** body gồm bước **khai báo/lọc** (cùng triết lý quiz §10–§11) + SĐT/email người hỏi; **không** trả SĐT publisher. |
+| *(mở rộng §20)* | Workspace publisher (auth) | CRUD draft/publish dự án “tôi đăng”, xem lead đã lọc, cấu hình thông báo — tách route cụ thể khi implement. |
 
 **Bảo mật:** JWT chuẩn bị cho luồng Super App; rate limit cho endpoint public quiz/lead.
 
@@ -344,6 +352,43 @@ Các hạng mục dưới đây **không** bắt buộc cho MVP satellite web; t
 ### 19.7 Ghi chú đối chiếu tài liệu PDF nội bộ
 
 - Các mục trong PDF kiểu **“chốt chỉ số điện nước / chốt hóa đơn / thông báo Zalo”** thuộc **Landlord workspace** sau MVP duyệt gói; **không** áp vào luồng **người tìm trọ đặt hàng** vì **đã loại** chức năng đó.
+
+---
+
+## 20. Đăng tin dự án NOXH (publisher) — gói VIP/Thường, workspace, lead có lọc
+
+> **Đối xứng nghiệp vụ** với chủ trọ (§19): bên **đăng tin dự án NOXH** cũng qua **đăng ký gói (VIP / Thường)** + **Admin duyệt** + **workspace** quản lý tin. **Khác** chỗ **tiếp cận lead**: **ẩn SĐT người đăng** trên trang công khai; **bắt buộc** đi qua **form liên hệ** kèm **khai báo/lọc đối tượng** (cùng tinh thần **quiz / bảng truth** §10–§11) để **lead chất lượng**.
+
+### 20.1 Ai được đăng dự án NOXH lên site?
+
+- **Không** thay thế hoàn toàn kênh **Admin/KODO** nhập dự án (§12.2 `source=ADMIN`) — vẫn cần cho dữ liệu chủ lực & kiểm soát pháp lý.
+- **Publisher** (chủ đầu tư / đại lý / đối tác được ủy quyền — định nghĩa chi tiết & hợp đồng ngoài SPEC) đăng ký **gói VIP hoặc Thường**, **thanh toán phí gói** (cùng nguyên tắc §19.4: **không** phải tiền mua nhà trên nền tảng).
+- Sau **Admin duyệt** tài khoản + gói: bật **NOXH Publisher workspace** (đăng/sửa draft, gửi duyệt hiển thị nếu có bước kiểm — do SP chốt).
+
+### 20.2 Workspace publisher NOXH (đối xứng Landlord)
+
+- Quản lý **danh sách dự án do mình đăng** (CRUD theo quyền), trạng thái tin, gói hiện tại, lead nhận được.
+- **Không** hiển thị SĐT publisher trên **API public** / **trang công khai** `/du-an/[slug]` (dữ liệu lưu phục vụ nội bộ & thông báo sau khi có lead hợp lệ).
+
+### 20.3 Liên hệ về dự án — chỉ form, có lọc như quiz
+
+- **Trang chi tiết dự án** (`/du-an/[slug]`): **không** show **hotline trực tiếp** của người đăng publisher (ẩn số; có thể vẫn hiển thị **CTA “Để lại thông tin — được tư vấn”** / tương đương).
+- Người dùng **bắt buộc** điền **form liên hệ** gồm:
+  - Thông tin liên lạc **người hỏi** (SĐT, email, …).  
+  - **Bước khai báo cơ bản** để **lọc đối tượng**: có thể **rút gọn** từ bộ quiz hiện có hoặc **module truth** cùng họ `lead_segment` / điểm (§11) — mục tiêu **đủ để đánh giá mức độ phù hợp** NOXH, tránh spam / lead loãng.
+- **Backend:** lưu `project_contact_lead` (hoặc mở rộng lead hiện có) với `project_id`, `publisher_id` (nếu có), `qualification_raw` (JSON), `segment`/`score`, nguồn `web`.
+- **Chất lượng lead:** cấu hình ngưỡng (vd chỉ **đẩy ưu tiên / Lark / email publisher** khi segment thuộc nhóm xanh/vàng; đỏ vẫn lưu nhưng nhãn “cần nurture”) — chi tiết công thức do SP + §11.
+- **Đồng bộ CRM:** có thể tái sử dụng **Lark Base** (§14) với cột bổ sung `project_slug`, `publisher_id`, `contact_type=NOXH_PROJECT`.
+
+### 20.4 Moderation & uy tín
+
+- Tin dự án do publisher: **verified / báo cáo / SLA** áp dụng **cùng triết lý** §19.5 khi có nội dung gây hiểu nhầm hoặc tranh chấp thông tin dự án.
+- **Pháp lý & chữ đúng:** vẫn tuân §15; nội dung nhạy cảm có thể yêu cầu **Admin duyệt** trước khi `published`.
+
+### 20.5 Triển khai kỹ thuật (gợi ý)
+
+- Cùng DB Postgres: mở rộng `housing_projects` + bảng `noxh_publisher_accounts` (hoặc **một** bảng `advertiser_accounts` với `vertical ∈ { RENTAL, NOXH }` + gói + trạng thái duyệt — chốt một schema khi dev).
+- Deploy: **cùng** stack Docker hiện tại (`timnhaxahoi-api` / `web-timnhaxahoi`), migration tuần tự, build lại image khi đổi `NEXT_PUBLIC_*`.
 
 ---
 
