@@ -8,6 +8,7 @@ import { EligibilityModule } from './modules/eligibility/eligibility.module';
 import { HealthModule } from './modules/health/health.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { ProjectsModule } from './modules/projects/projects.module';
+import { RentalModule } from './modules/rental/rental.module';
 import { SeedModule } from './modules/seed/seed.module';
 import { UserModule } from './modules/user/user.module';
 
@@ -79,6 +80,7 @@ function typeOrmSynchronize(): boolean {
     }),
     HealthModule,
     ProjectsModule,
+    RentalModule,
     EligibilityModule,
     AuthModule,
     UserModule,

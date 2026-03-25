@@ -48,6 +48,17 @@
 | R1.2 | Index | Theo filter MVP: tỉnh/huyện, `expires_at`, `visible_public`, `owner_user_id` | Query list không full-scan bảng lớn |
 | R1.3 | *(Tuỳ chọn cùng sprint)* Bảng **`rental_reports`** | `listing_id`, reporter (nullable nếu anonymous), `reason`, `created_at`, trạng thái `OPEN`/`REVIEWED` | Có thể ship R1.3 cùng R6 nếu gấp |
 
+**Trạng thái (code):** R1 đã có entity + migration + `RentalModule` đăng ký trong `AppModule`.
+
+| Thành phần | Vị trí |
+|------------|--------|
+| Entity | `services/timnhaxahoi-service/src/entities/rental-listing.entity.ts`, `rental-listing-report.entity.ts` |
+| Migration | `.../database/migrations/1743100000000-RentalListingsAndReports.ts` |
+| Module | `.../modules/rental/rental.module.ts` |
+| CLI `data-source` | `entities` đã thêm trong `database/data-source.ts` |
+
+Chạy migration: `pnpm --filter @lifestyle/timnhaxahoi-service run migration:run` (local) hoặc `docker compose exec timnhaxahoi-api ... npx typeorm migration:run` (VPS).
+
 **Phụ thuộc:** R0.
 
 ---
