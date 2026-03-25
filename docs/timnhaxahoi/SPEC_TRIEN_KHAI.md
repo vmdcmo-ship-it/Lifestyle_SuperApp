@@ -332,7 +332,7 @@ Các hạng mục dưới đây **không** bắt buộc cho MVP satellite web; t
 
 ### 19.2a SĐT công khai & **không** áp quiz / mô hình liên hệ kiểu §20
 
-- **Chủ trọ / người đăng tin nhà trọ:** **được phép** **hiển thị công khai SĐT** (chủ trọ & người đăng, theo cấu hình tin và chính sách verified) trên **trang tin / chi tiết** và API public tương ứng — **không** áp quy tắc **ẩn SĐT + chỉ form có lọc quiz + publisher chủ động gọi + email tóm tắt có “phương thức liên hệ” trong workspace** như **dự án NOXH** (§20).
+- **Chủ trọ / người đăng tin nhà trọ:** **được phép** **hiển thị công khai SĐT** (chủ trọ & người đăng, theo cấu hình tin và chính sách verified) trên **trang tin / chi tiết** và API public tương ứng — **chỉ khi tin còn trong thời hạn** (§19.8); khi **hết hạn** phải **ẩn SĐT** dù tin vẫn có thể xem kèm trạng thái hết hạn — **không** áp quy tắc §20 về quiz/workspace cho SĐT.
 - **Lý do phân tách:** **Mua nhà (NOXH)** giá trị cao, cần **tư vấn kỹ**; người bán / đăng dự án thường **không muốn bị thăm dò, mời gọi lẫn nhau** qua số lộ công khai — nên dùng **form + lọc đối tượng (quiz/truth)** và **kênh liên hệ có kiểm soát** (§20). **Thuê trọ** giao dịch **nhẹ hơn**, tập quán **gọi trực tiếp** phổ biến; **thông tin liên hệ đầy đủ** (và form tuỳ chọn) giúp **tư vấn viên** hiểu nhu cầu **hiệu quả** khi có hỗ trợ.
 - **Form “thông minh” (tuỳ chọn):** nếu có, chỉ mang nghĩa **gắn đúng `listing_id`** / ngữ cảnh tin để CRM — **không** đồng nghĩa bật **quiz eligibility** như luồng `/du-an` publisher.
 
@@ -361,6 +361,19 @@ Các hạng mục dưới đây **không** bắt buộc cho MVP satellite web; t
 ### 19.7 Ghi chú đối chiếu tài liệu PDF nội bộ
 
 - Các mục trong PDF kiểu **“chốt chỉ số điện nước / chốt hóa đơn / thông báo Zalo”** thuộc **Landlord workspace** sau MVP duyệt gói; **không** áp vào luồng **người tìm trọ đặt hàng** vì **đã loại** chức năng đó.
+
+### 19.8 Thời hạn tin đăng nhà trọ, SĐT và tự ẩn tin
+
+Mọi **tin nhà trọ** phải có **thời hạn hiển thị** (ngày hết hạn / kỳ hạn gói — lưu DB vd `expires_at` hoặc quy ước tương đương).
+
+| Trạng thái | Hành vi hiển thị công khai & API public |
+|------------|----------------------------------------|
+| **Còn hạn** | Tin **hiển thị** bình thường; **SĐT** chủ trọ / người đăng **được hiển thị** (theo §19.2a + verified). |
+| **Đã hết hạn** | **Ẩn SĐT** (và mọi kênh gọi trực tiếp public). Tin có thể vẫn xem được kèm trạng thái **“Hết hạn”** / CTA **gia hạn** (tuỳ UX) — SP chốt copy. |
+| **Sau 30 ngày kể từ ngày hết hạn** mà **không** có **gia hạn / cập nhật** (không có sự kiện `renewed_at` hoặc `expires_at` mới từ người đăng hoặc Admin) | **Ẩn hoàn toàn** tin khỏi **danh sách & trang công khai** (unpublish / `visible_public=false` hoặc tương đương); không còn index SEO cho URL đó nếu chính sách là gỡ listing. |
+
+- **Thông báo:** khuyến nghị **in-app + email** nhắc trước khi hết hạn và khi vừa hết hạn để chủ trọ gia hạn.  
+- **Admin** có thể **can thiệp** (gia hạn tay, gỡ sớm) theo kiến trúc hai tầng quản trị.
 
 ---
 
@@ -417,6 +430,12 @@ Các hạng mục dưới đây **không** bắt buộc cho MVP satellite web; t
 
 - Cùng DB Postgres: mở rộng `housing_projects` + bảng `noxh_publisher_accounts` (hoặc **một** bảng `advertiser_accounts` với `vertical ∈ { RENTAL, NOXH }` + gói + trạng thái duyệt — chốt một schema khi dev).
 - Deploy: **cùng** stack Docker hiện tại (`timnhaxahoi-api` / `web-timnhaxahoi`), migration tuần tự, build lại image khi đổi `NEXT_PUBLIC_*`.
+
+### 20.6 Thời hạn tin đăng dự án (publisher NOXH)
+
+- Tin **`housing_projects`** do **publisher** (`source=PUBLISHER`) áp **cùng nguyên tắc thời hạn** như §19.8: phải có **`expires_at`** (hoặc tương đương) theo gói / quy ước SP.
+- **SĐT người đăng** vốn **không** public (§20.3); khi **hết hạn:** **gỡ khỏi danh sách & trang công khai** hoặc chỉ hiển thị trạng thái hết hạn **không** CTA liên hệ form mới (SP chốt).
+- **30 ngày sau ngày hết hạn** không **gia hạn / cập nhật:** **ẩn hoàn toàn** khỏi site public (giống §19.8). Tin do **Admin** nhập (`source=ADMIN`) có thể **miễn TTL** hoặc TTL riêng — do chính sách vận hành.
 
 ---
 
