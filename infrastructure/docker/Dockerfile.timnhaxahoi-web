@@ -1,0 +1,69 @@
+# Next.js 14 — apps/web-timnhaxahoi (standalone). Build context: thư mục gốc monorepo.
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY .npmrc* ./
+COPY apps/web-timnhaxahoi/package.json ./apps/web-timnhaxahoi/package.json
+
+RUN pnpm install --frozen-lockfile --filter @lifestyle/web-timnhaxahoi
+
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY .npmrc* ./
+COPY apps/web-timnhaxahoi ./apps/web-timnhaxahoi
+
+RUN pnpm install --frozen-lockfile --filter @lifestyle/web-timnhaxahoi --prefer-offline || true
+
+WORKDIR /app/apps/web-timnhaxahoi
+
+ARG NEXT_PUBLIC_API_URL=http://localhost:3020/api/v1
+ARG NEXT_PUBLIC_SITE_URL=https://timnhaxahoi.com
+ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
+ARG NEXT_PUBLIC_SENTRY_DSN=
+
+ENV NEXT_STANDALONE=true
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+ENV SENTRY_SUPPRESS_GLOBAL_ERROR_HANDLER_FILE_WARNING=1
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
+ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+ENV NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN}
+
+RUN pnpm build
+
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+
+RUN apk add --no-cache dumb-init
+
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web-timnhaxahoi/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web-timnhaxahoi/.next/static ./apps/web-timnhaxahoi/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web-timnhaxahoi/public ./apps/web-timnhaxahoi/public
+
+ENV NODE_ENV=production
+ENV PORT=3040
+ENV HOSTNAME=0.0.0.0
+ENV NEXT_TELEMETRY_DISABLED=1
+
+USER nextjs
+
+WORKDIR /app/apps/web-timnhaxahoi
+
+EXPOSE 3040
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server.js"]

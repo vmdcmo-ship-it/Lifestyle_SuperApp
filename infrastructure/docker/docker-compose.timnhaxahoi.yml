@@ -1,0 +1,105 @@
+# timnhaxahoi.com — Postgres + API + Web. Chạy từ repo root:
+#   docker compose -f infrastructure/docker/docker-compose.timnhaxahoi.yml --env-file infrastructure/docker/env.timnhaxahoi.example up --build
+#
+# Trước khi production: chạy migration trong container API (xem docs/timnhaxahoi/DEPLOY_VA_VAN_HANH.md).
+
+services:
+  timnhaxahoi-db:
+    restart: unless-stopped
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${TIMNHAXAHOI_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${TIMNHAXAHOI_DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${TIMNHAXAHOI_DB_NAME:-timnhaxahoi}
+    volumes:
+      - timnhaxahoi_pgdata:/var/lib/postgresql/data
+    ports:
+      - "${TIMNHAXAHOI_DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${TIMNHAXAHOI_DB_USER:-postgres} -d ${TIMNHAXAHOI_DB_NAME:-timnhaxahoi}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  timnhaxahoi-api:
+    restart: unless-stopped
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.timnhaxahoi-api
+    environment:
+      PORT: 3020
+      NODE_ENV: production
+      CORS_ORIGIN: ${TIMNHAXAHOI_CORS_ORIGIN:-http://localhost:3040,https://timnhaxahoi.com}
+      DATABASE_HOST: timnhaxahoi-db
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${TIMNHAXAHOI_DB_USER:-postgres}
+      DATABASE_PASSWORD: ${TIMNHAXAHOI_DB_PASSWORD:-postgres}
+      DATABASE_NAME: ${TIMNHAXAHOI_DB_NAME:-timnhaxahoi}
+      DASHBOARD_JWT_SECRET: ${DASHBOARD_JWT_SECRET:-CHANGE_ME_IN_PRODUCTION}
+      LARK_OPEN_API_BASE: ${LARK_OPEN_API_BASE:-}
+      LARK_APP_ID: ${LARK_APP_ID:-}
+      LARK_APP_SECRET: ${LARK_APP_SECRET:-}
+      LARK_BASE_APP_TOKEN: ${LARK_BASE_APP_TOKEN:-}
+      LARK_BASE_TABLE_ID: ${LARK_BASE_TABLE_ID:-}
+      LARK_BASE_FIELD_MAP: ${LARK_BASE_FIELD_MAP:-}
+      LARK_BASE_SINGLE_TEXT_FIELD_ID: ${LARK_BASE_SINGLE_TEXT_FIELD_ID:-}
+      AUTH_SYNC_JWT_SECRET: ${AUTH_SYNC_JWT_SECRET:-}
+      AUTH_SYNC_JWT_ISSUER: ${AUTH_SYNC_JWT_ISSUER:-lifestyle-main-api}
+      AUTH_SYNC_JWT_AUDIENCE: ${AUTH_SYNC_JWT_AUDIENCE:-timnhaxahoi:auth-sync:v1}
+      AUTH_SYNC_REQUIRE_JWT: ${AUTH_SYNC_REQUIRE_JWT:-false}
+      AUTH_SYNC_JTI_CHECK: ${AUTH_SYNC_JTI_CHECK:-true}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0}
+    ports:
+      - "${TIMNHAXAHOI_API_PORT:-3020}:3020"
+    depends_on:
+      timnhaxahoi-db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "require(\'http\').get(\'http://127.0.0.1:3020/api/v1/health\',r=>process.exit(r.statusCode===200?0:1)).on(\'error\',()=>process.exit(1))"',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+
+  timnhaxahoi-web:
+    restart: unless-stopped
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.timnhaxahoi-web
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3020/api/v1}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://timnhaxahoi.com}
+        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:-}
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+    environment:
+      PORT: 3040
+      HOSTNAME: 0.0.0.0
+      # SSR/sitemap gọi API nội bộ Docker (ưu tiên hơn NEXT_PUBLIC khi có)
+      INTERNAL_API_URL: ${INTERNAL_API_URL:-http://timnhaxahoi-api:3020/api/v1}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0}
+    ports:
+      - "${TIMNHAXAHOI_WEB_PORT:-3040}:3040"
+    depends_on:
+      timnhaxahoi-api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "require(\'http\').get(\'http://127.0.0.1:3040/\',r=>process.exit(r.statusCode===200?0:1)).on(\'error\',()=>process.exit(1))"',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  timnhaxahoi_pgdata:
