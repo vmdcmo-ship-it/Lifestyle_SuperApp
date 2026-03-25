@@ -102,7 +102,7 @@ Các route chính (có thể tinh chỉnh slug nhưng giữ đủ mục đích):
 | `/phap-ly` | Blog/wiki pháp lý — TOC, schema FAQ/Article khi áp dụng |
 | `/video` | Hub video (grid / dạng vertical mobile) |
 | `/dashboard` | Kết quả quiz, điểm hồ sơ, dòng tiền, CTA tư vấn |
-| `/timnhatro` | **Tìm nhà trọ** — tab/vertical trong cùng domain (không subdomain riêng); chi tiết nghiệp vụ & MVP: [§19](#19-tìm-nhà-trọ-timnhatro-landlord--chuẩn-hóa-với-quy-hoạch-nền-tảng) |
+| `/timnhatro` | **Tìm nhà trọ** — tab trong cùng domain; **SĐT chủ trọ/người đăng có thể công khai**; **không** luồng quiz/liên hệ như NOXH (§19, §19.2a) |
 | *(bổ sung)* | Trang **nhà thương mại giá rẻ** — do **admin nhập**, có **dữ liệu mẫu** ban đầu để duyệt UI |
 
 **Meta:** Mỗi trang động cần `title`, `description`, **Open Graph** theo dự án/bài viết.
@@ -145,7 +145,7 @@ Các route chính (có thể tinh chỉnh slug nhưng giữ đủ mục đích):
 - **Email** — bắt buộc để nhận tư vấn đầy đủ và chăm sóc sau.
 - Điều kiện này là **cổng nhận báo cáo / file tư vấn** và là **nguồn lead bán hàng**.
 
-**Tái sử dụng khi gửi form liên hệ dự án (§20.3.2):** Nếu user đã có quiz/`quiz_analytic` lưu, **không** bắt nhập lại toàn bộ câu hỏi — chỉ hỏi **Có/Không** “cập nhật / điều chỉnh hồ sơ” rồi dùng dữ liệu đã có hoặc nhánh chỉnh sửa.
+**Tái sử dụng quiz:** **Chỉ** áp dụng cho **form liên hệ dự án NOXH** (§20.3.2). Kênh **`/timnhatro`** **không** bắt quiz / không luồng Có–Không cập nhật hồ sơ như NOXH (§19.2a).
 
 ---
 
@@ -315,7 +315,8 @@ Các hạng mục dưới đây **không** bắt buộc cho MVP satellite web; t
 
 ## 19. Tìm nhà trọ (`/timnhatro`), Landlord — chuẩn hóa với quy hoạch nền tảng
 
-> Nguồn ý tưởng: quy hoạch “Nền tảng BĐS toàn diện” (PDF nội bộ). **Đoạn dưới là chốt nghiệp vụ** để dev không lệch (đặc biệt: **không** “đặt hàng” phòng trọ qua nền tảng).
+> Nguồn ý tưởng: quy hoạch “Nền tảng BĐS toàn diện” (PDF nội bộ). **Đoạn dưới là chốt nghiệp vụ** để dev không lệch (đặc biệt: **không** “đặt hàng” phòng trọ qua nền tảng).  
+> **Luồng liên hệ & SĐT** của **nhà trọ** **khác** hoàn toàn **NOXH / dự án** (§20): xem **§19.2a**.
 
 ### 19.1 URL & định vị
 
@@ -325,9 +326,15 @@ Các hạng mục dưới đây **không** bắt buộc cho MVP satellite web; t
 ### 19.2 Luồng người tìm trọ (MVP) — **không giao dịch tiền thuê trên nền tảng**
 
 - **Không** API / chức năng **đặt hàng, giữ chỗ, thanh toán cọc** giữa người thuê và chủ trọ. **Không** quản lý số tiền giao dịch giữa hai bên.
-- Nền tảng chỉ **kết nối & minh bạch hóa thông tin**; tập quán: người thuê **chủ động gọi** chủ trọ; bổ sung **để lại SĐT / form** để chủ trọ liên hệ lại.
+- Nền tảng chỉ **kết nối & minh bạch hóa thông tin**.
 - **Lọc theo POI** (tâm điểm bản đồ) là phần cốt lõi MVP.
-- **Form liên hệ thông minh:** backend luôn biết ngữ cảnh **đang liên hệ về dự án NOXH** hay **tin nhà trọ cụ thể** → route thông báo/CRM tới **đúng người đăng tin** / quản lý để tư vấn (không nhầm lead).
+- **Form (tuỳ chọn, không phải quiz §10–§11):** có thể có **form liên hệ / để lại thông tin** đơn giản (SĐT, nhu cầu…) để **tư vấn viên** hoặc **người đăng tin** nắm bối cảnh — người tìm **nghiêm túc** thường **không ngại** điền; **không** bắt chạy lại bài trắc nghiệm điều kiện như kênh mua NOXH.
+
+### 19.2a SĐT công khai & **không** áp quiz / mô hình liên hệ kiểu §20
+
+- **Chủ trọ / người đăng tin nhà trọ:** **được phép** **hiển thị công khai SĐT** (chủ trọ & người đăng, theo cấu hình tin và chính sách verified) trên **trang tin / chi tiết** và API public tương ứng — **không** áp quy tắc **ẩn SĐT + chỉ form có lọc quiz + publisher chủ động gọi + email tóm tắt có “phương thức liên hệ” trong workspace** như **dự án NOXH** (§20).
+- **Lý do phân tách:** **Mua nhà (NOXH)** giá trị cao, cần **tư vấn kỹ**; người bán / đăng dự án thường **không muốn bị thăm dò, mời gọi lẫn nhau** qua số lộ công khai — nên dùng **form + lọc đối tượng (quiz/truth)** và **kênh liên hệ có kiểm soát** (§20). **Thuê trọ** giao dịch **nhẹ hơn**, tập quán **gọi trực tiếp** phổ biến; **thông tin liên hệ đầy đủ** (và form tuỳ chọn) giúp **tư vấn viên** hiểu nhu cầu **hiệu quả** khi có hỗ trợ.
+- **Form “thông minh” (tuỳ chọn):** nếu có, chỉ mang nghĩa **gắn đúng `listing_id`** / ngữ cảnh tin để CRM — **không** đồng nghĩa bật **quiz eligibility** như luồng `/du-an` publisher.
 
 ### 19.3 Chủ trọ / người đăng tin — gói VIP & Thường, duyệt Admin
 
@@ -359,7 +366,7 @@ Các hạng mục dưới đây **không** bắt buộc cho MVP satellite web; t
 
 ## 20. Đăng tin dự án NOXH (publisher) — gói VIP/Thường, workspace, lead có lọc
 
-> **Đối xứng nghiệp vụ** với chủ trọ (§19): bên **đăng tin dự án NOXH** cũng qua **đăng ký gói (VIP / Thường)** + **Admin duyệt** + **workspace** quản lý tin. **Khác** chỗ **tiếp cận lead**: **ẩn SĐT người đăng** trên trang công khai; **bắt buộc** đi qua **form liên hệ** kèm **khai báo/lọc đối tượng** (cùng tinh thần **quiz / bảng truth** §10–§11) để **lead chất lượng**.
+> **Đối xứng với chủ trọ (§19)** ở: **đăng ký gói (VIP / Thường)** + **Admin duyệt** + **workspace** + moderation/thanh toán gói. **Không đối xứng** về **liên hệ & SĐT:** NOXH dùng **mô hình §20.3** (ẩn SĐT người đăng công khai, quiz/lọc, publisher chủ động gọi lại, email tóm tắt + workspace). **Nhà trọ** dùng **§19.2a** (SĐT có thể công khai, **không** áp quiz như NOXH).
 
 ### 20.1 Ai được đăng dự án NOXH lên site?
 
