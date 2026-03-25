@@ -110,7 +110,7 @@ desktop.ini
 # Package managers
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
+# pnpm-lock.yaml — giữ trong git (Docker/CI dùng --frozen-lockfile; cài đặt tái lập được)
 
 # Terraform
 infrastructure/terraform/**/.terraform/
@@ -159,6 +159,9 @@ uploads/
 infrastructure/ssl/
 *.sql
 *.sql.gz
+
+# n8n workflow exports (default: không commit JSON; xóa 2 dòng này nếu muốn track file .json trong git)
+docs/ai-ops/n8n-workflow-exports/*.json
 
 # Cursor Plans
 .cursor/plans/
