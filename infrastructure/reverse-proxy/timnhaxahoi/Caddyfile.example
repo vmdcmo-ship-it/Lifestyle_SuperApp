@@ -5,8 +5,8 @@
 timnhaxahoi.com, www.timnhaxahoi.com {
     encode gzip zstd
 
-    # `path /api/*` can fail for multi-segment paths like /api/v1/health — route all /api/* to Nest.
-    @api expression `{path}.startsWith("/api/")`
+    # Route every path under /api/ to Nest (avoids subtle `path` glob quirks vs /api/v1/...).
+    @api path_regexp ^/api/
     handle @api {
         reverse_proxy 127.0.0.1:3020
     }
