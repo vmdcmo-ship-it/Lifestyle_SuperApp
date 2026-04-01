@@ -53,6 +53,7 @@ export class EligibilityService {
           phoneNumber: phone,
           email: dto.email,
           fullName: dto.fullName ?? null,
+          salutation: dto.salutation ?? null,
           leadSegment: segment,
           profileScore: score,
           superappUid: null,
@@ -61,6 +62,9 @@ export class EligibilityService {
         user.email = dto.email;
         if (dto.fullName) {
           user.fullName = dto.fullName;
+        }
+        if (dto.salutation) {
+          user.salutation = dto.salutation;
         }
         user.leadSegment = segment;
         user.profileScore = score;

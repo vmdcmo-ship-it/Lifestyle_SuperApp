@@ -22,11 +22,20 @@ export class UsersSatellite {
   @Column({ name: 'phone_number', type: 'varchar', length: 32 })
   phoneNumber!: string;
 
+  /** Lưu lowercase; unique theo DB index LOWER(email). */
   @Column({ type: 'varchar', length: 255 })
   email!: string;
 
+  /** Chỉ user đăng ký qua web; sync Super App / quiz không bắt buộc. Không select mặc định. */
+  @Column({ name: 'password_hash', type: 'varchar', length: 255, nullable: true, select: false })
+  passwordHash!: string | null;
+
   @Column({ name: 'full_name', type: 'varchar', length: 255, nullable: true })
   fullName!: string | null;
+
+  /** Quiz NOXH: anh | chi — dùng xưng hô trên dashboard / CRM. */
+  @Column({ type: 'varchar', length: 8, nullable: true })
+  salutation!: 'anh' | 'chi' | null;
 
   @Column({ name: 'lead_segment', type: 'enum', enum: LeadSegment, nullable: true })
   leadSegment!: LeadSegment | null;

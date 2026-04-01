@@ -76,6 +76,7 @@ export type DashboardUser = {
   email: string;
   phoneNumber: string;
   fullName: string | null;
+  salutation: 'anh' | 'chi' | null;
   leadSegment: string | null;
   profileScore: number | null;
 };
@@ -130,6 +131,73 @@ export async function fetchDashboard(dashboardToken: string): Promise<DashboardP
     throw new Error(msg);
   }
   return data as DashboardPayload;
+}
+
+export type BudgetMatchRequest = {
+  maxTotalPriceVnd: number;
+  province?: string;
+  district?: string;
+  limit?: number;
+  ownCapitalVnd?: number;
+  maxMonthlyPaymentVnd?: number;
+};
+
+export type BudgetMatchCatalogRange = {
+  minEstimatedTotalVnd: number;
+  maxEstimatedTotalVnd: number;
+};
+
+export type BudgetMatchLoanAssumptions = {
+  termMonths: number;
+  annualRatePercent: number;
+};
+
+export type BudgetMatchItem = {
+  id: string;
+  name: string;
+  slug: string;
+  province: string | null;
+  district: string | null;
+  pricePerM2: number;
+  typicalAreaM2: number;
+  estimatedTotalVnd: number;
+  loanNeededVnd?: number;
+  estimatedMonthlyPaymentVnd?: number;
+  status: string;
+  kind: string;
+};
+
+export type BudgetMatchResponse = {
+  catalogRange: BudgetMatchCatalogRange | null;
+  loanAssumptions?: BudgetMatchLoanAssumptions;
+  items: BudgetMatchItem[];
+};
+
+export type BudgetMatchSegment = 'noxh' | 'affordable_commercial';
+
+export async function postBudgetMatch(
+  segment: BudgetMatchSegment,
+  body: BudgetMatchRequest,
+): Promise<BudgetMatchResponse> {
+  const path =
+    segment === 'noxh'
+      ? `${base()}/projects/noxh/match-budget`
+      : `${base()}/projects/affordable-commercial/match-budget`;
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = (await res.json().catch(() => ({}))) as BudgetMatchResponse & {
+    message?: string | string[];
+    error?: string;
+  };
+  if (!res.ok) {
+    const m = 'message' in data ? data.message : undefined;
+    const msg = Array.isArray(m) ? m.join(', ') : m ?? ('error' in data ? data.error : undefined);
+    throw new Error(msg ?? 'Không gợi ý được dự án');
+  }
+  return data as BudgetMatchResponse;
 }
 
 export async function convertLead(

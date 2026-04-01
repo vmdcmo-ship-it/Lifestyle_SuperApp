@@ -4,6 +4,7 @@ import {
   ArrayMaxSize,
   IsArray,
   IsEmail,
+  IsIn,
   IsInt,
   IsNumber,
   IsOptional,
@@ -86,6 +87,12 @@ export class SubmitQuizDto {
   @IsOptional()
   @IsString()
   fullName?: string;
+
+  /** Danh xưng: Anh / Chị — hỗ trợ xưng hô tự nhiên (không suy ra giới tính tuyệt đối). */
+  @ApiProperty({ required: false, enum: ['anh', 'chi'] })
+  @IsOptional()
+  @IsIn(['anh', 'chi'])
+  salutation?: 'anh' | 'chi';
 
   /** Địa chỉ làm việc / thường xuyên (Maps Places — tuỳ chọn). */
   @ApiProperty({ required: false })

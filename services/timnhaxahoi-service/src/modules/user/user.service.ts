@@ -38,6 +38,7 @@ export class UserService {
         email: user.email,
         phoneNumber: user.phoneNumber,
         fullName: user.fullName,
+        salutation: user.salutation,
         leadSegment: user.leadSegment,
         profileScore: user.profileScore,
       },

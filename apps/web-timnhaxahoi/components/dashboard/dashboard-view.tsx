@@ -174,6 +174,12 @@ export function DashboardView() {
           <span className="font-medium text-slate-900">Tóm tắt: </span>
           {segmentLabelVi(data.user.leadSegment)}
         </p>
+        {data.user.fullName && (
+          <p className="mt-4 text-sm text-slate-800">
+            {data.user.salutation === 'chi' ? 'Chị ' : data.user.salutation === 'anh' ? 'Anh ' : ''}
+            <span className="font-medium">{data.user.fullName}</span>
+          </p>
+        )}
         <p className="mt-2 text-xs text-slate-500">
           Liên hệ: {data.user.phoneNumber} · {data.user.email}
         </p>
