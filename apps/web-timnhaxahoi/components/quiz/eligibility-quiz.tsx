@@ -7,8 +7,8 @@ import { fetchProjects, submitEligibility, type HousingProject } from '@/lib/api
 import { saveDashboardToken } from '@/lib/dashboard-token';
 import { segmentLabelVi } from '@/lib/segment-label';
 
-const DRAFT_KEY = 'timnhaxahoi-quiz-draft-v4';
-const DRAFT_VERSION = 4;
+const DRAFT_KEY = 'timnhaxahoi-quiz-draft-v5';
+const DRAFT_VERSION = 5;
 
 function Spinner({ className }: { className?: string }) {
   return (
@@ -23,7 +23,37 @@ function Spinner({ className }: { className?: string }) {
   );
 }
 
-const steps = ['Liên hệ', 'Bối cảnh của bạn', 'Dự án ưu tiên', 'Tài chính & mong muốn tư vấn'] as const;
+type ContactPreferenceId = 'zalo' | 'phone' | 'in_person';
+
+const steps = [
+  'Liên hệ',
+  'Bối cảnh của bạn',
+  'Dự án ưu tiên',
+  'Tài chính & mong muốn tư vấn',
+  'Phương thức liên hệ',
+] as const;
+
+const CONTACT_OPTIONS: {
+  id: ContactPreferenceId;
+  title: string;
+  hint: string;
+}[] = [
+  {
+    id: 'zalo',
+    title: 'Kết bạn / nhắn Zalo',
+    hint: 'Theo số điện thoại bạn đã để ở bước đầu (cần trùng SĐT Zalo hoặc bạn chủ động kết bạn).',
+  },
+  {
+    id: 'phone',
+    title: 'Gọi điện trong giờ làm việc',
+    hint: 'Đội ngũ liên hệ lại theo khung giờ phù hợp — không cam kết “gọi ngay tức thì” 24/7.',
+  },
+  {
+    id: 'in_person',
+    title: 'Đặt lịch gặp / trao đổi trực tiếp',
+    hint: 'Hẹn thời gian & hình thức (tại văn phòng hoặc online) — nhân viên xác nhận lại với bạn.',
+  },
+];
 
 const defaultForm = {
   priorityGroup: 2,
@@ -44,6 +74,7 @@ const defaultForm = {
   workPlaceId: undefined as string | undefined,
   workLat: undefined as number | undefined,
   workLng: undefined as number | undefined,
+  contactPreferences: [] as ContactPreferenceId[],
 };
 
 export function EligibilityQuiz() {
@@ -74,6 +105,9 @@ export function EligibilityQuiz() {
               ...f,
               ...patch,
               priorityProjectIds: patch.priorityProjectIds ?? f.priorityProjectIds,
+              contactPreferences: Array.isArray(patch.contactPreferences)
+                ? (patch.contactPreferences as ContactPreferenceId[])
+                : f.contactPreferences,
             }));
           }
           if (typeof parsed.step === 'number' && parsed.step >= 0 && parsed.step < steps.length) {
@@ -113,6 +147,11 @@ export function EligibilityQuiz() {
     );
   }, [form.salutation, form.fullName, form.phone, form.email]);
 
+  const preferencesOk = useMemo(
+    () => form.contactPreferences.length >= 1 && form.contactPreferences.length <= 3,
+    [form.contactPreferences],
+  );
+
   function toggleProject(id: string) {
     setForm((f) => {
       const set = new Set(f.priorityProjectIds);
@@ -122,6 +161,18 @@ export function EligibilityQuiz() {
         set.add(id);
       }
       return { ...f, priorityProjectIds: [...set] };
+    });
+  }
+
+  function toggleContactPreference(id: ContactPreferenceId) {
+    setForm((f) => {
+      const set = new Set(f.contactPreferences);
+      if (set.has(id)) {
+        set.delete(id);
+      } else {
+        set.add(id);
+      }
+      return { ...f, contactPreferences: [...set] as ContactPreferenceId[] };
     });
   }
 
@@ -162,10 +213,7 @@ export function EligibilityQuiz() {
     }
   }
 
-  const canGoNext =
-    step === 0
-      ? contactOk
-      : true;
+  const canGoNext = step === 0 ? contactOk : true;
 
   return (
     <div className="glass-panel mx-auto max-w-xl rounded-2xl p-5 md:p-8">
@@ -357,6 +405,40 @@ export function EligibilityQuiz() {
           </>
         )}
 
+        {step === 4 && (
+          <>
+            <p className="text-sm leading-relaxed text-slate-600">
+              Chọn <strong className="font-medium text-slate-800">một hoặc nhiều</strong> cách để đội ngũ liên hệ lại — phù hợp thói quen của bạn. Thông tin chỉ dùng để điều phối tư vấn, không cam kết thời điểm cụ thể nếu chưa có nhân sự xác nhận.
+            </p>
+            <Field label="Phương thức nào phù hợp với bạn?">
+              <ul className="space-y-3">
+                {CONTACT_OPTIONS.map((opt) => {
+                  const checked = form.contactPreferences.includes(opt.id);
+                  return (
+                    <li key={opt.id}>
+                      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white/80 p-3 hover:border-brand-emerald/40">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleContactPreference(opt.id)}
+                          className="mt-1 h-4 w-4 rounded border-slate-300"
+                        />
+                        <span>
+                          <span className="font-medium text-slate-900">{opt.title}</span>
+                          <span className="mt-0.5 block text-xs text-slate-500">{opt.hint}</span>
+                        </span>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+              {!preferencesOk && (
+                <p className="mt-2 text-xs text-amber-700">Vui lòng chọn ít nhất một phương thức.</p>
+              )}
+            </Field>
+          </>
+        )}
+
         {step === 3 && (
           <>
             <Field label="Vốn tự có (triệu)">
@@ -458,7 +540,7 @@ export function EligibilityQuiz() {
         ) : (
           <button
             type="button"
-            disabled={submitting || !contactOk}
+            disabled={submitting || !contactOk || !preferencesOk}
             onClick={() => void onSubmit()}
             className="inline-flex items-center gap-2 rounded-xl bg-brand-gradient px-5 py-2.5 text-sm font-semibold text-white shadow-glow disabled:opacity-50"
           >

@@ -10,6 +10,20 @@ import {
 import { clearDashboardToken, readDashboardToken } from '@/lib/dashboard-token';
 import { segmentLabelVi } from '@/lib/segment-label';
 
+function contactPreferenceLine(raw: Record<string, unknown>): string | null {
+  const v = raw.contactPreferences;
+  if (!Array.isArray(v)) return null;
+  const map: Record<string, string> = {
+    zalo: 'Zalo',
+    phone: 'Gọi điện (giờ làm việc)',
+    in_person: 'Đặt lịch gặp',
+  };
+  const labels = v
+    .filter((x): x is string => typeof x === 'string')
+    .map((id) => map[id] ?? id);
+  return labels.length > 0 ? labels.join(' · ') : null;
+}
+
 function Spinner({ className }: { className?: string }) {
   return (
     <svg className={`animate-spin ${className ?? 'h-5 w-5'}`} viewBox="0 0 24 24" aria-hidden>
@@ -144,6 +158,7 @@ export function DashboardView() {
 
   const score = data.user.profileScore ?? data.quiz.calculatedScore;
   const scoreWidth = Math.min(100, Math.max(0, score));
+  const contactPrefLine = contactPreferenceLine(data.quiz.rawData);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -183,6 +198,12 @@ export function DashboardView() {
         <p className="mt-2 text-xs text-slate-500">
           Liên hệ: {data.user.phoneNumber} · {data.user.email}
         </p>
+        {contactPrefLine && (
+          <p className="mt-2 text-xs text-slate-600">
+            <span className="font-medium text-slate-700">Bạn chọn: </span>
+            {contactPrefLine}
+          </p>
+        )}
       </div>
 
       {data.recommendedProjects.length > 0 && (

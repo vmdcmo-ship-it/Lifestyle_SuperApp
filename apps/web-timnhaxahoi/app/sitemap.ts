@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getLegalSlugs } from '@/lib/legal-articles';
+import { fetchAllPublicRentalSlugs } from '@/lib/rental-public';
 import { siteBaseUrl } from '@/lib/site-url';
 
 type ProjectRow = { slug: string };
@@ -32,7 +33,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteBaseUrl();
   const now = new Date();
 
-  const staticPaths = ['/', '/du-an', '/phap-ly', '/video', '/quiz'];
+  const staticPaths = [
+    '/',
+    '/du-an',
+    '/phap-ly',
+    '/video',
+    '/quiz',
+    '/timnhatro',
+    '/chuyen-gia',
+    '/tin-tuc',
+    '/gioi-thieu',
+    '/bang-tinh',
+    '/mien-tru-trach-nhiem',
+  ];
   const entries: MetadataRoute.Sitemap = staticPaths.map((path) => ({
     url: path === '/' ? base : `${base}${path}`,
     lastModified: now,
@@ -40,7 +53,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: path === '/' ? 1 : 0.8,
   }));
 
-  const [slugs, legalSlugs] = await Promise.all([fetchProjectSlugs(), Promise.resolve(getLegalSlugs())]);
+  const [slugs, legalSlugs, rentalSlugs] = await Promise.all([
+    fetchProjectSlugs(),
+    Promise.resolve(getLegalSlugs()),
+    fetchAllPublicRentalSlugs().catch(() => [] as string[]),
+  ]);
 
   for (const slug of slugs) {
     entries.push({
@@ -57,6 +74,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.6,
+    });
+  }
+
+  for (const slug of rentalSlugs) {
+    entries.push({
+      url: `${base}/timnhatro/${encodeURIComponent(slug)}`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.65,
     });
   }
 

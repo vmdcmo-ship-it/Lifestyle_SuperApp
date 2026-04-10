@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { listLegalArticles } from '@/lib/legal-articles';
+import { pageMetadata } from '@/lib/site-metadata';
 
-export const metadata: Metadata = {
-  title: 'Pháp lý & thủ tục NOXH',
+export const metadata: Metadata = pageMetadata({
+  path: '/phap-ly',
+  title: 'Pháp lý và thủ tục NOXH',
   description:
     'Tổng quan điều kiện, cư trú, hồ sơ và lưu ý thực tiễn — tham khảo, không thay thế văn bản pháp luật.',
-};
+});
 
 export default function LegalHubPage() {
   const items = listLegalArticles();

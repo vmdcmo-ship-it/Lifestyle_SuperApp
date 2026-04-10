@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchProjects, type ProjectListFilters } from '@/lib/api';
+import { pageMetadata } from '@/lib/site-metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: '/du-an',
   title: 'Danh sách dự án',
-  description: 'Dự án NOXH và nhà TM giá rẻ — lọc theo khu vực, loại dự án.',
-};
+  description: 'Dự án NOXH và nhà thương mại giá rẻ — lọc theo khu vực, loại dự án — timnhaxahoi.com.',
+});
 
 function pickParam(v: string | string[] | undefined): string | undefined {
   if (Array.isArray(v)) return v[0];
@@ -98,10 +100,28 @@ export default async function ProjectsPage({
       {err && <p className="mt-6 text-red-600">{err}</p>}
       {!err && list.length === 0 && (
         <p className="mt-10 text-center text-slate-600">
-          Không có dự án khớp bộ lọc.{' '}
-          <Link href="/du-an" className="text-brand-navy hover:underline">
-            Xem toàn bộ
-          </Link>
+          Không có dự án khớp bộ lọc.
+          {kind === 'AFFORDABLE_COMMERCIAL' ? (
+            <>
+              {' '}
+              Danh mục nhà thương mại giá rẻ có thể ít hơn NOXH — thử{' '}
+              <Link href="/du-an" className="text-brand-navy hover:underline">
+                bỏ lọc loại
+              </Link>{' '}
+              hoặc xem{' '}
+              <Link href="/bang-tinh" className="text-brand-navy hover:underline">
+                bảng tính so sánh
+              </Link>
+              .
+            </>
+          ) : (
+            <>
+              {' '}
+              <Link href="/du-an" className="text-brand-navy hover:underline">
+                Xem toàn bộ
+              </Link>
+            </>
+          )}
         </p>
       )}
       {!err && list.length > 0 && (

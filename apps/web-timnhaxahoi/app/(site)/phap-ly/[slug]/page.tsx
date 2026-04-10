@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LegalQuizCta } from '@/components/legal/quiz-cta';
 import { getLegalArticle, getLegalSlugs } from '@/lib/legal-articles';
+import { mergeArticleMetadata } from '@/lib/site-metadata';
 
 type Props = { params: { slug: string } };
 
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: article.title,
     description: article.description,
-    openGraph: { title: article.title, description: article.description },
+    ...mergeArticleMetadata(`/phap-ly/${params.slug}`, article.title, article.description),
   };
 }
 

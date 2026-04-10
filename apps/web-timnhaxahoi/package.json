@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start -p 3040",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "smoke:api": "node ../../scripts/smoke-timnhaxahoi-api.mjs",
+    "smoke:web": "node ../../scripts/smoke-timnhaxahoi-web.mjs",
+    "smoke": "pnpm run smoke:api && pnpm run smoke:web"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.45.0",

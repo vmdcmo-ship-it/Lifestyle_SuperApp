@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { VIDEO_ITEMS } from '@/lib/video-placeholders';
+import { pageMetadata } from '@/lib/site-metadata';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: '/video',
   title: 'Video',
   description: 'Video ngắn về NOXH, thủ tục và tài chính — timnhaxahoi.com.',
-};
+});
 
 export default function VideoHubPage() {
   return (

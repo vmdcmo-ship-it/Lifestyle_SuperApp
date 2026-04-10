@@ -8,6 +8,9 @@ const config: Config = {
         brand: {
           navy: '#1e3a8a',
           emerald: '#10b981',
+          gold: '#d97706',
+          'gold-light': '#fbbf24',
+          hot: '#dc2626',
         },
       },
       backgroundImage: {

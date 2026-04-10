@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { mergeArticleMetadata } from '@/lib/site-metadata';
 
 const base = () => process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3020/api/v1';
 
@@ -40,10 +41,11 @@ export async function generateMetadata({
   if (!p) {
     return { title: 'Không tìm thấy' };
   }
+  const description = `Dự án ${p.name} — ${[p.district, p.province].filter(Boolean).join(', ')} · Ước tính khung giá căn điển hình trên timnhaxahoi.com.`;
   return {
     title: p.name,
-    description: `Dự án ${p.name} — ${[p.district, p.province].filter(Boolean).join(', ')}`,
-    openGraph: { title: p.name },
+    description,
+    ...mergeArticleMetadata(`/du-an/${slug}`, p.name, description),
   };
 }
 
