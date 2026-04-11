@@ -7,7 +7,7 @@ export const metadata: Metadata = pageMetadata({
   path: '/gioi-thieu',
   title: 'Giới thiệu',
   description:
-    'timnhaxahoi.com — nền tảng Tech-Trust về nhà ở xã hội và tìm nhà trọ; đồng hành an cư tại Việt Nam.',
+    'Giới thiệu timnhaxahoi.com — thông tin minh bạch về nhà ở xã hội và tìm nhà trọ; đồng hành an cư tại Việt Nam.',
 });
 
 export default function GioiThieuPage() {
@@ -15,32 +15,32 @@ export default function GioiThieuPage() {
     <ContentShell eyebrow="Timnhaxahoi.com" title="Giới thiệu">
       <section className="space-y-3">
         <p>
-          <strong className="font-semibold text-slate-900">timnhaxahoi.com</strong> là satellite web trong hệ sinh thái
-          Lifestyle / Kodo, tập trung làm rõ hành trình mua <strong className="font-semibold text-slate-900">nhà ở xã
-          hội (NOXH)</strong> và hỗ trợ kênh <strong className="font-semibold text-slate-900">tìm nhà trọ</strong> trên
-          cùng domain — hai trụ nội dung ngang hàng, không lấn át nhau.
+          <strong className="font-semibold text-slate-900">timnhaxahoi.com</strong> giúp bạn làm rõ hành trình mua{' '}
+          <strong className="font-semibold text-slate-900">nhà ở xã hội (NOXH)</strong> và đồng thời hỗ trợ kênh{' '}
+          <strong className="font-semibold text-slate-900">tìm nhà trọ</strong> trên cùng website — hai nhu cầu được trình
+          bày song song, rõ ràng.
         </p>
         <p>
-          Chúng tôi theo triết lý <strong className="font-semibold text-slate-900">Tech-Trust</strong>: minh bạch thông
-          tin, công cụ trợ giúp (trắc nghiệm điều kiện, bảng tính so sánh ngân sách, danh mục dự án), và nội dung pháp
-          lý — để người dùng chủ động trước khi quyết định liên hệ tư vấn.
-        </p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-xl font-bold text-slate-900">Phạm vi ưu tiên</h2>
-        <p>
-          Về SEO và nội dung, site hướng tới <strong className="font-semibold text-slate-900">toàn quốc</strong>. Về dữ
-          liệu dự án và khai thác bán hàng, đội ngũ ưu tiên kết nối tại{' '}
-          <strong className="font-semibold text-slate-900">khu vực phía Nam</strong> và các tỉnh lân cận theo chiến
-          lược go-to-market — danh mục sẽ mở rộng dần.
+          Chúng tôi đặt <strong className="font-semibold text-slate-900">minh bạch thông tin</strong> lên trước: cung cấp
+          công cụ trợ giúp (trắc nghiệm điều kiện, bảng tính so sánh ngân sách, danh mục dự án) và nội dung pháp lý tham
+          khảo — để bạn chủ động tìm hiểu trước khi quyết định liên hệ tư vấn.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-bold text-slate-900">Ngôn ngữ & đối tượng</h2>
+        <h2 className="text-xl font-bold text-slate-900">Khu vực tư vấn và dữ liệu</h2>
         <p>
-          Sản phẩm hướng tới người Việt Nam trong phạm vi NOXH và thuê trọ; nội dung giao diện hiện tại sử dụng{' '}
+          Nội dung trên website phục vụ bạn ở <strong className="font-semibold text-slate-900">mọi tỉnh thành</strong>.
+          Danh mục dự án và kênh tư vấn hiện được chúng tôi triển khai mạnh hơn tại{' '}
+          <strong className="font-semibold text-slate-900">khu vực phía Nam</strong> và các tỉnh lân cận; danh mục sẽ được
+          bổ sung dần.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xl font-bold text-slate-900">Ngôn ngữ</h2>
+        <p>
+          Website phục vụ người dùng tại Việt Nam, tập trung NOXH và thuê trọ; giao diện và nội dung chính bằng{' '}
           <strong className="font-semibold text-slate-900">tiếng Việt</strong>.
         </p>
       </section>
@@ -52,7 +52,7 @@ export default function GioiThieuPage() {
             <Link href="/du-an" className="font-medium text-brand-navy hover:underline">
               Danh mục dự án
             </Link>{' '}
-            — xem NOXH và (khi có) nhà thương mại giá rẻ trong catalog.
+            — xem dự án NOXH và nhà thương mại giá rẻ (nếu đã có trong danh mục).
           </li>
           <li>
             <Link href="/bang-tinh" className="font-medium text-brand-navy hover:underline">
@@ -64,13 +64,13 @@ export default function GioiThieuPage() {
             <Link href="/quiz" className="font-medium text-brand-navy hover:underline">
               Trắc nghiệm điều kiện
             </Link>{' '}
-            — phân loại sơ bộ theo rule nội bộ, không thay thế tư vấn pháp lý.
+            — phân loại sơ bộ theo câu hỏi trên web; không thay thế tư vấn pháp lý.
           </li>
           <li>
             <Link href="/timnhatro" className="font-medium text-brand-navy hover:underline">
               Tìm nhà trọ
             </Link>{' '}
-            — luồng thuê riêng, khác hoàn toàn luồng mua NOXH.
+            — phần thuê trọ tách bạch với nội dung mua NOXH.
           </li>
         </ul>
       </section>

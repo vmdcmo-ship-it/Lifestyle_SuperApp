@@ -1,4 +1,8 @@
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
+
 const base = () => process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3020/api/v1';
+
+const MUTATION_TIMEOUT_MS = 60_000;
 
 export type HousingProject = {
   id: string;
@@ -37,7 +41,9 @@ export async function fetchProjects(
     }
   }
   const qs = params.toString();
-  const res = await fetch(`${base()}/projects${qs ? `?${qs}` : ''}`, { next: { revalidate: 60 } });
+  const res = await fetchWithTimeout(`${base()}/projects${qs ? `?${qs}` : ''}`, {
+    next: { revalidate: 60 },
+  });
   if (!res.ok) {
     throw new Error('Không tải được danh sách dự án');
   }
@@ -55,11 +61,15 @@ export type EligibilityResponse = {
 };
 
 export async function submitEligibility(body: Record<string, unknown>): Promise<EligibilityResponse> {
-  const res = await fetch(`${base()}/ai/eligibility-check`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  const res = await fetchWithTimeout(
+    `${base()}/ai/eligibility-check`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+    MUTATION_TIMEOUT_MS,
+  );
   const data = (await res.json().catch(() => ({}))) as
     | EligibilityResponse
     | { message?: string | string[]; error?: string };
@@ -107,10 +117,14 @@ export type DashboardPayload = {
 };
 
 export async function fetchDashboard(dashboardToken: string): Promise<DashboardPayload> {
-  const res = await fetch(`${base()}/user/dashboard`, {
-    headers: { Authorization: `Bearer ${dashboardToken}` },
-    cache: 'no-store',
-  });
+  const res = await fetchWithTimeout(
+    `${base()}/user/dashboard`,
+    {
+      headers: { Authorization: `Bearer ${dashboardToken}` },
+      cache: 'no-store',
+    },
+    MUTATION_TIMEOUT_MS,
+  );
   const data = (await res.json().catch(() => ({}))) as DashboardPayload & {
     message?: string | string[];
     error?: string;
@@ -183,11 +197,15 @@ export async function postBudgetMatch(
     segment === 'noxh'
       ? `${base()}/projects/noxh/match-budget`
       : `${base()}/projects/affordable-commercial/match-budget`;
-  const res = await fetch(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  const res = await fetchWithTimeout(
+    path,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+    MUTATION_TIMEOUT_MS,
+  );
   const data = (await res.json().catch(() => ({}))) as BudgetMatchResponse & {
     message?: string | string[];
     error?: string;
@@ -204,14 +222,18 @@ export async function convertLead(
   dashboardToken: string,
   body: { note?: string } = {},
 ): Promise<{ ok: boolean; larkRecorded: boolean }> {
-  const res = await fetch(`${base()}/leads/convert`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${dashboardToken}`,
+  const res = await fetchWithTimeout(
+    `${base()}/leads/convert`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${dashboardToken}`,
+      },
+      body: JSON.stringify(body),
     },
-    body: JSON.stringify(body),
-  });
+    MUTATION_TIMEOUT_MS,
+  );
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (res.status === 401) {
     throw new Error('Phiên đã hết hạn. Vui lòng làm lại trắc nghiệm.');

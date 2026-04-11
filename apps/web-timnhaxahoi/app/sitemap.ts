@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
 import { getLegalSlugs } from '@/lib/legal-articles';
 import { fetchAllPublicRentalSlugs } from '@/lib/rental-public';
 import { siteBaseUrl } from '@/lib/site-url';
@@ -13,7 +14,7 @@ async function fetchProjectSlugs(): Promise<string[]> {
     return [];
   }
   try {
-    const res = await fetch(`${api}/projects`, { next: { revalidate: 3600 } });
+    const res = await fetchWithTimeout(`${api}/projects`, { next: { revalidate: 3600 } });
     if (!res.ok) {
       return [];
     }

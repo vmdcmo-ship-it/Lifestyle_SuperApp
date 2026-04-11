@@ -236,7 +236,7 @@ export function ListingForm({ mode, initial, listingId, onSuccess }: Props): JSX
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:border-[#1e3a8a] focus:outline-none focus:ring-1 focus:ring-[#1e3a8a]"
         />
         <p className="mt-1 text-xs text-slate-500">
-          Sau thời điểm này SĐT ẩn trên trang công khai; tin có thể còn trong 30 ngày (§19.8).
+          Sau thời điểm này số điện thoại sẽ ẩn trên trang công khai; nội dung tin có thể được giữ thêm tối đa 30 ngày.
         </p>
       </div>
 

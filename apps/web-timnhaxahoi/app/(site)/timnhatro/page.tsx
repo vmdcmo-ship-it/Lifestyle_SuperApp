@@ -4,7 +4,7 @@ import { fetchRentalList, formatVnd } from '@/lib/rental-public';
 import { pageMetadata } from '@/lib/site-metadata';
 
 const listDesc =
-  'Danh sách phòng trọ, nhà cho thuê tại timnhaxahoi.com — thông tin do chủ đăng; không đặt cọc trên nền tảng.';
+  'Tìm phòng trọ, nhà cho thuê trên timnhaxahoi.com — tin do chủ đăng; không đặt cọc qua website, liên hệ trực tiếp.';
 
 export const metadata: Metadata = pageMetadata({
   path: '/timnhatro',
@@ -21,7 +21,7 @@ export default async function TimNhatroListPage(): Promise<JSX.Element> {
       <div className="mx-auto max-w-5xl px-4 py-12">
         <h1 className="text-2xl font-semibold text-slate-900">Tìm nhà trọ</h1>
         <p className="mt-4 text-slate-600">
-          Hiện không tải được dữ liệu. Kiểm tra API hoặc thử lại sau.
+          Hiện không tải được danh sách tin. Vui lòng thử lại sau hoặc kiểm tra kết nối mạng.
         </p>
       </div>
     );
@@ -34,7 +34,7 @@ export default async function TimNhatroListPage(): Promise<JSX.Element> {
       <header className="mb-8">
         <h1 className="text-2xl font-semibold text-slate-900 md:text-3xl">Tìm nhà trọ</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-600">
-          Tin đăng do chủ trọ cung cấp. Số điện thoại chỉ hiển thị khi tin còn hạn (§19.8). Không đặt cọc trên nền
+          Tin đăng do chủ trọ cung cấp. Số điện thoại chỉ hiển thị khi tin còn trong thời hạn đăng. Không đặt cọc trên nền
           tảng; mọi giao dịch do hai bên tự thỏa thuận.
         </p>
         </header>

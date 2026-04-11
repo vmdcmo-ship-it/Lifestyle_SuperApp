@@ -6,7 +6,8 @@ import { pageMetadata } from '@/lib/site-metadata';
 export const metadata: Metadata = pageMetadata({
   path: '/video',
   title: 'Video',
-  description: 'Video ngắn về NOXH, thủ tục và tài chính — timnhaxahoi.com.',
+  description:
+    'Video ngắn, dễ hiểu về nhà ở xã hội: thủ tục, tài chính và điểm cần lưu ý — timnhaxahoi.com.',
 });
 
 export default function VideoHubPage() {
@@ -14,7 +15,8 @@ export default function VideoHubPage() {
     <div className="mx-auto max-w-5xl px-4 py-10 md:py-14">
       <h1 className="text-3xl font-bold text-slate-900">Video</h1>
       <p className="mt-3 max-w-2xl text-slate-600">
-        Cấu trúc gợi ý: hook → thực tế → pháp lý ngắn → CTA. Nội dung production sẽ thay thế placeholder bên dưới.
+        Video ngắn về nhà ở xã hội: tình huống thực tế, điểm cần lưu ý và hướng bước tiếp theo. Một số clip đang được
+        hoàn thiện; phần có nhãn &quot;Sắp ra mắt&quot; sẽ mở khi sẵn sàng.
       </p>
 
       <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -35,7 +35,7 @@ export default function TimnhatroDangTinPage(): JSX.Element {
       </nav>
       <h1 className="text-2xl font-semibold text-slate-900">Đăng tin cho thuê</h1>
       <p className="mt-2 text-sm text-slate-600">
-        Tin được hiển thị công khai ngay sau khi lưu (§19.1a). Kiểm tra lại địa chỉ và giá trước khi đăng.
+        Tin được hiển thị công khai ngay sau khi bạn lưu. Vui lòng kiểm tra lại địa chỉ và giá trước khi đăng.
       </p>
       <div className="mt-8">
         <ListingForm

@@ -1,4 +1,4 @@
-/** Nội dung mẫu — sau này có thể thay bằng CMS / MDX. */
+/** Bài wiki pháp lý (có thể mở rộng thêm theo từng đợt). */
 
 export type LegalSection = {
   id: string;
@@ -49,7 +49,7 @@ const articles: LegalArticle[] = [
         title: 'Lưu ý',
         paragraphs: [
           'Bài viết mang tính giới thiệu; quyết định cuối cùng thuộc cơ quan có thẩm quyền và quy trình từng dự án.',
-          'Văn phòng Luật sư Mai Quốc Định tham chiếu nội dung pháp lý theo SPEC sản phẩm.',
+          'Nội dung được tham chiếu và rà soát với Văn phòng Luật sư Mai Quốc Định.',
         ],
       },
     ],

@@ -73,8 +73,8 @@ export function DualTabsPoi(): JSX.Element {
         />
         <p className="text-xs text-slate-500">
           {tab === 'tro'
-            ? 'Gợi ý địa điểm; lọc theo POI chi tiết sẽ bổ sung sau. Hiện dẫn tới danh sách tin trọ.'
-            : 'Tìm dự án NOXH theo quận/huyện hoặc khu vực (từ khóa đơn giản).'}
+            ? 'Nhập khu vực hoặc địa điểm gợi ý; hệ thống mở danh sách tin trọ để bạn xem tiếp.'
+            : 'Tìm dự án NOXH theo quận, huyện hoặc khu vực (có thể dùng từ khóa ngắn).'}
         </p>
         <button
           type="submit"

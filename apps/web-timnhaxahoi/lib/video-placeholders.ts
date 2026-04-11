@@ -1,4 +1,4 @@
-/** Hub video — placeholder; thay URL/embed khi có sản xuất thật (SPEC 60–90s). */
+/** Danh sách video hub — bổ sung youtubeId khi có clip thật. */
 
 export type VideoItem = {
   id: string;

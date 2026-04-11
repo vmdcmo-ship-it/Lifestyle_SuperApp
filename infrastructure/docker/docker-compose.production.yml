@@ -78,20 +78,28 @@ services:
     image: redis:7-alpine
     container_name: lifestyle_redis_prod
     restart: always
-    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 512mb --maxmemory-policy allkeys-lru
+    # sh -c: tránh lỗi khi REDIS_PASSWORD rỗng/không load (--maxmemory bị hiểu nhầm là password)
+    command:
+      - sh
+      - -c
+      - >
+        redis-server
+        --requirepass "$${REDIS_PASSWORD:-redis_local_secure}"
+        --maxmemory 512mb
+        --maxmemory-policy allkeys-lru
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_local_secure}
     volumes:
       - redis_data:/data
     networks:
       - lifestyle_network
     healthcheck:
-      # Dùng biến từ container env để tránh lỗi khi password có ký tự đặc biệt ( < > $ " )
-      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$REDIS_PASSWORD\" ping 2>/dev/null | grep -q PONG"]
+      # --pass thay vì -a: xử lý password có ký tự đặc biệt (+, /, = từ base64) tốt hơn
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning --pass \"$$REDIS_PASSWORD\" ping 2>/dev/null | grep -q PONG"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
+      start_period: 20s
     deploy:
       resources:
         limits:
@@ -118,14 +126,19 @@ services:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_local_secure}@redis:6379
       JWT_SECRET: ${JWT_SECRET}
       JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-15m}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-7d}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
-      CORS_ORIGIN: https://vmd.asia,https://www.vmd.asia,https://api.vmd.asia
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://vmd.asia,https://www.vmd.asia}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM: ${RESEND_FROM:-InsureTech <onboarding@resend.dev>}
+      WEALTH_LEAD_EMAIL_TO: ${WEALTH_LEAD_EMAIL_TO:-}
+      INSURETECH_ORDER_EMAIL_TO: ${INSURETECH_ORDER_EMAIL_TO:-}
       API_DOMAIN: api.vmd.asia
       API_BASE_URL: https://api.vmd.asia
       FRONTEND_URL: https://vmd.asia
@@ -168,7 +181,7 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_NAME: ${DATABASE_NAME:-lifestyle_db}
       DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_local_secure}@redis:6379
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
@@ -209,7 +222,7 @@ services:
       NODE_ENV: production
       PORT: 3003
       DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_local_secure}@redis:6379
       PAYMENT_GATEWAY_API_KEY: ${PAYMENT_GATEWAY_API_KEY}
       PAYMENT_GATEWAY_SECRET: ${PAYMENT_GATEWAY_SECRET}
     depends_on:
@@ -246,7 +259,7 @@ services:
       NODE_ENV: production
       PORT: 3004
       DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_local_secure}@redis:6379
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
     depends_on:
       postgres:
@@ -281,7 +294,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3005
-      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_local_secure}@redis:6379
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
@@ -312,6 +325,36 @@ services:
   # FRONTEND LAYER
   # ==========================================================================
   
+  # Next.js Web Admin (admin.vmd.asia - subdomain riêng theo HIEN_PHAP)
+  web-admin:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.web-admin
+      args:
+        NEXT_PUBLIC_API_URL: https://api.vmd.asia
+    container_name: lifestyle_web_admin
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      NEXT_PUBLIC_API_URL: https://api.vmd.asia
+      NEXT_PUBLIC_BASE_URL: https://admin.vmd.asia
+    depends_on:
+      - main-api
+    networks:
+      - lifestyle_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    labels:
+      - "com.lifestyle.service=web-admin"
+      - "com.lifestyle.tier=frontend"
+
   # Next.js Web Application
   web:
     build:
@@ -322,6 +365,7 @@ services:
         NEXT_PUBLIC_WS_URL: wss://api.vmd.asia
         # Hardcode production domain - không phụ thuộc .env (tránh sitemap sai domain)
         NEXT_PUBLIC_BASE_URL: https://www.vmd.asia
+        NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}
     container_name: lifestyle_web
     restart: always
     environment:
@@ -331,8 +375,11 @@ services:
       NEXT_PUBLIC_API_URL: https://api.vmd.asia
       NEXT_PUBLIC_WS_URL: wss://api.vmd.asia
       NEXT_PUBLIC_GOOGLE_MAPS_KEY: ${GOOGLE_MAPS_API_KEY}
+      NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}
     depends_on:
       - main-api
+    ports:
+      - "3001:3001"  # Truy cập trực tiếp http://localhost:3001 (local dev / debug)
     networks:
       - lifestyle_network
     deploy:
@@ -366,6 +413,7 @@ services:
       - nginx_logs:/var/log/nginx
     depends_on:
       - web
+      - web-admin
       - main-api
       - user-service
     networks:

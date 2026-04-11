@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
+
 const apiBase = () => process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3020/api/v1';
 
 export type PublicRentalListing = {
@@ -37,7 +39,7 @@ export async function fetchRentalList(params?: {
   if (params?.province) u.set('province', params.province);
   if (params?.district) u.set('district', params.district);
   const qs = u.toString();
-  const res = await fetch(`${apiBase()}/rental/listings${qs ? `?${qs}` : ''}`, {
+  const res = await fetchWithTimeout(`${apiBase()}/rental/listings${qs ? `?${qs}` : ''}`, {
     next: { revalidate: 60 },
   });
   if (!res.ok) {
@@ -47,7 +49,7 @@ export async function fetchRentalList(params?: {
 }
 
 export async function fetchRentalBySlug(slug: string): Promise<PublicRentalListing> {
-  const res = await fetch(`${apiBase()}/rental/listings/slug/${encodeURIComponent(slug)}`, {
+  const res = await fetchWithTimeout(`${apiBase()}/rental/listings/slug/${encodeURIComponent(slug)}`, {
     next: { revalidate: 60 },
   });
   if (res.status === 404) {
@@ -65,7 +67,7 @@ export function formatVnd(n: number): string {
 
 const META_DESC_MAX = 155;
 
-/** Mô tả SEO cho trang chi tiết tin cho thuê (OG / meta description). */
+/** Đoạn mô tả rút gọn cho meta / khi chia sẻ link tin cho thuê. */
 export function metaDescriptionForListing(item: PublicRentalListing): string {
   const price = formatVnd(item.priceMonthly);
   const loc = [item.district, item.province].filter(Boolean).join(', ');

@@ -7,7 +7,7 @@ export const metadata: Metadata = pageMetadata({
   path: '/bang-tinh',
   title: 'Bảng tính so sánh',
   description:
-    'Ước tính nhanh dự án NOXH và nhà thương mại giá rẻ theo ngân sách — timnhaxahoi.com.',
+    'Bảng tính so sánh: gợi ý dự án phù hợp ngân sách (nhà ở xã hội và nhà thương mại giá rẻ) — kết quả tham khảo.',
 });
 
 export default function BangTinhPage() {
@@ -24,8 +24,8 @@ export default function BangTinhPage() {
       <header className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Bảng tính so sánh</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-600">
-          Chọn phân khúc, nhập ngân sách và (tuỳ chọn) vùng — xem dự án trong catalog có khung giá phù hợp. Kết quả mang
-          tính tham khảo.
+          Chọn phân khúc, nhập ngân sách và (nếu muốn) khu vực — xem các dự án có khung giá gần với ngân sách của bạn.
+          Kết quả chỉ mang tính tham khảo.
         </p>
       </header>
 

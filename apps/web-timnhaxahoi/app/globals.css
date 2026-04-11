@@ -21,3 +21,11 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 8px 32px rgba(30, 58, 138, 0.08);
 }
+
+/** Lưới nhẹ — tinh thần tech cho khối hero trang chủ */
+.home-tech-bg {
+  background-image:
+    linear-gradient(rgba(30, 58, 138, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 58, 138, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+}

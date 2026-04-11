@@ -1,4 +1,4 @@
-/** R8.4 — §19.2 / disclaimer chủ trọ */
+/** Disclaimer hiển thị cho chủ trọ khi đăng tin */
 export function LandlordDisclaimer(): JSX.Element {
   return (
     <p className="rounded-lg border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">

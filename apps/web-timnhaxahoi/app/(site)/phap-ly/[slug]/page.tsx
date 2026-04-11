@@ -14,7 +14,10 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = getLegalArticle(params.slug);
   if (!article) {
-    return { title: 'Không tìm thấy' };
+    return {
+      title: 'Không tìm thấy bài viết',
+      description: 'Trang pháp lý không tồn tại trên timnhaxahoi.com.',
+    };
   }
   return {
     title: article.title,

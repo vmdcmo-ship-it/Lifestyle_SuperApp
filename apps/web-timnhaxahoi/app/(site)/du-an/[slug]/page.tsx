@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout';
 import { mergeArticleMetadata } from '@/lib/site-metadata';
 
 const base = () => process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3020/api/v1';
@@ -19,7 +20,7 @@ type Project = {
 };
 
 async function getProject(slug: string): Promise<Project | null> {
-  const res = await fetch(`${base()}/projects/${encodeURIComponent(slug)}`, {
+  const res = await fetchWithTimeout(`${base()}/projects/${encodeURIComponent(slug)}`, {
     next: { revalidate: 120 },
   });
   if (res.status === 404) {
@@ -39,7 +40,10 @@ export async function generateMetadata({
   const { slug } = params;
   const p = await getProject(slug);
   if (!p) {
-    return { title: 'Không tìm thấy' };
+    return {
+      title: 'Không tìm thấy dự án',
+      description: 'Dự án không tồn tại hoặc đã gỡ trên timnhaxahoi.com.',
+    };
   }
   const description = `Dự án ${p.name} — ${[p.district, p.province].filter(Boolean).join(', ')} · Ước tính khung giá căn điển hình trên timnhaxahoi.com.`;
   return {
@@ -90,7 +94,7 @@ export default async function ProjectDetailPage({
           <dd className="font-medium text-slate-900">{est}</dd>
         </div>
         <div>
-          <dt className="text-slate-500">Điểm pháp lý (tham chiếu nội bộ)</dt>
+          <dt className="text-slate-500">Điểm đánh giá pháp lý (tham khảo)</dt>
           <dd className="font-medium text-slate-900">{p.legalScore}</dd>
         </div>
       </dl>

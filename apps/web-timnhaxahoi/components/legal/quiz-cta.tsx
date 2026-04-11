@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-/** Widget cuối bài pháp lý (SPEC): CTA sang trắc nghiệm. */
+/** Khối gợi ý trắc nghiệm cuối bài pháp lý */
 export function LegalQuizCta() {
   return (
     <aside className="mt-12 rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/90 to-white p-6 md:p-8">

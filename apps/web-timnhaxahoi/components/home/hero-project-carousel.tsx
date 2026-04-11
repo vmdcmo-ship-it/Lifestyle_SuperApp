@@ -75,7 +75,7 @@ export function HeroProjectCarousel({ slides }: Props): JSX.Element {
         />
         <div className="relative z-10 flex min-h-[260px] flex-col items-center justify-center px-6 py-14 text-center md:min-h-[300px]">
           <p className="text-sm font-medium uppercase tracking-wider text-white/80">Timnhaxahoi</p>
-          <h2 className="mt-3 max-w-xl text-2xl font-bold text-white md:text-3xl">Dự án NOXH ưu tiên Miền Nam</h2>
+          <h2 className="mt-3 max-w-xl text-2xl font-bold text-white md:text-3xl">Dự án nhà ở xã hội</h2>
           <p className="mt-3 max-w-md text-sm text-white/85">
             Đang cập nhật danh mục. Xem{' '}
             <Link href="/du-an" className="font-semibold text-amber-200 underline underline-offset-2 hover:text-white">

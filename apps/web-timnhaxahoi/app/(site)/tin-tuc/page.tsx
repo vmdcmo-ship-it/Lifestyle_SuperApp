@@ -7,27 +7,27 @@ export const metadata: Metadata = pageMetadata({
   path: '/tin-tuc',
   title: 'Tin tức',
   description:
-    'Cập nhật chính sách nhà ở, thị trường khu vực và nội dung hữu ích cho người tìm NOXH — timnhaxahoi.com.',
+    'Tin và hướng dẫn về nhà ở xã hội, thị trường theo khu vực và chủ đề hữu ích cho người mua lần đầu — timnhaxahoi.com.',
 });
 
 const TOPICS = [
   {
     title: 'Pháp lý & thủ tục',
-    body: 'Quy định đối tượng, cư trú, thu nhập và trình tự hồ sơ — cập nhật dần trên wiki, song song với bài phân tích ngắn.',
+    body: 'Các bài tóm tắt về điều kiện mua, cư trú, thu nhập và trình tự hồ sơ — được cập nhật theo từng đợt trên wiki pháp lý.',
     href: '/phap-ly',
     cta: 'Mở wiki pháp lý',
   },
   {
-    title: 'Dự án & thị trường khu vực',
-    body: 'Gợi ý theo danh mục dự án và vùng ưu tiên bán hàng; theo dõi trang dự án và trang chủ để xem tin mới.',
+    title: 'Dự án & thị trường địa phương',
+    body: 'Thông tin dự án và mức giá tham khảo theo khu vực; xem danh mục dự án và trang chủ để cập nhật mới nhất.',
     href: '/du-an',
     cta: 'Danh mục dự án',
   },
   {
     title: 'Video ngắn',
-    body: 'Định dạng 60–90 giây: hook, thực tế, pháp lý tóm lược, CTA — tập trung mobile.',
+    body: 'Các clip ngắn, dễ xem trên điện thoại, giải thích thủ tục và những điểm cần lưu ý khi tìm hiểu NOXH.',
     href: '/video',
-    cta: 'Hub video',
+    cta: 'Xem kênh video',
   },
 ] as const;
 
@@ -36,9 +36,9 @@ export default function TinTucPage() {
     <ContentShell eyebrow="Timnhaxahoi" title="Tin tức">
       <section className="space-y-3">
         <p>
-          Mục <strong className="font-semibold text-slate-900">Tin tức</strong> tập trung các chủ đề phục vụ SEO và niềm
-          tin: chính sách nhà ở xã hội, biến động thị trường theo khu vực, và hướng dẫn ngắn gọn cho người mua lần đầu.
-          Bài viết dài sẽ được bổ sung theo từng đợt biên tập; hiện tại bạn có thể bắt đầu từ các kênh sau.
+          Mục <strong className="font-semibold text-slate-900">Tin tức</strong> tổng hợp chính sách nhà ở xã hội, thông
+          tin thị trường theo từng vùng và các bài hướng dẫn ngắn cho người mua lần đầu. Nội dung sẽ được bổ sung dần;
+          bạn có thể bắt đầu từ các mục dưới đây.
         </p>
       </section>
 
@@ -63,7 +63,7 @@ export default function TinTucPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-bold text-slate-900">Gợi ý hành động</h2>
+        <h2 className="text-xl font-bold text-slate-900">Gợi ý cho bạn</h2>
         <p>
           Nếu bạn cần <strong className="font-semibold text-slate-900">đánh giá nhanh điều kiện cá nhân</strong>, dùng{' '}
           <Link href="/quiz" className="font-medium text-brand-navy hover:underline">

@@ -7,7 +7,7 @@ export const metadata: Metadata = pageMetadata({
   path: '/mien-tru-trach-nhiem',
   title: 'Miễn trừ trách nhiệm và điều khoản',
   description:
-    'Thông tin tham khảo, giới hạn trách nhiệm nội dung và công cụ trên timnhaxahoi.com — đọc trước khi sử dụng.',
+    'Điều khoản sử dụng, giới hạn trách nhiệm đối với nội dung và công cụ trên timnhaxahoi.com.',
 });
 
 export default function MienTruTrachNhiemPage() {
@@ -28,7 +28,7 @@ export default function MienTruTrachNhiemPage() {
           có thẩm quyền, hay nhân viên tín dụng.
         </p>
         <p>
-          Chúng tôi cố gắng cập nhật chính sách và dữ liệu catalog, song quy định pháp luật và điều kiện từng dự án có thể
+          Chúng tôi cố gắng cập nhật chính sách và danh mục dự án, song quy định pháp luật và điều kiện từng dự án có thể
           thay đổi. Trước khi ký kết hoặc nộp hồ sơ, bạn cần xác minh với cơ quan nhà nước, chủ đầu tư và đối tác tài
           chính phù hợp.
         </p>
@@ -37,18 +37,18 @@ export default function MienTruTrachNhiemPage() {
       <section className="space-y-3" id="cong-cu">
         <h2 className="text-xl font-bold text-slate-900">2. Trắc nghiệm, bảng tính và điểm số</h2>
         <p>
-          Công cụ <strong className="font-semibold text-slate-900">trắc nghiệm điều kiện</strong> vận hành theo{' '}
-          <strong className="font-semibold text-slate-900">quy tắc nội bộ (rule-based)</strong> để phân loại sơ bộ và hỗ
-          trợ vận hành. Kết quả (điểm, nhãn, gợi ý dự án) là{' '}
-          <strong className="font-semibold text-slate-900">mô hình tham khảo</strong>, không đảm bảo phê duyệt hồ sơ hay
-          mức vay; chúng tôi{' '}
-          <strong className="font-semibold text-slate-900">không</strong> cam kết tỉ lệ phê duyệt hay thời hạn xử lý cụ
-          thể.
+          Công cụ <strong className="font-semibold text-slate-900">trắc nghiệm điều kiện</strong> dựa trên{' '}
+          <strong className="font-semibold text-slate-900">các câu hỏi và tiêu chí đã công bố trên website</strong> để
+          gợi ý phân loại sơ bộ. Kết quả (điểm, nhãn, gợi ý dự án) chỉ mang tính{' '}
+          <strong className="font-semibold text-slate-900">tham khảo</strong>, không đảm bảo phê duyệt hồ sơ hay mức vay;
+          chúng tôi <strong className="font-semibold text-slate-900">không</strong> cam kết tỉ lệ phê duyệt hay thời hạn
+          xử lý cụ thể.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">Bảng tính so sánh ngân sách</strong> dùng dữ liệu catalog (ví
-          dụ giá/m² và diện tích điển hình) để ước tính khung giá; các tham số vay minh họa (kỳ hạn, lãi suất) là{' '}
-          <strong className="font-semibold text-slate-900">cố định trong hệ thống</strong>, không phải báo giá thực tế.
+          <strong className="font-semibold text-slate-900">Bảng tính so sánh ngân sách</strong> dùng dữ liệu công bố trên
+          website (ví dụ giá/m² và diện tích điển hình) để ước tính khung giá; các thông số vay minh họa (kỳ hạn, lãi
+          suất) là <strong className="font-semibold text-slate-900">giả định cố định để so sánh</strong>, không phải báo
+          giá hay lãi suất thực tế từ ngân hàng.
         </p>
       </section>
 
@@ -56,8 +56,9 @@ export default function MienTruTrachNhiemPage() {
         <h2 className="text-xl font-bold text-slate-900">3. Liên hệ và dữ liệu cá nhân</h2>
         <p>
           Khi bạn gửi biểu mẫu (điện thoại, email, nội dung trắc nghiệm, yêu cầu tư vấn), thông tin được xử lý để{' '}
-          <strong className="font-semibold text-slate-900">phục vụ tư vấn và vận hành</strong> theo chính sách nội bộ và
-          tích hợp CRM (ví dụ Lark Base) nếu được bật. Bạn có trách nhiệm cung cấp thông tin trung thực; chúng tôi có
+          <strong className="font-semibold text-slate-900">phục vụ tư vấn và vận hành</strong> theo chính sách của chúng
+          tôi và qua kênh tiếp nhận liên hệ chính thức khi áp dụng. Bạn có trách nhiệm cung cấp thông tin trung thực;
+          chúng tôi có
           thể từ chối hoặc giới hạn tiếp nhận nếu phát hiện lạm dụng, spam hoặc vi phạm pháp luật.
         </p>
         <p>

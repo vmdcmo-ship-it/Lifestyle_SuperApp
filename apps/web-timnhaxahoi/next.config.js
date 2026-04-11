@@ -18,10 +18,16 @@ const nextConfig = {
   },
 };
 
-module.exports = withSentryConfig(nextConfig, {
-  silent: true,
-  org: process.env.SENTRY_ORG || 'lifestyle',
-  project: process.env.SENTRY_PROJECT || 'web-timnhaxahoi',
-  disableServerWebpackPlugin: true,
-  disableClientWebpackPlugin: true,
-});
+/** Docker/VPS: đặt SKIP_SENTRY_NEXT_CONFIG=1 nếu `next build` kẹt lâu ở bước webpack (thử cách ly @sentry/nextjs). Runtime vẫn có thể dùng SENTRY_DSN. */
+const skipSentryNextConfig =
+  process.env.SKIP_SENTRY_NEXT_CONFIG === '1' || process.env.SKIP_SENTRY_NEXT_CONFIG === 'true';
+
+module.exports = skipSentryNextConfig
+  ? nextConfig
+  : withSentryConfig(nextConfig, {
+      silent: true,
+      org: process.env.SENTRY_ORG || 'lifestyle',
+      project: process.env.SENTRY_PROJECT || 'web-timnhaxahoi',
+      disableServerWebpackPlugin: true,
+      disableClientWebpackPlugin: true,
+    });

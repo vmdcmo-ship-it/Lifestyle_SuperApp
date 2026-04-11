@@ -88,8 +88,8 @@ export function BudgetCompareWidget({ showIntro = true, headingId = 'budget-comp
             Thử bảng tính so sánh
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-slate-600">
-            So khung giá căn điển hình (giá/m² × diện tích mẫu trong catalog). Không thay cho báo giá hay hợp đồng;
-            tư vấn viên sẽ xác nhận thực tế.
+            So khung giá căn điển hình (giá/m² × diện tích mẫu trên hệ thống). Không thay cho báo giá hay hợp đồng; tư
+            vấn viên sẽ xác nhận thực tế.
           </p>
         </div>
       ) : null}
@@ -183,7 +183,7 @@ export function BudgetCompareWidget({ showIntro = true, headingId = 'budget-comp
                 value={ownTriệu}
                 onChange={(e) => setOwnTriệu(e.target.value)}
                 className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none ring-brand-navy/30 focus:ring-2"
-                placeholder="Để trống = không tính vay minh họa"
+                placeholder="Để trống nếu không cần tính vay minh họa"
               />
             </label>
             <label className="block">
@@ -194,7 +194,7 @@ export function BudgetCompareWidget({ showIntro = true, headingId = 'budget-comp
                 value={monthlyTriệu}
                 onChange={(e) => setMonthlyTriệu(e.target.value)}
                 className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none ring-brand-navy/30 focus:ring-2"
-                placeholder="Lọc dự án theo ước tính annuity minh họa"
+                placeholder="Lọc theo mức trả góp tối đa mỗi tháng (minh họa)"
               />
             </label>
             <p className="sm:col-span-2 text-xs text-slate-500">
@@ -273,21 +273,20 @@ function BudgetMatchResults({
         <div className="rounded-xl border border-slate-200 bg-slate-50/90 px-4 py-4 text-sm text-slate-700">
           {segment === 'affordable_commercial' ? (
             <>
-              <p className="font-medium text-slate-900">Chưa có dự án nhà thương mại giá rẻ trong catalog (sau lọc địa lý).</p>
+              <p className="font-medium text-slate-900">Chưa có dự án nhà thương mại giá rẻ phù hợp bộ lọc bạn chọn.</p>
               <p className="mt-2">
-                Danh mục TM phụ thuộc dữ liệu admin — có thể đang ít hơn NOXH. Bạn có thể chuyển tab{' '}
-                <strong>NOXH</strong>, xem{' '}
+                Phân khúc này có thể ít dự án hơn NOXH. Bạn có thể chuyển tab <strong>NOXH</strong>, xem{' '}
                 <Link href="/du-an?kind=AFFORDABLE_COMMERCIAL" className="font-semibold text-brand-navy hover:underline">
-                  toàn bộ dự án TM
+                  toàn bộ dự án thương mại giá rẻ
                 </Link>
                 , hoặc bỏ lọc tỉnh/huyện rồi chạy lại.
               </p>
             </>
           ) : (
             <>
-              <p className="font-medium text-slate-900">Chưa có dự án NOXH trong catalog (sau lọc địa lý).</p>
+              <p className="font-medium text-slate-900">Chưa có dự án NOXH phù hợp bộ lọc địa lý bạn chọn.</p>
               <p className="mt-2">
-                Kiểm tra API / dữ liệu mẫu trên môi trường dev, hoặc bỏ lọc địa lý. Tham khảo{' '}
+                Thử bỏ bớt tỉnh/huyện hoặc xem{' '}
                 <Link href="/du-an?kind=NOXH" className="font-semibold text-brand-navy hover:underline">
                   danh sách dự án NOXH
                 </Link>

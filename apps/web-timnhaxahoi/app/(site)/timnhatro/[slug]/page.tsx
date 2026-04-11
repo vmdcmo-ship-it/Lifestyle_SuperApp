@@ -17,7 +17,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ...mergeArticleMetadata(path, item.title, description),
     };
   } catch {
-    return { title: 'Không tìm thấy tin' };
+    return {
+      title: 'Không tìm thấy tin',
+      description: 'Tin cho thuê không tồn tại hoặc đã gỡ trên timnhaxahoi.com.',
+    };
   }
 }
 
@@ -52,7 +55,7 @@ export default async function TimNhatroDetailPage({ params }: Props): Promise<JS
         <p className="mt-1 text-sm text-slate-500">Diện tích: {areaLabel}</p>
         {item.listingStatus === 'expired_grace' && (
           <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
-            Tin đã hết hạn hiển thị số liên hệ; bạn vẫn xem được nội dung trong thời gian gia hạn (§19.8).
+            Tin đã hết hạn sẽ ẩn số liên hệ; bạn vẫn có thể xem nội dung trong thời gian lưu tin theo quy định hiển thị.
           </p>
         )}
       </header>
@@ -79,7 +82,7 @@ export default async function TimNhatroDetailPage({ params }: Props): Promise<JS
       </section>
 
       <section className="mt-8 rounded-lg border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-500">
-        <strong className="text-slate-700">Bản đồ / POI:</strong> Mở rộng sau khi có tọa độ đủ chuẩn (§19.2).
+        <strong className="text-slate-700">Bản đồ:</strong> Đang được bổ sung khi đủ dữ liệu vị trí chính xác.
       </section>
 
       <p className="mt-8 text-xs text-slate-500">

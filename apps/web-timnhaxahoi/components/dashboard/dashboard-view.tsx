@@ -82,11 +82,9 @@ export function DashboardView() {
     setConvertErr(null);
     setConvertOk(null);
     try {
-      const r = await convertLead(token, { note: note.trim() || undefined });
+      await convertLead(token, { note: note.trim() || undefined });
       setConvertOk(
-        r.larkRecorded
-          ? 'Đã ghi nhận yêu cầu. Đội ngũ sẽ liên hệ qua SĐT/Zalo và email.'
-          : 'Đã ghi nhận yêu cầu trên hệ thống.',
+        'Đã ghi nhận yêu cầu. Đội ngũ sẽ liên hệ lại qua số điện thoại, Zalo hoặc email khi có thể.',
       );
       setNote('');
     } catch (e) {
@@ -227,7 +225,7 @@ export function DashboardView() {
       <section className="mt-10 glass-panel rounded-2xl p-6 md:p-8">
         <h2 className="text-lg font-semibold text-slate-900">Yêu cầu tư vấn sâu</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Gửi ghi nhận cho đội ngũ (và Lark Base nếu đã cấu hình trên server).
+          Gửi ghi nhận cho đội ngũ để được liên hệ lại khi cần.
         </p>
         <textarea
           className="mt-4 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900"

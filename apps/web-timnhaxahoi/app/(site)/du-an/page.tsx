@@ -6,7 +6,8 @@ import { pageMetadata } from '@/lib/site-metadata';
 export const metadata: Metadata = pageMetadata({
   path: '/du-an',
   title: 'Danh sách dự án',
-  description: 'Dự án NOXH và nhà thương mại giá rẻ — lọc theo khu vực, loại dự án — timnhaxahoi.com.',
+  description:
+    'Danh mục dự án nhà ở xã hội và nhà thương mại giá rẻ; lọc theo khu vực và loại dự án — timnhaxahoi.com.',
 });
 
 function pickParam(v: string | string[] | undefined): string | undefined {
@@ -33,7 +34,12 @@ export default async function ProjectsPage({
   try {
     list = await fetchProjects(Object.keys(filters).length ? filters : undefined);
   } catch (e) {
-    err = e instanceof Error ? e.message : 'Lỗi tải dữ liệu';
+    const raw = e instanceof Error ? e.message : '';
+    const looksNetwork =
+      /fetch failed|failed to fetch|network|ECONNREFUSED|ENOTFOUND|aborted|timeout/i.test(raw);
+    err = looksNetwork
+      ? 'Hiện chưa tải được danh sách. Vui lòng thử lại sau hoặc kiểm tra kết nối mạng.'
+      : 'Hiện chưa tải được danh sách. Vui lòng thử lại sau.';
   }
 
   const hasFilters = Boolean(district || province || kind);
@@ -41,7 +47,9 @@ export default async function ProjectsPage({
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <h1 className="text-2xl font-bold text-slate-900">Dự án</h1>
-      <p className="mt-2 text-slate-600">Dữ liệu từ API — SSR, làm mới ngắn. Lọc theo tỉnh/thành, quận/huyện, loại.</p>
+      <p className="mt-2 text-slate-600">
+        Danh mục dự án nhà ở xã hội và nhà thương mại giá rẻ. Bạn có thể lọc theo tỉnh/thành, quận/huyện và loại dự án.
+      </p>
 
       <form
         method="get"

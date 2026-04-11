@@ -1,4 +1,4 @@
-/** Nhãn hiển thị người dùng — không dùng mã CRM trần trên UI chính (SPEC). */
+/** Nhãn hiển thị cho người dùng cuối (ẩn mã nội bộ). */
 export function segmentLabelVi(segment: string | null | undefined): string {
   switch (segment) {
     case 'GREEN':

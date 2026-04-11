@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ReactNode, useCallback, useEffect, useState } from 'react';
+import { SiteBrand } from '@/components/layout/site-brand';
 import { clearLandlordAuth, isLandlordLoggedIn, LANDLORD_AUTH_EVENT } from '@/lib/landlord-auth';
 
-/** Sáu trang chính — QUY_HOACH_GIAO_DIEN_VA_IA.md */
+/** Điều hướng chính (6 mục) */
 const MAIN_NAV = [
   { href: '/phap-ly', label: 'Wiki Pháp lý' },
   { href: '/du-an', label: 'Nhà ở XH' },
@@ -15,16 +16,26 @@ const MAIN_NAV = [
   { href: '/gioi-thieu', label: 'Giới thiệu' },
 ] as const;
 
-const SECONDARY_NAV = [
+/** Trắc nghiệm, video, kết quả — gom trong menu phụ */
+const MORE_NAV = [
   { href: '/quiz', label: 'Trắc nghiệm' },
   { href: '/video', label: 'Video' },
   { href: '/dashboard', label: 'Kết quả' },
 ] as const;
 
+function navDropdownClass(isOpen: boolean): string {
+  return [
+    'absolute right-0 z-50 mt-1 min-w-[11rem] rounded-lg border border-slate-200 bg-white py-1 shadow-lg',
+    isOpen ? 'block' : 'hidden',
+  ].join(' ');
+}
+
 export function AppChrome({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [appMode, setAppMode] = useState(false);
   const [landlordIn, setLandlordIn] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [landlordOpen, setLandlordOpen] = useState(false);
 
   const syncLandlord = useCallback(() => {
     setLandlordIn(isLandlordLoggedIn());
@@ -48,65 +59,132 @@ export function AppChrome({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-        <div className="mx-auto max-w-6xl px-4 py-3 md:flex md:items-center md:justify-between md:py-2">
-          <div className="flex h-11 items-center justify-between md:h-14 md:justify-start">
-            <Link href="/" className="bg-brand-gradient bg-clip-text text-lg font-semibold text-transparent">
-              timnhaxahoi.com
-            </Link>
+        <div className="mx-auto max-w-6xl px-4 py-3 md:flex md:items-center md:justify-between md:gap-4 md:py-2">
+          <div className="flex min-h-11 shrink-0 items-center md:min-h-14">
+            <SiteBrand />
           </div>
           <nav
-            className="mt-3 flex max-w-[100vw] flex-col gap-2 pb-1 md:mt-0 md:flex-row md:flex-wrap md:items-center md:justify-end md:gap-x-1 md:gap-y-2 md:pb-0"
+            className="mt-3 flex max-w-[100vw] flex-col gap-3 md:mt-0 md:min-w-0 md:flex-1 md:flex-row md:items-center md:justify-end md:gap-3 md:pb-0"
             aria-label="Điều hướng chính"
           >
-            <div className="flex flex-wrap justify-end gap-x-3 gap-y-2 text-sm font-medium text-slate-700">
+            {/* Sáu mục điều hướng chính */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-medium text-slate-700 md:flex-nowrap md:overflow-x-auto md:py-0.5 [&::-webkit-scrollbar]:h-1">
               {MAIN_NAV.map((item) => (
-                <Link key={item.href} href={item.href} className="whitespace-nowrap hover:text-brand-navy">
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="shrink-0 whitespace-nowrap hover:text-brand-navy"
+                >
                   {item.label}
                 </Link>
               ))}
             </div>
-            <div className="hidden h-4 w-px shrink-0 bg-slate-200 md:mx-1 md:block" aria-hidden />
-            <div className="flex flex-wrap justify-end gap-x-3 gap-y-1 text-xs text-slate-500 md:text-sm">
-              {SECONDARY_NAV.map((item) => (
-                <Link key={item.href} href={item.href} className="whitespace-nowrap hover:text-brand-navy">
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-            <span className="hidden text-slate-300 md:mx-1 md:inline" aria-hidden>
-              |
-            </span>
-            <div className="flex flex-wrap justify-end gap-x-3 gap-y-1 text-xs text-slate-600 md:text-sm">
-              {landlordIn ? (
-                <>
-                  <Link href="/timnhatro/tin-cua-toi" className="whitespace-nowrap hover:text-brand-navy">
-                    Tin của tôi
-                  </Link>
-                  <Link href="/timnhatro/dang-tin" className="whitespace-nowrap hover:text-brand-navy">
-                    Đăng tin
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      clearLandlordAuth();
-                      syncLandlord();
-                      router.refresh();
-                    }}
-                    className="whitespace-nowrap hover:text-brand-navy"
-                  >
-                    Đăng xuất
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/timnhatro/dang-nhap" className="whitespace-nowrap hover:text-brand-navy">
-                    Đăng nhập
-                  </Link>
-                  <Link href="/timnhatro/dang-ky" className="whitespace-nowrap hover:text-brand-navy">
-                    Đăng ký chủ trọ
-                  </Link>
-                </>
-              )}
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 pt-2 md:border-t-0 md:pt-0">
+              <div className="relative">
+                <button
+                  type="button"
+                  aria-expanded={moreOpen}
+                  aria-haspopup="true"
+                  aria-controls="nav-more-menu"
+                  onClick={() => {
+                    setMoreOpen((v) => !v);
+                    setLandlordOpen(false);
+                  }}
+                  className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                >
+                  Thêm ▾
+                </button>
+                <div
+                  id="nav-more-menu"
+                  role="menu"
+                  className={navDropdownClass(moreOpen)}
+                >
+                  {MORE_NAV.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      role="menuitem"
+                      className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-navy"
+                      onClick={() => setMoreOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <div className="relative">
+                <button
+                  type="button"
+                  aria-expanded={landlordOpen}
+                  aria-haspopup="true"
+                  aria-controls="nav-landlord-menu"
+                  onClick={() => {
+                    setLandlordOpen((v) => !v);
+                    setMoreOpen(false);
+                  }}
+                  className="rounded-md bg-brand-navy px-3 py-1.5 text-sm font-medium text-white hover:opacity-95"
+                >
+                  Chủ trọ ▾
+                </button>
+                <div
+                  id="nav-landlord-menu"
+                  role="menu"
+                  className={navDropdownClass(landlordOpen)}
+                >
+                  {landlordIn ? (
+                    <>
+                      <Link
+                        href="/timnhatro/tin-cua-toi"
+                        role="menuitem"
+                        className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-navy"
+                        onClick={() => setLandlordOpen(false)}
+                      >
+                        Tin của tôi
+                      </Link>
+                      <Link
+                        href="/timnhatro/dang-tin"
+                        role="menuitem"
+                        className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-navy"
+                        onClick={() => setLandlordOpen(false)}
+                      >
+                        Đăng tin
+                      </Link>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-navy"
+                        onClick={() => {
+                          clearLandlordAuth();
+                          syncLandlord();
+                          setLandlordOpen(false);
+                          router.refresh();
+                        }}
+                      >
+                        Đăng xuất
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/timnhatro/dang-nhap"
+                        role="menuitem"
+                        className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-navy"
+                        onClick={() => setLandlordOpen(false)}
+                      >
+                        Đăng nhập
+                      </Link>
+                      <Link
+                        href="/timnhatro/dang-ky"
+                        role="menuitem"
+                        className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-navy"
+                        onClick={() => setLandlordOpen(false)}
+                      >
+                        Đăng ký chủ trọ
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </nav>
         </div>
