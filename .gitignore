@@ -165,3 +165,7 @@ docs/ai-ops/n8n-workflow-exports/*.json
 
 # Cursor Plans
 .cursor/plans/
+
+# OpenClaw runtime (deploy tool): chứa secret (token gateway, API key), session,
+# credentials và bản mirror codebase — KHÔNG commit. Quản lý cấu hình ngoài git.
+openclaw-kodo/
