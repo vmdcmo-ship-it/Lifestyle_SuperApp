@@ -1,0 +1,92 @@
+{
+  "name": "BDS Action -> OpenClaw Gateway",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bds-action",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-bds-action",
+      "name": "Webhook /bds-action",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "bds-action"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Kiểm token webhook (tùy chọn) + build prompt skill theo action.\nconst EXPECTED = $env.BDS_WEBHOOK_TOKEN || '';\nconst auth = ($input.first().json.headers?.authorization) || '';\nif (EXPECTED && auth !== `Bearer ${EXPECTED}`) {\n  throw new Error('Unauthorized: sai BDS_WEBHOOK_TOKEN');\n}\n\nconst body = $input.first().json.body || {};\nconst action = String(body.action || '');\nconst accountId = String(body.account_id || '');\nconst p = body.params || {};\n\nconst rule = 'Gặp captcha/checkpoint/đăng nhập lại/cảnh báo bất thường thì trả status=\"checkpoint\". Lỗi khác trả status=\"error\". CHỈ IN JSON, không thêm chữ nào.';\n\nlet task;\nswitch (action) {\n  case 'check_phone':\n    task = `Trên tài khoản Zalo ${accountId}: mở \"Thêm bạn\" và tìm theo số ${p.phone}. Nếu hiện hồ sơ người dùng -> has_zalo=true và lấy display_name. Nếu báo không tìm thấy -> has_zalo=false. ${rule} Định dạng: {\"status\":\"ok\",\"data\":{\"has_zalo\":true,\"display_name\":\"...\"}}`;\n    break;\n  case 'add_friend':\n    task = `Trên tài khoản Zalo ${accountId}: gửi lời mời kết bạn tới số ${p.phone} kèm lời nhắn: \"${p.message}\". ${rule} Định dạng: {\"status\":\"ok\"}`;\n    break;\n  case 'send_message':\n    task = `Trên tài khoản Zalo ${accountId}: gửi tin nhắn tới số ${p.phone} với nội dung: \"${p.message}\". ${rule} Định dạng: {\"status\":\"ok\"}`;\n    break;\n  case 'add_group':\n    task = `Trên tài khoản Zalo ${accountId}: mời số ${p.phone} vào nhóm ${p.groupId}. ${rule} Định dạng: {\"status\":\"ok\"}`;\n    break;\n  case 'fb_like':\n    task = `Trên tài khoản Facebook ${accountId}: mở bài ${p.postId} và bấm Thích. ${rule} Định dạng: {\"status\":\"ok\"}`;\n    break;\n  case 'fb_comment':\n    task = `Trên tài khoản Facebook ${accountId}: mở bài ${p.postId} và bình luận ĐÚNG NGUYÊN VĂN (không sửa, không thêm): \"${p.text}\". ${rule} Định dạng: {\"status\":\"ok\"}`;\n    break;\n  default:\n    throw new Error(`action không hợp lệ: ${action}`);\n}\n\nreturn [{ json: { action, accountId, prompt: task, correlation_id: body.correlation_id || '' } }];"
+      },
+      "id": "build-prompt",
+      "name": "Build OpenClaw Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.OPENCLAW_GATEWAY_URL || 'http://kodo_openclaw:18789/api/v1/message' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.OPENCLAW_GATEWAY_TOKEN }}"
+            },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ channel: 'api', message: $json.prompt, wait_for_response: true, timeout_ms: 110000 }) }}",
+        "options": { "timeout": 115000 }
+      },
+      "id": "call-gateway",
+      "name": "Call OpenClaw Gateway",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Trích JSON nghiêm ngặt từ câu trả lời agent, chuẩn hóa về {status,data,message}.\nconst res = $input.first().json || {};\n\n// Tìm text trả lời ở vài field khả dĩ của gateway.\nlet reply = res.response ?? res.reply ?? res.text ?? res.message ?? res.data?.response ?? res.data?.message ?? '';\nif (typeof reply === 'object' && reply !== null) {\n  reply = reply.text ?? JSON.stringify(reply);\n}\nreply = String(reply || '');\n\nfunction extractJson(s) {\n  const start = s.indexOf('{');\n  const end = s.lastIndexOf('}');\n  if (start === -1 || end === -1 || end < start) return null;\n  try { return JSON.parse(s.slice(start, end + 1)); } catch { return null; }\n}\n\nlet out = extractJson(reply);\nif (!out || typeof out.status !== 'string') {\n  out = { status: 'error', message: `Không parse được JSON từ agent: ${reply.slice(0, 300)}` };\n}\nif (!['ok', 'checkpoint', 'error'].includes(out.status)) out.status = 'error';\n\nreturn [{ json: out }];"
+      },
+      "id": "normalize",
+      "name": "Normalize Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond to Pipeline",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1200, 300]
+    }
+  ],
+  "connections": {
+    "Webhook /bds-action": {
+      "main": [[{ "node": "Build OpenClaw Prompt", "type": "main", "index": 0 }]]
+    },
+    "Build OpenClaw Prompt": {
+      "main": [[{ "node": "Call OpenClaw Gateway", "type": "main", "index": 0 }]]
+    },
+    "Call OpenClaw Gateway": {
+      "main": [[{ "node": "Normalize Response", "type": "main", "index": 0 }]]
+    },
+    "Normalize Response": {
+      "main": [[{ "node": "Respond to Pipeline", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" }
+}

@@ -1,0 +1,9 @@
+id,category,question,answer,keywords,priority,active,updated_at
+DA001-001,Tổng quan,Dự án Vinhome Q9 là gì?,"Khu căn hộ cao cấp tại TP Thủ Đức (Q9 cũ), gồm các tháp căn hộ 1-3PN, tiện ích nội khu đầy đủ.","tổng quan,giới thiệu,vinhome q9",1,TRUE,2026-06-03
+DA001-002,Vị trí,Dự án nằm ở đâu?,"Mặt tiền đường lớn TP Thủ Đức, gần cao tốc, cách trung tâm Q1 khoảng 30 phút.","vị trí,địa chỉ,ở đâu",1,TRUE,2026-06-03
+DA001-003,Giá,Giá căn 2PN bao nhiêu?,"Căn 2PN diện tích ~60-70m2, giá từ khoảng 3.2 tỷ (đã gồm VAT, chưa phí bảo trì). Vui lòng xác nhận bảng giá mới nhất với phòng kinh doanh.","giá,2pn,bảng giá,bao nhiêu",1,TRUE,2026-06-03
+DA001-004,Chính sách,Có chính sách trả góp không?,"Hỗ trợ vay tới 70% giá trị căn hộ, ân hạn gốc/lãi theo từng đợt mở bán. Chi tiết theo chương trình hiện hành.","trả góp,vay,chính sách,ngân hàng",1,TRUE,2026-06-03
+DA001-005,Pháp lý,Sổ hồng thế nào?,"Sổ hồng lâu dài cho khách mua, bàn giao theo tiến độ. (Xác nhận tình trạng pháp lý mới nhất trước khi cam kết với khách.)","pháp lý,sổ hồng,sổ",1,TRUE,2026-06-03
+DA001-006,Tiến độ,Khi nào bàn giao?,"Dự kiến bàn giao theo tiến độ từng tháp; vui lòng hỏi phòng kinh doanh để có mốc chính xác nhất.","tiến độ,bàn giao,khi nào",2,TRUE,2026-06-03
+DA001-007,Tiện ích,Có tiện ích gì?,"Hồ bơi, gym, công viên nội khu, trường học, khu mua sắm, an ninh 24/7.","tiện ích,hồ bơi,gym,trường học",2,TRUE,2026-06-03
+DA001-008,USP,Điểm nổi bật của dự án?,"Vị trí kết nối tốt, thương hiệu uy tín, tiện ích đồng bộ, tiềm năng tăng giá khu Đông.","usp,nổi bật,ưu điểm,lợi thế",1,TRUE,2026-06-03

@@ -1,0 +1,8 @@
+platform,action,limit_per_account_per_day,limit_account_new,delay_min_seconds,delay_max_seconds,active_hours,note
+zalo,add_friend,20,8,60,180,08:00-22:00,Acc mới dùng cột limit_account_new
+zalo,message_new,30,12,60,180,08:00-22:00,Tin nhắn tới người chưa là bạn
+zalo,add_group,10,5,90,240,08:00-22:00,Add ồ ạt dễ bị báo xấu
+zalo,check_phone,40,20,45,120,08:00-22:00,Mô phỏng tìm bạn qua SĐT
+facebook,comment,15,8,90,240,08:00-22:00,Không comment 2 bài liên tiếp
+facebook,scrape,200,100,30,90,07:00-23:00,Giãn lệnh quét tránh rate-limit
+global,break_on_checkpoint,1,1,0,0,24h,Gặp captcha/checkpoint thì dừng acc + cảnh báo

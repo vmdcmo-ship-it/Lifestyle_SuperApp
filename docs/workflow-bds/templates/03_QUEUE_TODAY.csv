@@ -1,0 +1,3 @@
+phone,name,account_id,action,priority,project_id,scheduled_at,status,attempt_count,last_error
+84899532210,Nguyen Van A,zalo_acc01,check_zalo,1,DA001,2026-06-03T09:00:00+07:00,pending,0,
+84912345678,Tran Thi B,zalo_acc02,check_zalo,2,FIN001,2026-06-03T09:02:30+07:00,pending,0,

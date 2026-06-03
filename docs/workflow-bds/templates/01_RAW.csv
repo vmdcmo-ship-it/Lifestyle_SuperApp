@@ -1,0 +1,3 @@
+uid,fb_id,name_fb,raw_text,phone_raw,source_group,project_id,collected_by,created_at,note
+100000123456789,fb_abc,Nguyen Van A,"Mình đang tìm căn 2pn quận 9 tầm 3 tỷ, ai tư vấn ib mình nha",khong tam chin nam ba hai mot khong,Group Mua Ban BDS Quan 9,DA001,scraper_acc01,2026-06-03T08:15:00+07:00,
+100000987654321,fb_xyz,Tran Thi B,"Cần vay mua nhà lãi suất tốt, sđt 0912345678",0912345678,Group Vay Mua Nha,FIN001,scraper_acc01,2026-06-03T08:17:30+07:00,
