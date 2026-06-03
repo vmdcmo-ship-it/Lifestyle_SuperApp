@@ -1,0 +1,31 @@
+{
+  "name": "@lifestyle/bds-executor-service",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Service Playwright thực thi hành động Zalo/Facebook theo HTTP contract của workflow-bds-pipeline (thay OpenClaw/stub). Pipeline lo phần AI; service này chỉ thao tác trình duyệt deterministic.",
+  "type": "module",
+  "bin": {
+    "bds-executor": "dist/server.js",
+    "bds-login": "dist/login.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "tsx src/server.ts",
+    "login": "tsx src/login.ts",
+    "smoke": "node scripts/smoke.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "postinstall": "playwright install chromium"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "playwright": "^1.49.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
