@@ -1,0 +1,4 @@
+phone,account_id,action,project_id,project_name,lead_name,lead_need,group_id,group_name,approved
+84980532116,zalo_acc01,add_friend,DA001,Vinhome Q9,Le Van C,mua can ho 2pn quan 9,,,TRUE
+84980532116,zalo_acc01,add_group,DA001,Vinhome Q9,Le Van C,,grp_da001_canho,Can ho Vinhome Q9,TRUE
+84900000000,zalo_acc04,add_friend,DA001,Vinhome Q9,Test CK,checkpoint test,,,TRUE

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+service-account.json
+safety-state.json
+*-results*.csv
+CLEAN.csv
+scripts/smoke-*state.json

@@ -1,0 +1,44 @@
+{
+  "name": "@lifestyle/workflow-bds-pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pipeline lọc RAW -> CLEAN cho Workflow bán hàng BĐS: chuẩn hóa SĐT, khử trùng, đối chiếu CRM, chấm điểm Lead (Claude API).",
+  "type": "module",
+  "bin": {
+    "bds-clean": "dist/cli.js",
+    "bds-kb-sync": "dist/cli-kb-sync.js",
+    "bds-kb-query": "dist/cli-kb-query.js",
+    "bds-advisor": "dist/cli-advisor.js",
+    "bds-zalo-check": "dist/cli-zalo-check.js",
+    "bds-outreach": "dist/cli-outreach.js",
+    "bds-fb-comment": "dist/cli-fb-comment.js",
+    "bds-crm": "dist/cli-crm.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "tsx src/cli.ts",
+    "kb:sync": "tsx src/cli-kb-sync.ts",
+    "kb:query": "tsx src/cli-kb-query.ts",
+    "advisor": "tsx src/cli-advisor.ts",
+    "zalo:check": "tsx src/cli-zalo-check.ts",
+    "outreach": "tsx src/cli-outreach.ts",
+    "fb:comment": "tsx src/cli-fb-comment.ts",
+    "crm": "tsx src/cli-crm.ts",
+    "stub": "node scripts/openclaw-stub.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@qdrant/js-client-rest": "^1.18.0",
+    "dotenv": "^17.4.2",
+    "googleapis": "^173.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
