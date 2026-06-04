@@ -1,0 +1,2 @@
+zalo_group_name,display_name,role,likely_role,friend_status,has_facebook,phone,added_to_sheet_at,next_action,note
+,,,member|admin|deputy,buyer|agent|unclear,none|requested|friends|unfriended,TRUE|FALSE,,,observe|add_friend|skip_admin,

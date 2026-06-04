@@ -1,0 +1,2 @@
+source_fb_post_url,zalo_link,link_type,found_at,joined,joined_at,observe_until,group_mode,note
+,,text_comment,,FALSE,,,member_chat|admin_only_dm,link_type: text_comment | qr_image | post_body

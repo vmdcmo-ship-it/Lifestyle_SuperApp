@@ -21,6 +21,16 @@ Tạo 1 Google Sheet mới tên `WORKFLOW_BDS_OPS`, rồi import từng CSV thà
 | 7 | `07_FB_POSTS_QUEUE.csv` | `FB_POSTS_QUEUE` | Hàng đợi comment bài Facebook |
 | 8 | `08_CONVERSATIONS.csv` | `CONVERSATIONS` | Log hội thoại để trích Lead vào CRM |
 
+### Tab bổ sung — luồng FB → Zalo (xem [WORKFLOW_FB_ZALO_FUNNEL.md](../WORKFLOW_FB_ZALO_FUNNEL.md))
+
+| File CSV | Tab | Vai trò |
+|---|---|---|
+| `FB_KEYWORDS.csv` | `FB_KEYWORDS` | Từ khóa tìm nhóm FB (đa vertical) |
+| `FB_GROUPS_JOINED.csv` | `FB_GROUPS_JOINED` | Nhóm đã join + `first_comment_after` (+3 ngày) |
+| `ZALO_LINKS_FOUND.csv` | `ZALO_LINKS_FOUND` | Link/QR Zalo trích từ post FB |
+| `ZALO_GROUP_MEMBERS.csv` | `ZALO_GROUP_MEMBERS` | Member + role admin/phó |
+| `FRIEND_FOLLOWUP.csv` | `FRIEND_FOLLOWUP` | Nhắc FB trước khi unfriend Zalo |
+
 **Cách import 1 tab**: File → Import → Upload → chọn CSV → "Insert new sheet(s)" → đổi tên tab cho đúng.
 
 > Tab tên `CONFIG` (không phải `CONFIG_QUOTA_DELAY`). Các tab kết quả `ZALO_CHECK_RESULTS`, `OUTREACH_RESULTS`, `FB_COMMENT_RESULTS` **không cần tạo trước** — pipeline tự ghi đè khi chạy `--source sheets`.

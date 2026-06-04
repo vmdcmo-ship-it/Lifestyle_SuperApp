@@ -8,8 +8,10 @@
 > - [Quy trình Triển khai Deploy](../QUY_TRINH_TRIEN_KHAI_DEPLOY.md) — khi deploy lên VPS
 > - [OpenClaw Quick Reference](../../openclaw-kodo/OPENCLAW_QUICK_REFERENCE.md)
 >
-> **Trạng thái**: 🟢 P0–P7 đã build & test (logic + Claude/Voyage/Qdrant thật) trong `tools/workflow-bds-pipeline`. Còn lại: ghép OpenClaw thật (Zalo/FB executor), cấp Google Service Account, deploy Qdrant lên VPS, rồi go-live.
-> **Phiên bản tài liệu**: v1.1 — Cập nhật: 2026-06-03
+> **Trạng thái**: 🟢 P0–P7 đã build & test (logic + Claude/Voyage/Qdrant thật) trong `tools/workflow-bds-pipeline`. Executor Playwright (`bds-executor-service`) đã có Zalo/FB/Fanpage/join group. Còn lại: luồng **FB→link Zalo→nuôi nhóm** (xem doc dưới), orchestrator timing, go-live VPS.
+> **Phiên bản tài liệu**: v1.2 — Cập nhật: 2026-06-04
+>
+> **Vận hành go-live (BẮT BUỘC đọc)**: [WORKFLOW_FB_ZALO_FUNNEL.md](./WORKFLOW_FB_ZALO_FUNNEL.md) — quy tắc 3 ngày comment FB, 2 ngày quan sát Zalo, admin-only nhóm, nhắc FB trước unfriend.
 
 ---
 

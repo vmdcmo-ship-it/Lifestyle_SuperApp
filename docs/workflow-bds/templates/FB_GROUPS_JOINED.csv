@@ -1,0 +1,2 @@
+group_id,group_name,keyword_source,joined_at,first_comment_after,scan_enabled,note
+,,,2026-06-04,2026-06-07,TRUE,first_comment_after = joined_at + 3 ngay

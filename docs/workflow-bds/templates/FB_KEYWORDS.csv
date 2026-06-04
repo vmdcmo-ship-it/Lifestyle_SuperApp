@@ -1,0 +1,8 @@
+keyword,vertical,priority,enabled,note
+bất động sản,bds_direct,medium,TRUE,Trùng data nhiều - dùng hạn chế
+nhà đất sài gòn,bds_direct,medium,TRUE,
+thẩm mỹ viện,lifestyle_upward,high,TRUE,Nhu cầu ẩn: tích lũy / mua nhà
+spa làm đẹp,lifestyle_upward,high,TRUE,
+đầu tư chứng khoán,investor,high,TRUE,Map sang BĐS / tài sản
+vay mua nhà,finance_adjacent,high,TRUE,
+mua căn hộ,bds_direct,low,TRUE,Ưu tiên thấp nếu trùng CRM
