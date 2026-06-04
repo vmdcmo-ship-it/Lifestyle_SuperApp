@@ -14,11 +14,16 @@ Tạo 1 Google Sheet mới tên `WORKFLOW_BDS_OPS`, rồi import từng CSV thà
 |---|---|---|---|
 | 1 | `01_RAW.csv` | `RAW` | Dữ liệu thô từ scraper/kênh quét |
 | 2 | `02_CLEAN.csv` | `CLEAN` | Đã chuẩn hóa SĐT + chấm điểm Lead |
-| 3 | `03_QUEUE_TODAY.csv` | `QUEUE_TODAY` | Hàng đợi hành động theo quota/ngày |
+| 3 | `03_QUEUE_TODAY.csv` | `QUEUE_TODAY` | Hàng đợi check Zalo theo quota/ngày |
 | 4 | `04_CRM.csv` | `CRM` | Lead thu được + tag + log hội thoại |
 | 5 | `05_CONFIG_QUOTA_DELAY.csv` | `CONFIG` | Hạn ngạch & delay chống checkpoint |
+| 6 | `06_OUTREACH_QUEUE.csv` | `OUTREACH_QUEUE` | Hàng đợi kết bạn/nhắn tin/kéo nhóm Zalo |
+| 7 | `07_FB_POSTS_QUEUE.csv` | `FB_POSTS_QUEUE` | Hàng đợi comment bài Facebook |
+| 8 | `08_CONVERSATIONS.csv` | `CONVERSATIONS` | Log hội thoại để trích Lead vào CRM |
 
 **Cách import 1 tab**: File → Import → Upload → chọn CSV → "Insert new sheet(s)" → đổi tên tab cho đúng.
+
+> Tab tên `CONFIG` (không phải `CONFIG_QUOTA_DELAY`). Các tab kết quả `ZALO_CHECK_RESULTS`, `OUTREACH_RESULTS`, `FB_COMMENT_RESULTS` **không cần tạo trước** — pipeline tự ghi đè khi chạy `--source sheets`.
 
 ---
 

@@ -105,11 +105,24 @@ npm run kb:sync -- --source sheets --sheet-id <SPREADSHEET_ID>
 npm run kb:query -- --project DA001 --query "giá căn 2 phòng ngủ bao nhiêu" --topk 3
 ```
 
-## Pipeline RAW→CLEAN trực tiếp trên Google Sheets
+## Google Sheets thay CSV (mọi CLI hành động)
+
+Tất cả CLI đều nhận `--source sheets` để đọc/ghi **tab** trong 1 Google Sheet vận hành thay vì file CSV. Cần `--sheet-id <OPS_SHEET_ID>` (hoặc đặt `OPS_SHEET_ID` trong `.env`) + service account đã share quyền sửa Sheet.
 
 ```bash
+# RAW -> CLEAN
 npm run clean -- --source sheets --sheet-id <OPS_SHEET_ID>
+# Check Zalo: đọc tab QUEUE_TODAY + CONFIG -> ghi tab ZALO_CHECK_RESULTS
+npm run zalo:check -- --source sheets --sheet-id <OPS_SHEET_ID> --executor openclaw
+# Outreach: đọc OUTREACH_QUEUE + CONFIG -> ghi OUTREACH_RESULTS
+npm run outreach   -- --source sheets --sheet-id <OPS_SHEET_ID> --executor openclaw
+# FB comment: đọc FB_POSTS_QUEUE + CONFIG -> ghi FB_COMMENT_RESULTS
+npm run fb:comment -- --source sheets --sheet-id <OPS_SHEET_ID> --executor openclaw
+# CRM: đọc CONVERSATIONS -> APPEND vào CRM
+npm run crm        -- --source sheets --sheet-id <OPS_SHEET_ID>
 ```
+
+Tên tab mặc định khớp `docs/workflow-bds/templates/README_IMPORT.md`. Có thể đổi qua cờ `--queue-tab`, `--config-tab`, `--result-tab`, `--input-tab`. Bỏ `--source sheets` → quay về chế độ CSV cũ (`--queue/--config/--output/--input`), không phá vỡ luồng hiện có.
 
 ## Cấu hình `.env` (P2)
 

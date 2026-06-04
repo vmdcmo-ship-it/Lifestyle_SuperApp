@@ -23,8 +23,25 @@ export class GoogleSheetsClient {
     return valuesToRecords(values);
   }
 
-  /** Ghi đè toàn bộ 1 tab bằng headers + rows (clear trước khi ghi). */
+  /** Tạo tab nếu chưa tồn tại (dùng cho các tab kết quả tự sinh). */
+  async ensureTab(tabName: string): Promise<void> {
+    const meta = await this.sheets.spreadsheets.get({
+      spreadsheetId: this.spreadsheetId,
+      fields: 'sheets.properties.title',
+    });
+    const exists = (meta.data.sheets ?? []).some((s) => s.properties?.title === tabName);
+    if (exists) {
+      return;
+    }
+    await this.sheets.spreadsheets.batchUpdate({
+      spreadsheetId: this.spreadsheetId,
+      requestBody: { requests: [{ addSheet: { properties: { title: tabName } } }] },
+    });
+  }
+
+  /** Ghi đè toàn bộ 1 tab bằng headers + rows (tự tạo tab nếu thiếu, clear trước khi ghi). */
   async overwriteTab(tabName: string, headers: string[], rows: Array<Record<string, string>>): Promise<void> {
+    await this.ensureTab(tabName);
     await this.sheets.spreadsheets.values.clear({ spreadsheetId: this.spreadsheetId, range: tabName });
     const matrix = [headers, ...rows.map((row) => headers.map((h) => row[h] ?? ''))];
     await this.sheets.spreadsheets.values.update({
@@ -35,18 +52,25 @@ export class GoogleSheetsClient {
     });
   }
 
-  /** Thêm các dòng vào cuối tab (không xóa dữ liệu cũ). */
+  /** Thêm các dòng vào cuối tab (tự tạo tab + ghi header nếu tab trống/mới). */
   async appendRows(tabName: string, headers: string[], rows: Array<Record<string, string>>): Promise<void> {
     if (rows.length === 0) {
       return;
     }
+    await this.ensureTab(tabName);
+    const existing = await this.sheets.spreadsheets.values.get({
+      spreadsheetId: this.spreadsheetId,
+      range: `${tabName}!1:1`,
+    });
+    const hasHeader = (existing.data.values?.[0] ?? []).length > 0;
     const matrix = rows.map((row) => headers.map((h) => row[h] ?? ''));
+    const values = hasHeader ? matrix : [headers, ...matrix];
     await this.sheets.spreadsheets.values.append({
       spreadsheetId: this.spreadsheetId,
       range: `${tabName}!A1`,
       valueInputOption: 'RAW',
       insertDataOption: 'INSERT_ROWS',
-      requestBody: { values: matrix },
+      requestBody: { values },
     });
   }
 }

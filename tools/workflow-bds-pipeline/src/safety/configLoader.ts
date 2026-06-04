@@ -14,7 +14,11 @@ export class QuotaConfig {
   }
 
   static async fromCsv(path: string): Promise<QuotaConfig> {
-    const records = parseCsv(await readFile(path, 'utf8'));
+    return QuotaConfig.fromRecords(parseCsv(await readFile(path, 'utf8')));
+  }
+
+  /** Nạp từ records (dùng chung cho CSV và Google Sheets). */
+  static fromRecords(records: Array<Record<string, string>>): QuotaConfig {
     const rules: QuotaRule[] = records
       .filter((r) => (r.platform ?? '').trim() !== '')
       .map((r) => ({

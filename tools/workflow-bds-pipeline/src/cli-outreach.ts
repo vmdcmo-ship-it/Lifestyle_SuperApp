@@ -1,8 +1,7 @@
-import { readFile, writeFile } from 'node:fs/promises';
 import { Advisor } from './advisor/advisor.js';
 import { loadPersona } from './advisor/persona.js';
 import { loadAdvisorConfig, loadEmbeddingConfig, loadQdrantConfig } from './config.js';
-import { parseCsv, toCsv } from './csv.js';
+import { OPS_TABS, createRecordStore } from './store/recordStore.js';
 import { createEmbedder } from './embeddings/factory.js';
 import { KbRetriever } from './kb/retriever.js';
 import { ContentGenerator } from './outreach/contentGenerator.js';
@@ -34,8 +33,7 @@ function parseFlags(argv: string[]): Map<string, string> {
   return map;
 }
 
-async function loadTasks(path: string): Promise<OutreachTask[]> {
-  const records = parseCsv(await readFile(path, 'utf8'));
+function toTasks(records: Array<Record<string, string>>): OutreachTask[] {
   return records
     .filter((r) => (r.phone ?? '').trim() !== '')
     .map((r) => {
@@ -57,13 +55,26 @@ async function loadTasks(path: string): Promise<OutreachTask[]> {
 
 async function main(): Promise<void> {
   const flags = parseFlags(process.argv.slice(2));
-  const queuePath = flags.get('queue');
-  const configPath = flags.get('config');
-  if (!queuePath || !configPath) {
-    throw new Error('Cần --queue <OUTREACH.csv> và --config <CONFIG.csv>.');
+  const { store: recordStore, mode } = createRecordStore(flags);
+
+  let queueKey: string;
+  let configKey: string;
+  let outputKey: string;
+  if (mode === 'sheets') {
+    queueKey = flags.get('queue-tab') ?? OPS_TABS.outreachQueue;
+    configKey = flags.get('config-tab') ?? OPS_TABS.config;
+    outputKey = flags.get('result-tab') ?? OPS_TABS.outreachResults;
+  } else {
+    const queuePath = flags.get('queue');
+    const configPath = flags.get('config');
+    if (!queuePath || !configPath) {
+      throw new Error('Chế độ csv cần --queue <OUTREACH.csv> và --config <CONFIG.csv>.');
+    }
+    queueKey = queuePath;
+    configKey = configPath;
+    outputKey = flags.get('output') ?? './outreach-results.csv';
   }
   const statePath = flags.get('state') ?? './safety-state.json';
-  const outputPath = flags.get('output') ?? './outreach-results.csv';
   const fast = flags.get('fast') === 'true';
   const checkpointRate = Number(flags.get('checkpoint-rate') ?? '0');
 
@@ -75,7 +86,7 @@ async function main(): Promise<void> {
   const advisor = new Advisor(advisorConfig, persona, retriever);
   const content = new ContentGenerator(persona, advisor);
 
-  const quotaConfig = await QuotaConfig.fromCsv(configPath);
+  const quotaConfig = QuotaConfig.fromRecords(await recordStore.read(configKey));
   const state = await SafetyStateStore.load(statePath);
   const quota = new QuotaManager(quotaConfig, state);
   const executor = createOutreachExecutor(flags.get('executor'), { checkpointRate });
@@ -86,7 +97,7 @@ async function main(): Promise<void> {
   }
   const runner = new OutreachRunner(quota, executor, content, options);
 
-  const tasks = await loadTasks(queuePath);
+  const tasks = toTasks(await recordStore.read(queueKey));
   const report = await runner.run(tasks);
   await state.save();
 
@@ -98,7 +109,7 @@ async function main(): Promise<void> {
     reason: r.reason ?? '',
     content: r.content,
   }));
-  await writeFile(outputPath, toCsv(RESULT_HEADERS, rows), 'utf8');
+  await recordStore.overwrite(outputKey, RESULT_HEADERS, rows);
 
   process.stdout.write(
     [
@@ -107,7 +118,7 @@ async function main(): Promise<void> {
       `Chờ duyệt (draft): ${report.pendingApproval}`,
       `Bỏ qua: ${report.skipped}`,
       `Account bị phanh: ${report.pausedAccounts.join(', ') || '-'}`,
-      `Kết quả (kèm nội dung): ${outputPath}`,
+      `Kết quả (kèm nội dung): ${recordStore.label(outputKey)}`,
       '',
     ].join('\n'),
   );

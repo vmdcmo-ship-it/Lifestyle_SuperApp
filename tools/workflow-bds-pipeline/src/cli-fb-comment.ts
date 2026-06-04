@@ -1,7 +1,6 @@
-import { readFile, writeFile } from 'node:fs/promises';
 import { loadAdvisorConfig, loadPipelineConfig } from './config.js';
 import { loadPersona } from './advisor/persona.js';
-import { parseCsv, toCsv } from './csv.js';
+import { OPS_TABS, createRecordStore } from './store/recordStore.js';
 import { CommentGenerator } from './fb/commentGenerator.js';
 import { createFbExecutor } from './executors/factory.js';
 import { FbCommentRunner, type FbRunnerOptions } from './fb/runner.js';
@@ -29,8 +28,7 @@ function parseFlags(argv: string[]): Map<string, string> {
   return map;
 }
 
-async function loadPosts(path: string): Promise<FbPost[]> {
-  const records = parseCsv(await readFile(path, 'utf8'));
+function toPosts(records: Array<Record<string, string>>): FbPost[] {
   return records
     .filter((r) => (r.post_id ?? '').trim() !== '')
     .map((r) => ({
@@ -47,13 +45,26 @@ async function loadPosts(path: string): Promise<FbPost[]> {
 
 async function main(): Promise<void> {
   const flags = parseFlags(process.argv.slice(2));
-  const queuePath = flags.get('queue');
-  const configPath = flags.get('config');
-  if (!queuePath || !configPath) {
-    throw new Error('Cần --queue <FB_POSTS.csv> và --config <CONFIG.csv>.');
+  const { store, mode } = createRecordStore(flags);
+
+  let queueKey: string;
+  let configKey: string;
+  let outputKey: string;
+  if (mode === 'sheets') {
+    queueKey = flags.get('queue-tab') ?? OPS_TABS.fbPostsQueue;
+    configKey = flags.get('config-tab') ?? OPS_TABS.config;
+    outputKey = flags.get('result-tab') ?? OPS_TABS.fbCommentResults;
+  } else {
+    const queuePath = flags.get('queue');
+    const configPath = flags.get('config');
+    if (!queuePath || !configPath) {
+      throw new Error('Chế độ csv cần --queue <FB_POSTS.csv> và --config <CONFIG.csv>.');
+    }
+    queueKey = queuePath;
+    configKey = configPath;
+    outputKey = flags.get('output') ?? './fb-comment-results.csv';
   }
   const statePath = flags.get('state') ?? './safety-state.json';
-  const outputPath = flags.get('output') ?? './fb-comment-results.csv';
   const fast = flags.get('fast') === 'true';
   const checkpointRate = Number(flags.get('checkpoint-rate') ?? '0');
 
@@ -70,7 +81,7 @@ async function main(): Promise<void> {
     persona,
   );
 
-  const quotaConfig = await QuotaConfig.fromCsv(configPath);
+  const quotaConfig = QuotaConfig.fromRecords(await store.read(configKey));
   const state = await SafetyStateStore.load(statePath);
   const quota = new QuotaManager(quotaConfig, state);
   const executor = createFbExecutor(flags.get('executor'), { checkpointRate });
@@ -81,7 +92,7 @@ async function main(): Promise<void> {
   }
   const runner = new FbCommentRunner(quota, executor, generator, options);
 
-  const posts = await loadPosts(queuePath);
+  const posts = toPosts(await store.read(queueKey));
   const report = await runner.run(posts);
   await state.save();
 
@@ -94,7 +105,7 @@ async function main(): Promise<void> {
     reason: r.reason ?? '',
     comment: r.comment,
   }));
-  await writeFile(outputPath, toCsv(RESULT_HEADERS, rows), 'utf8');
+  await store.overwrite(outputKey, RESULT_HEADERS, rows);
 
   process.stdout.write(
     [
@@ -104,7 +115,7 @@ async function main(): Promise<void> {
       `Bỏ qua không phù hợp: ${report.notRelevant}`,
       `Bỏ qua (quota/giờ/nhóm): ${report.skipped}`,
       `Account bị phanh: ${report.pausedAccounts.join(', ') || '-'}`,
-      `Kết quả (kèm comment): ${outputPath}`,
+      `Kết quả (kèm comment): ${store.label(outputKey)}`,
       '',
     ].join('\n'),
   );

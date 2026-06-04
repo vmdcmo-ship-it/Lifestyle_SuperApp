@@ -5,6 +5,7 @@ import { CrmExtractor } from './crm/extractor.js';
 import { buildReport, renderReport } from './crm/report.js';
 import type { ConversationInput, CrmLead } from './crm/types.js';
 import { GoogleSheetsClient } from './sheets/googleSheets.js';
+import { OPS_TABS, createRecordStore } from './store/recordStore.js';
 
 const CRM_HEADERS = [
   'phone',
@@ -41,8 +42,7 @@ function parseFlags(argv: string[]): Map<string, string> {
   return map;
 }
 
-async function loadConversations(path: string): Promise<ConversationInput[]> {
-  const records = parseCsv(await readFile(path, 'utf8'));
+function toConversations(records: Array<Record<string, string>>): ConversationInput[] {
   return records
     .filter((r) => (r.phone ?? '').trim() !== '')
     .map((r) => ({
@@ -76,11 +76,7 @@ function leadToRecord(lead: CrmLead, log: string): Record<string, string> {
 
 async function main(): Promise<void> {
   const flags = parseFlags(process.argv.slice(2));
-  const input = flags.get('input');
-  if (!input) {
-    throw new Error('Cần --input <CONVERSATIONS.csv>. Tùy chọn: --output, --sheet-id.');
-  }
-  const outputPath = flags.get('output') ?? './crm-leads.csv';
+  const { store, mode } = createRecordStore(flags);
 
   const config = loadPipelineConfig();
   if (!config.anthropicApiKey) {
@@ -88,7 +84,18 @@ async function main(): Promise<void> {
   }
   const extractor = new CrmExtractor(config.anthropicApiKey, config.claudeModel);
 
-  const conversations = await loadConversations(input);
+  let inputKey: string;
+  if (mode === 'sheets') {
+    inputKey = flags.get('input-tab') ?? OPS_TABS.conversations;
+  } else {
+    const input = flags.get('input');
+    if (!input) {
+      throw new Error('Chế độ csv cần --input <CONVERSATIONS.csv>. Tùy chọn: --output, --sheet-id.');
+    }
+    inputKey = input;
+  }
+
+  const conversations = toConversations(await store.read(inputKey));
   const leads: CrmLead[] = [];
   const records: Array<Record<string, string>> = [];
   for (const convo of conversations) {
@@ -97,17 +104,24 @@ async function main(): Promise<void> {
     records.push(leadToRecord(lead, convo.log));
   }
 
-  await writeFile(outputPath, toCsv(OUTPUT_HEADERS, records), 'utf8');
-
-  const sheetId = flags.get('sheet-id');
-  if (sheetId) {
-    const sheetsConfig = loadGoogleSheetsConfig();
-    const client = new GoogleSheetsClient(sheetsConfig.serviceAccountJsonPath, sheetId);
-    await client.appendRows('CRM', CRM_HEADERS, records);
-    process.stdout.write(`Đã ghi ${records.length} Lead vào tab CRM của sheet ${sheetId}\n`);
+  if (mode === 'sheets') {
+    const crmTab = flags.get('result-tab') ?? OPS_TABS.crm;
+    await store.append(crmTab, CRM_HEADERS, records);
+    process.stdout.write(`Đã thêm ${records.length} Lead vào tab ${crmTab}.\n`);
+  } else {
+    const outputPath = flags.get('output') ?? './crm-leads.csv';
+    await writeFile(outputPath, toCsv(OUTPUT_HEADERS, records), 'utf8');
+    process.stdout.write(`Đã ghi: ${outputPath}\n`);
+    const sheetId = flags.get('sheet-id');
+    if (sheetId) {
+      const sheetsConfig = loadGoogleSheetsConfig();
+      const client = new GoogleSheetsClient(sheetsConfig.serviceAccountJsonPath, sheetId);
+      await client.appendRows('CRM', CRM_HEADERS, records);
+      process.stdout.write(`Đã thêm ${records.length} Lead vào tab CRM của sheet ${sheetId}.\n`);
+    }
   }
 
-  process.stdout.write(`\n${renderReport(buildReport(leads))}\n\nĐã ghi: ${outputPath}\n`);
+  process.stdout.write(`\n${renderReport(buildReport(leads))}\n`);
 }
 
 main().catch((err: unknown) => {
