@@ -6,11 +6,19 @@ import { CHECKPOINT, ERROR, OK, type ActionName, type ActionParams, type ActionR
  * Quy ước tất định (giống stub): chứa "0000" -> checkpoint; "9999" -> error;
  * check_phone: SĐT lẻ -> no_zalo, chẵn -> has_zalo.
  */
-const VALID: ActionName[] = ['check_phone', 'add_friend', 'send_message', 'add_group', 'fb_like', 'fb_comment'];
+const VALID: ActionName[] = [
+  'check_phone',
+  'add_friend',
+  'send_message',
+  'add_group',
+  'fb_like',
+  'fb_comment',
+  'fb_message',
+];
 
 export function runMock(action: ActionName, params: ActionParams): ActionResponse {
   if (!VALID.includes(action)) return ERROR(`action không hợp lệ: ${String(action)}`);
-  const probe = `${params.phone ?? ''}${params.postId ?? ''}${params.groupId ?? ''}`;
+  const probe = `${params.phone ?? ''}${params.postId ?? ''}${params.groupId ?? ''}${params.recipientId ?? ''}`;
   if (probe.includes('0000')) return CHECKPOINT('mock: checkpoint mô phỏng');
   if (probe.includes('9999')) return ERROR('mock: lỗi mô phỏng');
 

@@ -15,35 +15,51 @@ export interface SelectorSet {
 }
 
 export const ZALO = {
-  // Nút mở popup "Thêm bạn"
+  // Ô tìm kiếm chính (đã xác nhận qua probe)
+  searchInput: ['[data-id="txt_Main_Search"]', 'input[placeholder*="Tìm kiếm" i]'],
+  // Nút tạo nhóm chat (đã xác nhận qua probe)
+  createGroupButton: ['[data-id="btn_NewGrp_"]', '[title="Tạo nhóm chat"]'],
+  // Nút mở popup "Thêm bạn" (đã xác nhận qua probe: data-id="btn_Main_AddFrd")
   addFriendButton: [
     '[data-id="btn_Main_AddFrd"]',
     '[title="Thêm bạn"]',
     'div[aria-label="Thêm bạn"]',
     'text=Thêm bạn',
   ],
-  // Ô nhập SĐT trong popup thêm bạn / tìm kiếm
+  // Ô nhập SĐT trong popup thêm bạn (đã xác nhận qua probe)
   phoneInput: [
+    '[data-id="txt_Main_AddFrd_Phone"]',
+    'input.phone-i-input',
     'input[placeholder*="số điện thoại" i]',
     'input[type="tel"]',
-    'input[placeholder*="Số điện thoại" i]',
-    '#txt-search-phone',
   ],
+  // Nút "Tìm kiếm" trong popup thêm bạn (đã xác nhận qua probe)
+  searchPhoneButton: ['[data-id="btn_Main_AddFrd_Search"]', 'text=Tìm kiếm'],
+  // Nút "Hủy" đóng popup thêm bạn (đã xác nhận qua probe)
+  addFriendCancel: ['[data-id="btn_Main_AddFrd_CXL"]', 'text=Hủy'],
   // Dấu hiệu "không tìm thấy" tài khoản
   notFound: [
     'text=/không tìm thấy/i',
     'text=/chưa có tài khoản/i',
     'text=/không có kết quả/i',
     'text=/số điện thoại chưa đăng ký/i',
+    'text=/chưa sử dụng zalo/i',
   ],
-  // Tên hiển thị hồ sơ tìm được
+  // Dấu hiệu CHẮC CHẮN SĐT có Zalo: modal chuyển sang hồ sơ "Thông tin tài khoản"
+  // (đã xác nhận qua probe: header + các nút btn_UserProfile_*)
+  accountFound: [
+    '[data-id="btn_UserProfile_Share"]',
+    '[data-id="btn_UserProfile_Unblock"]',
+    'text=Thông tin tài khoản',
+  ],
+  // Tên hiển thị hồ sơ tìm được (đã xác nhận: div.truncate[title] trong modal hồ sơ)
   profileName: [
+    'div.truncate[title]',
     '.profile-name',
     '[class*="profile"] [class*="name"]',
-    '[data-id="profile_name"]',
   ],
-  // Nút kết bạn / gửi lời mời
-  addFriendConfirm: ['text=/kết bạn/i', 'text=/gửi lời mời/i', 'button:has-text("Kết bạn")'],
+  // Nút kết bạn / gửi lời mời (div text trong kết quả tìm kiếm)
+  addFriendConfirm: ['text=Kết bạn', 'text=/kết bạn/i', 'text=/gửi lời mời/i'],
   // Ô lời nhắn kèm lời mời
   inviteMessageBox: ['textarea', '[contenteditable="true"]'],
   // Nút gửi cuối cùng
@@ -62,12 +78,38 @@ export const ZALO = {
 } as const;
 
 export const FACEBOOK = {
-  likeButton: ['[aria-label="Thích"]', '[aria-label="Like"]', 'div[role="button"]:has-text("Thích")'],
-  commentBox: [
-    '[aria-label*="bình luận" i]',
-    '[aria-label*="comment" i]',
-    'div[contenteditable="true"][role="textbox"]',
+  // Nút Like trên bài viết (đã xác nhận EN="Like"; hỗ trợ thêm VI). Khớp CHÍNH XÁC để
+  // tránh dính '[aria-label="Like: 25 people"]'.
+  likeButton: [
+    'div[aria-label="Like"][role="button"]',
+    'div[aria-label="Thích"][role="button"]',
+    '[aria-label="Like"]',
+    '[aria-label="Thích"]',
   ],
+  // Nút mở ô bình luận (đã xác nhận EN="Leave a comment"; hỗ trợ thêm VI).
+  commentButton: [
+    'div[aria-label="Leave a comment"][role="button"]',
+    'div[aria-label="Comment"][role="button"]',
+    'div[aria-label="Viết bình luận"][role="button"]',
+    'div[aria-label="Bình luận"][role="button"]',
+    '[aria-label="Leave a comment"]',
+  ],
+  // Ô soạn bình luận (contenteditable). Khớp theo aria-label EN/VI + fallback chung.
+  commentBox: [
+    'div[contenteditable="true"][aria-label*="comment" i]',
+    'div[contenteditable="true"][aria-label*="bình luận" i]',
+    'div[contenteditable="true"][role="textbox"]',
+    'div[contenteditable="true"]',
+  ],
+  // Ô soạn tin nhắn Messenger (đã xác nhận: role=textbox, aria-label "Write to <Tên>").
+  messageBox: [
+    'div[role="textbox"][contenteditable="true"][aria-label^="Write to" i]',
+    'div[role="textbox"][contenteditable="true"][aria-label*="nhắn tin" i]',
+    'div[role="textbox"][contenteditable="true"][aria-label*="viết tin" i]',
+    'div[role="textbox"][contenteditable="true"]',
+  ],
+  // Dấu hiệu hội thoại không khả dụng (chưa thể nhắn / bị chặn).
+  messageUnavailable: ['text=/can\'t reply to this conversation/i', 'text=/không thể trả lời/i'],
 } as const;
 
 export const CHECKPOINT_MARKERS = {

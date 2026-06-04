@@ -28,6 +28,8 @@ async function dispatch(req: ActionRequest): Promise<ActionResponse> {
       return facebook.like(sessions, accountId, params);
     case 'fb_comment':
       return facebook.comment(sessions, accountId, params);
+    case 'fb_message':
+      return facebook.message(sessions, accountId, params);
     default:
       return ERROR(`action không hợp lệ: ${String(action)}`);
   }

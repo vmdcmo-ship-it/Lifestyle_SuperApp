@@ -10,17 +10,45 @@ async function isCheckpoint(page: Page): Promise<boolean> {
   return detectCheckpoint(page, CHECKPOINT_MARKERS.zaloUrl, CHECKPOINT_MARKERS.bodyText);
 }
 
+/** Đóng popup "đồng bộ" nếu Zalo hiển thị sau khi vào. */
+async function dismissSyncPopup(page: Page): Promise<void> {
+  for (const t of ['Tôi không muốn đồng bộ', 'Để sau', 'Bỏ qua']) {
+    const loc = page.locator(`text=${t}`).first();
+    if (await loc.isVisible({ timeout: 800 }).catch(() => false)) {
+      await loc.click().catch(() => undefined);
+      break;
+    }
+  }
+}
+
 async function ensureReady(page: Page): Promise<ActionResponse | null> {
   if (!page.url().includes('chat.zalo.me')) {
     await page.goto(ZALO_URL, { waitUntil: 'domcontentloaded' });
-    await humanPause();
   }
   if (await isCheckpoint(page)) return CHECKPOINT('Zalo yêu cầu đăng nhập lại / xác minh');
+
+  // Tự đăng nhập + render SPA có thể mất ~10s -> chờ app shell sẵn sàng (ô tìm kiếm).
+  const ready = await page
+    .locator(ZALO.searchInput[0])
+    .first()
+    .waitFor({ state: 'visible', timeout: 30000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!ready) {
+    await dumpDebug(page, 'zalo-app-not-ready');
+    if (await isCheckpoint(page)) return CHECKPOINT('Zalo chưa đăng nhập (app không sẵn sàng)');
+    return ERROR('Zalo app chưa sẵn sàng (không thấy ô tìm kiếm) — có thể cần đăng nhập lại');
+  }
+  await dismissSyncPopup(page);
+  await humanPause(500, 1200);
   return null;
 }
 
 /** Mở popup "Thêm bạn" + tìm theo SĐT. Trả về { found, name } hoặc ném checkpoint qua response. */
 async function searchByPhone(page: Page, phone: string): Promise<ActionResponse | { found: boolean; name?: string }> {
+  // Dọn modal còn sót từ action trước (nếu có).
+  await page.keyboard.press('Escape').catch(() => undefined);
+  await humanPause(300, 700);
   if (!(await clickFirst(page, ZALO.addFriendButton))) {
     await dumpDebug(page, 'zalo-no-addfriend-button');
     return ERROR('không thấy nút "Thêm bạn" (cần tinh chỉnh selector ZALO.addFriendButton)');
@@ -31,18 +59,31 @@ async function searchByPhone(page: Page, phone: string): Promise<ActionResponse 
     return ERROR('không thấy ô nhập SĐT (cần tinh chỉnh selector ZALO.phoneInput)');
   }
   await humanPause(800, 1800);
-  await page.keyboard.press('Enter');
+  // Modal Zalo có nút "Tìm kiếm" riêng; fallback sang Enter nếu không thấy.
+  if (!(await clickFirst(page, ZALO.searchPhoneButton, 2000))) {
+    await page.keyboard.press('Enter');
+  }
   await humanPause(1200, 2200);
 
   if (await isCheckpoint(page)) return CHECKPOINT('Zalo chặn khi tìm SĐT');
   if (await anyVisible(page, ZALO.notFound)) return { found: false };
 
-  const profile = await firstVisible(page, ZALO.profileName, 4000);
+  // Dấu hiệu chắc chắn: modal hồ sơ "Thông tin tài khoản" xuất hiện.
+  if (!(await anyVisible(page, ZALO.accountFound))) return { found: false };
+
+  const profile = await firstVisible(page, ZALO.profileName, 3000);
   if (profile) {
-    const name = (await profile.innerText().catch(() => '')).trim();
+    const titleAttr = (await profile.getAttribute('title').catch(() => null)) ?? '';
+    const name = (titleAttr || (await profile.innerText().catch(() => ''))).trim();
     return name ? { found: true, name } : { found: true };
   }
-  return { found: false };
+  return { found: true };
+}
+
+/** Đóng modal thêm bạn / hồ sơ để action sau bắt đầu sạch. */
+async function closeModal(page: Page): Promise<void> {
+  await page.keyboard.press('Escape').catch(() => undefined);
+  await humanPause(300, 700);
 }
 
 export async function checkPhone(
@@ -57,6 +98,8 @@ export async function checkPhone(
   if (guard) return guard;
 
   const r = await searchByPhone(page, phone);
+  // check_phone chỉ đọc trạng thái -> đóng modal lại cho sạch.
+  await closeModal(page);
   if ('status' in r) return r;
   if (!r.found) return OK({ has_zalo: false });
   return r.name ? OK({ has_zalo: true, display_name: r.name }) : OK({ has_zalo: true });

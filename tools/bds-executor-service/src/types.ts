@@ -4,7 +4,8 @@ export type ActionName =
   | 'send_message'
   | 'add_group'
   | 'fb_like'
-  | 'fb_comment';
+  | 'fb_comment'
+  | 'fb_message';
 
 export interface ActionParams {
   phone?: string;
@@ -12,6 +13,8 @@ export interface ActionParams {
   groupId?: string;
   postId?: string;
   text?: string;
+  /** ID người dùng hoặc URL hội thoại Messenger (fb_message). */
+  recipientId?: string;
 }
 
 export interface ActionRequest {

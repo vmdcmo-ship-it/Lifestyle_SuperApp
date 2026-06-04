@@ -1,4 +1,3 @@
-import { createInterface } from 'node:readline/promises';
 import { loadConfig } from './config.js';
 import { SessionManager } from './browser/sessionManager.js';
 import { dumpDebug } from './browser/dom.js';
@@ -48,11 +47,13 @@ function buildParams(flags: Map<string, string>): ActionParams {
   const groupId = flags.get('groupId');
   const postId = flags.get('postId');
   const text = flags.get('text');
+  const recipientId = flags.get('recipientId');
   if (phone) p.phone = phone;
   if (message) p.message = message;
   if (groupId) p.groupId = groupId;
   if (postId) p.postId = postId;
   if (text) p.text = text;
+  if (recipientId) p.recipientId = recipientId;
   return p;
 }
 
@@ -67,6 +68,7 @@ async function main(): Promise<void> {
   // Inspect luôn chạy hiển thị để quan sát.
   const config = { ...loadConfig(), headless: false, backend: 'playwright' as const };
   const sessions = new SessionManager(config);
+  const context = await sessions.getContext(accountId);
   const page = await sessions.getPage(accountId);
 
   let result: ActionResponse | null = null;
@@ -95,6 +97,9 @@ async function main(): Promise<void> {
     case 'fb_comment':
       result = await facebook.comment(sessions, accountId, params);
       break;
+    case 'fb_message':
+      result = await facebook.message(sessions, accountId, params);
+      break;
     default:
       throw new Error(`flow không hợp lệ: ${flow}`);
   }
@@ -102,18 +107,34 @@ async function main(): Promise<void> {
   if (result) {
     process.stdout.write(`\nKết quả flow "${flow}": ${JSON.stringify(result, null, 2)}\n`);
   }
+
+  // Chờ SPA (Zalo/FB) render xong trước khi dump để DOM có đầy đủ phần tử.
+  process.stdout.write('Chờ giao diện tải xong (tối đa ~20s)...\n');
+  await page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => undefined);
+  await new Promise((r) => setTimeout(r, 5000));
+
   const base = await dumpDebug(page, `inspect-${flow}`);
   process.stdout.write(`Đã dump DOM/ảnh: ${base}.png / ${base}.html\n`);
   process.stdout.write(
-    '\nMẹo: mở DevTools (F12) trong cửa sổ trình duyệt, dùng Inspect để lấy selector ổn định,\n' +
-      'sau đó điền vào src/selectors.ts (ZALO/FACEBOOK).\n',
+    '\nMẹo: mở DevTools (F12) để soi selector. Xong thì ĐÓNG cửa sổ trình duyệt (KHÔNG cần Enter)\n' +
+      'để dump lần cuối + kết thúc. (Tự đóng sau 10 phút nếu quên.)\n',
   );
 
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  await rl.question('Nhấn Enter để dump lần cuối và đóng... ');
-  rl.close();
-  await dumpDebug(page, `inspect-${flow}-final`);
-  await sessions.closeAll();
+  const MAX_WAIT_MS = 10 * 60 * 1000;
+  await new Promise<void>((resolve) => {
+    let done = false;
+    const finish = (): void => {
+      if (done) return;
+      done = true;
+      resolve();
+    };
+    context.on('close', finish);
+    const timer = setTimeout(finish, MAX_WAIT_MS);
+    if (typeof timer.unref === 'function') timer.unref();
+  });
+
+  await dumpDebug(page, `inspect-${flow}-final`).catch(() => undefined);
+  await sessions.closeAll().catch(() => undefined);
   process.exit(0);
 }
 
