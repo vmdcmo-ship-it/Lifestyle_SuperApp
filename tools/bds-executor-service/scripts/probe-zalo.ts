@@ -23,6 +23,16 @@ async function main(): Promise<void> {
 
   const step = (process.argv[2] ?? 'header').toLowerCase();
 
+  if (step === 'convsearch') {
+    // Gõ TỪ KHÓA vào thanh tìm kiếm chính để xem Zalo có trả nhóm công khai không (read-only).
+    const kw = process.argv[3] ?? 'bất động sản';
+    const box = page.locator('input[placeholder*="Tìm kiếm" i], #contact-search-input').first();
+    await box.click().catch(() => undefined);
+    await box.fill(kw).catch(() => undefined);
+    process.stdout.write(`(đã gõ từ khóa tìm kiếm: ${kw})\n`);
+    await sleep(3500);
+  }
+
   if (step === 'modal' || step === 'search') {
     // Mở popup "Thêm bạn".
     const btn = page.locator('[data-id="btn_Main_AddFrd"]').first();
@@ -31,7 +41,7 @@ async function main(): Promise<void> {
     await sleep(2500);
   }
 
-  if (step === 'search') {
+  if (step === 'search' || step === 'addfriend_dialog') {
     // Nhập 1 SĐT rồi bấm "Tìm kiếm" để đọc DOM trạng thái kết quả (read-only).
     const phone = process.argv[3] ?? '0356999998';
     await page.locator('[data-id="txt_Main_AddFrd_Phone"]').first().fill(phone).catch(() => undefined);
@@ -39,6 +49,15 @@ async function main(): Promise<void> {
     await page.locator('[data-id="btn_Main_AddFrd_Search"]').first().click().catch(() => undefined);
     process.stdout.write(`(đã tìm SĐT: ${phone})\n`);
     await sleep(3000);
+  }
+
+  if (step === 'addfriend_dialog') {
+    // Bấm đúng "Kết bạn" của hồ sơ (btn-neutral full-width) để mở dialog soạn lời mời.
+    // KHÔNG bấm nút gửi cuối.
+    const resultBtn = page.getByText('Kết bạn', { exact: true }).first();
+    await resultBtn.click({ timeout: 8000 }).catch(() => undefined);
+    process.stdout.write('(đã bấm Kết bạn hồ sơ -> mo dialog soan loi moi)\n');
+    await sleep(2500);
   }
 
   const collect = async (): Promise<Array<Record<string, string | number>>> =>
@@ -68,7 +87,12 @@ async function main(): Promise<void> {
 
   const items = await collect();
 
-  if (step === 'modal' || step === 'search') {
+  if (step === 'convsearch') {
+    process.stdout.write(`\n===== KET QUA TIM KIEM (step=convsearch) =====\n`);
+    for (const it of items) {
+      if (it.text || it.dataId) process.stdout.write(JSON.stringify(it) + '\n');
+    }
+  } else if (step === 'modal' || step === 'search' || step === 'addfriend_dialog') {
     process.stdout.write(`\n===== PHAN TU MODAL (step=${step}) =====\n`);
     for (const it of items) {
       if (it.tag === 'input' || it.placeholder || it.text || it.dataId) {
@@ -87,6 +111,11 @@ async function main(): Promise<void> {
       if (it.tag === 'input') process.stdout.write(JSON.stringify(it) + '\n');
     }
   }
+
+  await page
+    .screenshot({ path: `./debug/probe-zalo-${step}.png`, fullPage: true })
+    .catch(() => undefined);
+  process.stdout.write(`(da chup: ./debug/probe-zalo-${step}.png)\n`);
 
   await sessions.closeAll().catch(() => undefined);
   process.exit(0);

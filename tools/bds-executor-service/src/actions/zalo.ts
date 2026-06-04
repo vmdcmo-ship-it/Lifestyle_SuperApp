@@ -125,16 +125,29 @@ export async function addFriend(
     await dumpDebug(page, 'zalo-no-addfriend-confirm');
     return ERROR('không thấy nút kết bạn (selector ZALO.addFriendConfirm)');
   }
-  await humanPause();
+  await humanPause(900, 1700); // chờ dialog soạn lời mời mở
   if (message) {
     await fillFirst(page, ZALO.inviteMessageBox, message);
     await humanPause(600, 1500);
   }
-  await clickFirst(page, ZALO.sendInvite);
-  await humanPause();
+  // Nút gửi cuối = "Kết bạn" màu xanh (btn-primary) trong dialog soạn.
+  const clicked = await clickFirst(page, ZALO.sendInvite, 5000);
+  await humanPause(1200, 2200);
 
   if (await isCheckpoint(page)) return CHECKPOINT('Zalo chặn khi kết bạn');
-  return OK();
+
+  // Xác nhận đã gửi: hồ sơ chuyển sang "Đã gửi lời mời" / "Hủy lời mời".
+  if (await anyVisible(page, ZALO.inviteSent, 4000)) {
+    await closeModal(page);
+    return OK({ invited: true });
+  }
+  if (!clicked) {
+    await dumpDebug(page, 'zalo-invite-not-sent');
+    return ERROR('không bấm được nút gửi lời mời (selector ZALO.sendInvite)');
+  }
+  // Click được nhưng chưa thấy dấu hiệu xác nhận -> coi như đã gửi nhưng cảnh báo.
+  await closeModal(page);
+  return OK({ invited: true, note: 'không thấy xác nhận rõ ràng' });
 }
 
 export async function sendMessage(
@@ -153,18 +166,26 @@ export async function sendMessage(
   if ('status' in r) return r;
   if (!r.found) return ERROR('SĐT không có Zalo, không thể nhắn tin');
 
-  await clickFirst(page, ZALO.openChat);
-  await humanPause();
-  if (!(await fillFirst(page, ZALO.chatInput, message))) {
+  if (!(await clickFirst(page, ZALO.openChat, 5000))) {
+    await dumpDebug(page, 'zalo-no-openchat');
+    return ERROR('không thấy nút "Nhắn tin" (selector ZALO.openChat)');
+  }
+  await humanPause(1500, 2600); // chờ khung chat mở
+  if (!(await fillFirst(page, ZALO.chatInput, message, 10000))) {
     await dumpDebug(page, 'zalo-no-chat-input');
     return ERROR('không thấy ô soạn tin (selector ZALO.chatInput)');
   }
   await humanPause(700, 1800);
   await page.keyboard.press('Enter');
-  await humanPause();
+  await humanPause(1200, 2200);
 
   if (await isCheckpoint(page)) return CHECKPOINT('Zalo chặn khi nhắn tin');
-  return OK();
+
+  // Người nhận chặn tin từ người lạ -> tin đã gõ nhưng KHÔNG được giao.
+  if (await anyVisible(page, ZALO.messageBlocked, 1500)) {
+    return OK({ delivered: false, reason: 'recipient_blocks_strangers' });
+  }
+  return OK({ delivered: true });
 }
 
 export async function addToGroup(

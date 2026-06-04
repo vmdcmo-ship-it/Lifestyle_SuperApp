@@ -14,13 +14,20 @@ const VALID: ActionName[] = [
   'fb_like',
   'fb_comment',
   'fb_message',
+  'fb_join_group',
 ];
 
 export function runMock(action: ActionName, params: ActionParams): ActionResponse {
   if (!VALID.includes(action)) return ERROR(`action không hợp lệ: ${String(action)}`);
-  const probe = `${params.phone ?? ''}${params.postId ?? ''}${params.groupId ?? ''}${params.recipientId ?? ''}`;
+  const probe = `${params.phone ?? ''}${params.postId ?? ''}${params.groupId ?? ''}${params.recipientId ?? ''}${params.keyword ?? ''}`;
   if (probe.includes('0000')) return CHECKPOINT('mock: checkpoint mô phỏng');
   if (probe.includes('9999')) return ERROR('mock: lỗi mô phỏng');
+
+  if (action === 'fb_join_group') {
+    const kw = params.keyword ?? '';
+    if (!kw) return ERROR('thiếu params.keyword');
+    return OK({ keyword: kw, joined: [{ name: `Mock Group ${kw}`, status: 'requested_or_joined' }], skipped: [] });
+  }
 
   if (action === 'check_phone') {
     const phone = params.phone ?? '';

@@ -7,11 +7,16 @@ Service thực thi hành động **Zalo/Facebook** bằng trình duyệt, implem
 ## Hợp đồng HTTP
 `POST /` (mọi path) — header `Authorization: Bearer <BDS_EXECUTOR_TOKEN>` (nếu bật).
 ```json
-{ "action": "check_phone|add_friend|send_message|add_group|fb_like|fb_comment",
-  "account_id": "zalo_acc01", "params": { "phone": "...", "message": "...", "groupId": "...", "postId": "...", "text": "..." } }
+{ "action": "check_phone|add_friend|send_message|add_group|fb_like|fb_comment|fb_message|fb_join_group",
+  "account_id": "zalo_acc01", "params": { "phone": "...", "message": "...", "groupId": "...", "postId": "...", "text": "...", "recipientId": "...", "keyword": "...", "max": 1 } }
 ```
 Trả: `{ "status": "ok|checkpoint|error", "data"?: {...}, "message"?: "..." }`
 - `check_phone` → `data: { has_zalo: boolean, display_name?: string }`.
+- `send_message` → `data: { delivered: boolean, reason?: string }` (`reason: "recipient_blocks_strangers"` khi người nhận chặn tin từ người lạ).
+- `fb_join_group` → tìm nhóm theo `keyword`, xin tham gia tối đa `max` nhóm (mặc định 1). `data: { keyword, joined: [...], skipped: [...] }`.
+  - **Vượt rào nhóm kín**: nếu hiện hộp thoại "Trả lời câu hỏi để tham gia", service tự điền câu trả lời (answer-bank persona, song ngữ Việt/Anh), tick đồng ý nội quy rồi bấm Gửi.
+  - Params tùy chọn: `answers` (mảng `{keys:[],answer}` — câu hỏi chứa 1 trong `keys` thì dùng `answer`), `defaultAnswer` (câu trả lời mặc định khi không khớp), `agreeRules` (mặc định `true`), `phone` (chỉ điền khi câu hỏi hỏi SĐT — KHÔNG bịa số).
+  - `joined[].status`: `requested_or_joined` (public/không câu hỏi) hoặc `requested_with_answers` (đã trả lời câu hỏi). Câu hỏi bắt buộc mà không gửi được → vào `skipped` + dump DOM để soi.
 - `checkpoint` → pipeline tự phanh account.
 
 ## Cài đặt
@@ -61,6 +66,7 @@ npm run inspect -- --account zalo_acc01 --flow check_phone   --phone 0901234567
 npm run inspect -- --account zalo_acc01 --flow send_message  --phone 0901234567 --message "Chào anh/chị"
 npm run inspect -- --account zalo_acc01 --flow add_group     --phone 0901234567 --groupId "Tên nhóm"
 npm run inspect -- --account fb_acc01   --flow fb_comment    --postId <url> --text "..."
+npm run inspect -- --account fb_acc01   --flow fb_join_group --keyword "bất động sản" --max 1
 ```
 - Mỗi lần chạy tự lưu **screenshot + HTML** vào `debug/` (cả khi 1 bước không tìm thấy selector → file `*-no-*`).
 - Mở DevTools (F12) → Inspect phần tử → lấy selector ổn định → điền vào `src/selectors.ts`.
@@ -80,6 +86,6 @@ Tự động hoá Zalo/Facebook **vi phạm ToS**, rủi ro **khoá tài khoản
 | `src/browser/dom.ts` | `clickFirst/fillFirst/firstVisible` + `dumpDebug` |
 | `src/browser/sessionManager.ts` | Context bền/account + `detectCheckpoint` + `humanPause` |
 | `src/actions/zalo.ts` | check_phone / add_friend / send_message / add_group |
-| `src/actions/facebook.ts` | fb_like / fb_comment |
+| `src/actions/facebook.ts` | fb_like / fb_comment / fb_message / fb_join_group |
 | `src/login.ts` | CLI đăng nhập lưu phiên |
 | `src/inspect.ts` | CLI tinh chỉnh selector (dump DOM/ảnh) |

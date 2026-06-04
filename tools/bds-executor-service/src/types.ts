@@ -5,7 +5,8 @@ export type ActionName =
   | 'add_group'
   | 'fb_like'
   | 'fb_comment'
-  | 'fb_message';
+  | 'fb_message'
+  | 'fb_join_group';
 
 export interface ActionParams {
   phone?: string;
@@ -15,6 +16,16 @@ export interface ActionParams {
   text?: string;
   /** ID người dùng hoặc URL hội thoại Messenger (fb_message). */
   recipientId?: string;
+  /** Từ khóa tìm nhóm Facebook (fb_join_group). */
+  keyword?: string;
+  /** Số nhóm tối đa xin tham gia trong 1 lần (fb_join_group). */
+  max?: number;
+  /** Bộ câu trả lời chuẩn bị trước cho câu hỏi gia nhập (fb_join_group). Câu hỏi chứa 1 trong `keys` -> dùng `answer`. */
+  answers?: Array<{ keys: string[]; answer: string }>;
+  /** Câu trả lời mặc định khi không khớp answer nào (fb_join_group). */
+  defaultAnswer?: string;
+  /** Tự tick đồng ý nội quy nhóm (fb_join_group, mặc định true). */
+  agreeRules?: boolean;
 }
 
 export interface ActionRequest {

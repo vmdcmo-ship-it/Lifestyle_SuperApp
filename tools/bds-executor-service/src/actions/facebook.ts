@@ -3,6 +3,7 @@ import { CHECKPOINT, ERROR, OK, type ActionParams, type ActionResponse } from '.
 import { detectCheckpoint, humanPause, type SessionManager } from '../browser/sessionManager.js';
 import { clickFirst, dumpDebug, firstVisible } from '../browser/dom.js';
 import { CHECKPOINT_MARKERS, FACEBOOK } from '../selectors.js';
+import { handleJoinDialog } from './fbGroupDialog.js';
 
 /** URL bài viết. Nếu postId là URL đầy đủ thì dùng luôn; nếu là id thì ghép. */
 function postUrl(postId: string): string {
@@ -108,4 +109,67 @@ export async function message(
 
   if (await isCheckpoint(page)) return CHECKPOINT('FB chặn khi gửi tin nhắn Messenger');
   return OK();
+}
+
+/** Tìm nhóm theo TỪ KHÓA và xin tham gia (tối đa `max` nhóm). Nhóm cần trả lời câu hỏi -> bỏ qua. */
+export async function joinGroup(
+  sessions: SessionManager,
+  accountId: string,
+  params: ActionParams,
+): Promise<ActionResponse> {
+  const keyword = (params.keyword ?? params.text ?? '').trim();
+  if (!keyword) return ERROR('thiếu params.keyword (từ khóa tìm nhóm)');
+  const max = Math.max(1, Math.min(params.max ?? 1, 10));
+  const page = await sessions.getPage(accountId);
+
+  await page.goto(`https://www.facebook.com/search/groups/?q=${encodeURIComponent(keyword)}`, {
+    waitUntil: 'domcontentloaded',
+  });
+  await humanPause(2500, 4200);
+  if (await isCheckpoint(page)) return CHECKPOINT('Facebook checkpoint khi tìm nhóm');
+
+  const joined: Array<{ name: string; status: string; answered?: number; checkedRules?: number }> = [];
+  const skipped: Array<{ name: string; reason: string }> = [];
+  const agreeRules = params.agreeRules ?? true;
+
+  for (let i = 0; i < max; i += 1) {
+    // Lấy lại nút Join mỗi vòng vì DOM đổi sau khi tham gia nhóm trước.
+    const btn = await firstVisible(page, FACEBOOK.groupJoinButton, 8000);
+    if (!btn) break;
+    const aria = (await btn.getAttribute('aria-label').catch(() => '')) ?? '';
+    const name = aria.replace(/^(join group|tham gia nhóm)\s*/i, '').trim() || `nhóm #${i + 1}`;
+    await btn.scrollIntoViewIfNeeded().catch(() => undefined);
+    await btn.click({ timeout: 4000 }).catch(() => undefined);
+    await humanPause(1800, 3000);
+
+    // Nhóm kín thường mở hộp thoại "Trả lời câu hỏi để tham gia" / xác nhận nội quy.
+    const dlg = await handleJoinDialog(page, {
+      answers: params.answers,
+      defaultAnswer: params.defaultAnswer,
+      agreeRules,
+      phone: params.phone,
+    });
+    if (dlg.handled) {
+      if (!dlg.submitted) {
+        // Không gửi được (vd câu hỏi bắt buộc không có câu trả lời phù hợp) -> chụp lại, bỏ qua.
+        await dumpDebug(page, 'fb-group-join-dialog');
+        await page.keyboard.press('Escape').catch(() => undefined);
+        skipped.push({ name, reason: dlg.note ?? 'submit_failed' });
+        await humanPause(1500, 2500);
+        continue;
+      }
+      joined.push({ name, status: 'requested_with_answers', answered: dlg.answered, checkedRules: dlg.checkedRules });
+    } else {
+      joined.push({ name, status: 'requested_or_joined' });
+    }
+
+    await humanPause(3500, 7000); // giãn cách chống spam giữa các nhóm
+    if (await isCheckpoint(page)) return CHECKPOINT('FB chặn khi tham gia nhóm');
+  }
+
+  if (joined.length === 0 && skipped.length === 0) {
+    await dumpDebug(page, 'fb-no-group-join');
+    return ERROR('không thấy nhóm nào để tham gia (selector FACEBOOK.groupJoinButton)');
+  }
+  return OK({ keyword, joined, skipped });
 }

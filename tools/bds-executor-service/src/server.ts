@@ -30,6 +30,8 @@ async function dispatch(req: ActionRequest): Promise<ActionResponse> {
       return facebook.comment(sessions, accountId, params);
     case 'fb_message':
       return facebook.message(sessions, accountId, params);
+    case 'fb_join_group':
+      return facebook.joinGroup(sessions, accountId, params);
     default:
       return ERROR(`action không hợp lệ: ${String(action)}`);
   }

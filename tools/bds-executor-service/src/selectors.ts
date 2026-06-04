@@ -58,16 +58,41 @@ export const ZALO = {
     '.profile-name',
     '[class*="profile"] [class*="name"]',
   ],
-  // Nút kết bạn / gửi lời mời (div text trong kết quả tìm kiếm)
-  addFriendConfirm: ['text=Kết bạn', 'text=/kết bạn/i', 'text=/gửi lời mời/i'],
-  // Ô lời nhắn kèm lời mời
+  // Nút "Kết bạn" trong hồ sơ kết quả -> mở dialog soạn lời mời. (text engine -> phần tử lá)
+  addFriendConfirm: ['text=Kết bạn'],
+  // Ô lời nhắn kèm lời mời (trong dialog soạn).
   inviteMessageBox: ['textarea', '[contenteditable="true"]'],
-  // Nút gửi cuối cùng
-  sendInvite: ['text=/gửi lời mời/i', 'text=/gửi/i', 'button:has-text("Gửi")'],
-  // Nút mở hội thoại / nhắn tin từ hồ sơ
-  openChat: ['text=/nhắn tin/i', 'text=/gửi tin nhắn/i', 'button:has-text("Nhắn tin")'],
+  // Nút gửi cuối cùng = "Kết bạn" MÀU XANH (btn-primary) trong dialog soạn lời mời.
+  sendInvite: [
+    'div[class*="btn-primary"]:has-text("Kết bạn")',
+    'div[class*="btn-primary"]:has-text("Gửi lời mời")',
+    'text=Gửi lời mời',
+  ],
+  // Dấu hiệu lời mời ĐÃ gửi thành công (Zalo hiện nút "Hủy kết bạn"/"Hủy lời mời").
+  inviteSent: [
+    'text=/hủy kết bạn/i',
+    'text=/đã gửi lời mời/i',
+    'text=/hủy lời mời/i',
+    'text=/thu hồi lời mời/i',
+  ],
+  // Nút "Nhắn tin" trong hồ sơ (khớp CHÍNH XÁC để tránh dính chữ "Nhắn tin nhiều hơn..." ở màn chờ).
+  openChat: [
+    'div[class*="btn-secondary"]:has-text("Nhắn tin")',
+    'text="Nhắn tin"',
+    'text="Gửi tin nhắn"',
+  ],
   // Ô soạn tin nhắn trong khung chat
-  chatInput: ['#richInput', '[contenteditable="true"]', 'textarea'],
+  chatInput: [
+    '#richInput',
+    'div[contenteditable="true"][role="textbox"]',
+    'div[contenteditable="true"]',
+    'textarea',
+  ],
+  // Cảnh báo Zalo chặn giao tin khi người nhận từ chối tin từ người lạ (tin gõ ra nhưng KHÔNG tới nơi).
+  messageBlocked: [
+    'text=/chưa thể gửi tin nhắn đến người này/i',
+    'text=/không nhận tin nhắn từ người lạ/i',
+  ],
   // ----- add_group -----
   // Ô tìm nhóm / hội thoại ở sidebar
   searchConversation: ['input[placeholder*="Tìm kiếm" i]', '#contact-search-input'],
@@ -110,6 +135,31 @@ export const FACEBOOK = {
   ],
   // Dấu hiệu hội thoại không khả dụng (chưa thể nhắn / bị chặn).
   messageUnavailable: ['text=/can\'t reply to this conversation/i', 'text=/không thể trả lời/i'],
+  // ----- join_group (tìm & tham gia nhóm theo từ khóa) -----
+  // Nút "Join group <tên>" trên trang kết quả tìm nhóm (EN="Join group", VI="Tham gia nhóm").
+  groupJoinButton: ['div[aria-label^="Join group" i][role="button"]', 'div[aria-label^="Tham gia nhóm" i][role="button"]'],
+  // Hộp thoại hiện ra sau khi bấm Join (xác nhận / câu hỏi gia nhập).
+  groupJoinDialog: ['div[role="dialog"]'],
+  // Ô câu hỏi bắt buộc khi xin vào nhóm (nếu có -> bỏ qua, không tự trả lời).
+  groupJoinQuestion: ['div[role="dialog"] textarea', 'div[role="dialog"] div[contenteditable="true"][role="textbox"]'],
+  // Nút gửi yêu cầu trong hộp thoại (EN/VI; theo aria-label rồi tới text).
+  groupJoinSubmit: [
+    'div[role="dialog"] div[aria-label="Submit" i][role="button"]',
+    'div[role="dialog"] div[aria-label="Send request" i][role="button"]',
+    'div[role="dialog"] div[aria-label="Gửi" i][role="button"]',
+    'div[role="dialog"] div[aria-label="Gửi yêu cầu" i][role="button"]',
+    'div[role="dialog"] div[role="button"]:has-text("Gửi yêu cầu")',
+    'div[role="dialog"] div[role="button"]:has-text("Gửi")',
+    'div[role="dialog"] div[role="button"]:has-text("Submit")',
+    'div[role="dialog"] div[role="button"]:has-text("Send Request")',
+  ],
+  // Trạng thái sau khi join thành công / đang chờ duyệt.
+  groupJoinedMarker: [
+    '[aria-label^="Joined" i]',
+    '[aria-label^="Cancel request" i]',
+    '[aria-label^="Đã tham gia" i]',
+    '[aria-label^="Hủy yêu cầu" i]',
+  ],
 } as const;
 
 export const CHECKPOINT_MARKERS = {

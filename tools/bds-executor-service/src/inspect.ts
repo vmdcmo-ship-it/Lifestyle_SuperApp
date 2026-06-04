@@ -15,6 +15,7 @@ import type { ActionParams, ActionResponse } from './types.js';
  *   npm run inspect -- --account zalo_acc01 --flow send_message --phone 0901234567 --message "Chào anh/chị"
  *   npm run inspect -- --account zalo_acc01 --flow add_group --phone 0901234567 --groupId "Tên nhóm"
  *   npm run inspect -- --account fb_acc01 --flow fb_comment --postId <url> --text "..."
+ *   npm run inspect -- --account fb_acc01 --flow fb_join_group --keyword "bất động sản" --max 1
  *
  * Sau khi chạy: trình duyệt GIỮ MỞ để bạn dùng DevTools (Inspect) tìm selector,
  * nhấn Enter ở terminal để dump lần cuối + đóng.
@@ -48,12 +49,16 @@ function buildParams(flags: Map<string, string>): ActionParams {
   const postId = flags.get('postId');
   const text = flags.get('text');
   const recipientId = flags.get('recipientId');
+  const keyword = flags.get('keyword');
+  const max = flags.get('max');
   if (phone) p.phone = phone;
   if (message) p.message = message;
   if (groupId) p.groupId = groupId;
   if (postId) p.postId = postId;
   if (text) p.text = text;
   if (recipientId) p.recipientId = recipientId;
+  if (keyword) p.keyword = keyword;
+  if (max) p.max = Number(max);
   return p;
 }
 
@@ -99,6 +104,9 @@ async function main(): Promise<void> {
       break;
     case 'fb_message':
       result = await facebook.message(sessions, accountId, params);
+      break;
+    case 'fb_join_group':
+      result = await facebook.joinGroup(sessions, accountId, params);
       break;
     default:
       throw new Error(`flow không hợp lệ: ${flow}`);
