@@ -6,12 +6,14 @@
   "type": "module",
   "bin": {
     "bds-executor": "dist/server.js",
-    "bds-login": "dist/login.js"
+    "bds-login": "dist/login.js",
+    "bds-inspect": "dist/inspect.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "tsx src/server.ts",
     "login": "tsx src/login.ts",
+    "inspect": "tsx src/inspect.ts",
     "smoke": "node scripts/smoke.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "postinstall": "playwright install chromium"

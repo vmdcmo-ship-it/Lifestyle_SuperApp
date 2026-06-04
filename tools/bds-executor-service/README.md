@@ -50,9 +50,23 @@ xvfb-run -a npm run start   # cần cài xvfb
 Mỗi account nên gắn proxy riêng: `ACCOUNT_PROXIES={"zalo_acc01":"http://user:pass@host:port"}`.
 
 ## ⚠️ Cần chỉnh trước khi chạy thật: SELECTOR
-Các selector Zalo Web / Facebook là **KHUNG mẫu** (đánh dấu `// TODO[selector]` trong `src/actions/*.ts`).
-UI hai nền tảng đổi thường xuyên → phải mở DevTools, kiểm tra và cập nhật selector cho khớp.
-`add_group` hiện trả `error` (chưa cấu hình selector) — cần hoàn thiện theo UI nhóm Zalo.
+Toàn bộ selector Zalo/Facebook nằm tập trung trong **`src/selectors.ts`** (không nằm rải trong logic).
+Mỗi bước là **mảng ứng viên** thử lần lượt (ưu tiên `text=`/`aria-label`/`placeholder` cho bền), helper `clickFirst/fillFirst/firstVisible` (`src/browser/dom.ts`) sẽ chọn cái khớp đầu tiên. UI hai nền tảng đổi thường xuyên nên cần kiểm tra lại bằng DOM thật.
+
+### Quy trình tinh chỉnh (dùng `inspect` với account đã đăng nhập)
+```powershell
+# 1) Đăng nhập trước (xem mục trên), rồi chạy inspect — trình duyệt mở headful + giữ mở để soi DevTools
+npm run inspect -- --account zalo_acc01 --flow open
+npm run inspect -- --account zalo_acc01 --flow check_phone   --phone 0901234567
+npm run inspect -- --account zalo_acc01 --flow send_message  --phone 0901234567 --message "Chào anh/chị"
+npm run inspect -- --account zalo_acc01 --flow add_group     --phone 0901234567 --groupId "Tên nhóm"
+npm run inspect -- --account fb_acc01   --flow fb_comment    --postId <url> --text "..."
+```
+- Mỗi lần chạy tự lưu **screenshot + HTML** vào `debug/` (cả khi 1 bước không tìm thấy selector → file `*-no-*`).
+- Mở DevTools (F12) → Inspect phần tử → lấy selector ổn định → điền vào `src/selectors.ts`.
+- Lặp `inspect` đến khi flow trả `ok`. Khi mọi flow xanh → bật service chạy thật.
+
+`add_group` đã có khung đầy đủ (tìm nhóm → "Thêm thành viên" → nhập SĐT → xác nhận); chỉ cần khớp selector trong `ZALO.searchConversation / addMemberButton / addMemberConfirm`.
 
 ## ⚠️ Pháp lý & rủi ro
 Tự động hoá Zalo/Facebook **vi phạm ToS**, rủi ro **khoá tài khoản và pháp lý** (nhắn tin hàng loạt người lạ có thể chạm quy định chống tin nhắn rác). Dùng account phụ đã "nuôi", volume thấp, ưu tiên người đã tương tác/đồng ý, luôn giữ human-in-the-loop (pipeline đã có).
@@ -62,7 +76,10 @@ Tự động hoá Zalo/Facebook **vi phạm ToS**, rủi ro **khoá tài khoản
 |------|---------|
 | `src/server.ts` | HTTP server + router 6 action |
 | `src/config.ts` | Cấu hình (port/token/profiles/proxy/locale) |
+| `src/selectors.ts` | **Selector tập trung** (tinh chỉnh tại đây) |
+| `src/browser/dom.ts` | `clickFirst/fillFirst/firstVisible` + `dumpDebug` |
 | `src/browser/sessionManager.ts` | Context bền/account + `detectCheckpoint` + `humanPause` |
 | `src/actions/zalo.ts` | check_phone / add_friend / send_message / add_group |
 | `src/actions/facebook.ts` | fb_like / fb_comment |
 | `src/login.ts` | CLI đăng nhập lưu phiên |
+| `src/inspect.ts` | CLI tinh chỉnh selector (dump DOM/ảnh) |

@@ -88,16 +88,20 @@ export class CheckpointError extends Error {
 }
 
 /**
- * Dò dấu hiệu checkpoint phổ biến trên page. Tuỳ chỉnh thêm theo thực tế.
- * Trả true nếu URL/nội dung khớp marker chặn.
+ * Dò dấu hiệu checkpoint phổ biến trên page.
+ * @param urlMarkers chuỗi xuất hiện trong URL khi bị chặn (vd 'login', 'checkpoint').
+ * @param bodyMarkers chuỗi xuất hiện trong nội dung trang (captcha, xác minh...).
  */
-export async function detectCheckpoint(page: Page, markers: string[]): Promise<boolean> {
+export async function detectCheckpoint(
+  page: Page,
+  urlMarkers: readonly string[],
+  bodyMarkers: readonly string[],
+): Promise<boolean> {
   const url = page.url().toLowerCase();
-  if (markers.some((m) => url.includes(m.toLowerCase()))) return true;
+  if (urlMarkers.some((m) => url.includes(m.toLowerCase()))) return true;
   try {
     const body = (await page.locator('body').innerText({ timeout: 2000 })).toLowerCase();
-    const textMarkers = ['captcha', 'xác minh', 'unusual activity', 'bảo mật tài khoản', 'verify it\u2019s you'];
-    return textMarkers.some((m) => body.includes(m.toLowerCase()));
+    return bodyMarkers.some((m) => body.includes(m.toLowerCase()));
   } catch {
     return false;
   }

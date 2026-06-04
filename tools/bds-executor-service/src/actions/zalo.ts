@@ -1,25 +1,48 @@
 import type { Page } from 'playwright';
 import { CHECKPOINT, ERROR, OK, type ActionParams, type ActionResponse } from '../types.js';
 import { detectCheckpoint, humanPause, type SessionManager } from '../browser/sessionManager.js';
+import { anyVisible, clickFirst, dumpDebug, fillFirst, firstVisible } from '../browser/dom.js';
+import { CHECKPOINT_MARKERS, ZALO } from '../selectors.js';
 
 const ZALO_URL = 'https://chat.zalo.me/';
-const CHECKPOINT_MARKERS = ['login', 'id.zalo.me', 'verify'];
 
-/**
- * LƯU Ý: selector Zalo Web thay đổi theo phiên bản. Các selector dưới là KHUNG mẫu —
- * cần mở DevTools trên máy bạn, kiểm tra và chỉnh lại cho khớp UI hiện tại.
- * Đánh dấu: // TODO[selector]
- */
+async function isCheckpoint(page: Page): Promise<boolean> {
+  return detectCheckpoint(page, CHECKPOINT_MARKERS.zaloUrl, CHECKPOINT_MARKERS.bodyText);
+}
 
-async function ensureZaloReady(page: Page): Promise<ActionResponse | null> {
+async function ensureReady(page: Page): Promise<ActionResponse | null> {
   if (!page.url().includes('chat.zalo.me')) {
     await page.goto(ZALO_URL, { waitUntil: 'domcontentloaded' });
     await humanPause();
   }
-  if (await detectCheckpoint(page, CHECKPOINT_MARKERS)) {
-    return CHECKPOINT('Zalo yêu cầu đăng nhập lại / xác minh');
-  }
+  if (await isCheckpoint(page)) return CHECKPOINT('Zalo yêu cầu đăng nhập lại / xác minh');
   return null;
+}
+
+/** Mở popup "Thêm bạn" + tìm theo SĐT. Trả về { found, name } hoặc ném checkpoint qua response. */
+async function searchByPhone(page: Page, phone: string): Promise<ActionResponse | { found: boolean; name?: string }> {
+  if (!(await clickFirst(page, ZALO.addFriendButton))) {
+    await dumpDebug(page, 'zalo-no-addfriend-button');
+    return ERROR('không thấy nút "Thêm bạn" (cần tinh chỉnh selector ZALO.addFriendButton)');
+  }
+  await humanPause();
+  if (!(await fillFirst(page, ZALO.phoneInput, phone))) {
+    await dumpDebug(page, 'zalo-no-phone-input');
+    return ERROR('không thấy ô nhập SĐT (cần tinh chỉnh selector ZALO.phoneInput)');
+  }
+  await humanPause(800, 1800);
+  await page.keyboard.press('Enter');
+  await humanPause(1200, 2200);
+
+  if (await isCheckpoint(page)) return CHECKPOINT('Zalo chặn khi tìm SĐT');
+  if (await anyVisible(page, ZALO.notFound)) return { found: false };
+
+  const profile = await firstVisible(page, ZALO.profileName, 4000);
+  if (profile) {
+    const name = (await profile.innerText().catch(() => '')).trim();
+    return name ? { found: true, name } : { found: true };
+  }
+  return { found: false };
 }
 
 export async function checkPhone(
@@ -30,40 +53,13 @@ export async function checkPhone(
   const phone = params.phone ?? '';
   if (!phone) return ERROR('thiếu params.phone');
   const page = await sessions.getPage(accountId);
-  const guard = await ensureZaloReady(page);
+  const guard = await ensureReady(page);
   if (guard) return guard;
 
-  // TODO[selector]: mở ô "Thêm bạn" và tìm theo SĐT.
-  const addFriendBtn = page.locator('[data-id="btn_Main_AddFrd"], [title="Thêm bạn"]').first();
-  await addFriendBtn.click({ timeout: 8000 }).catch(() => undefined);
-  await humanPause();
-
-  const searchInput = page.locator('input[placeholder*="số điện thoại" i], input[type="tel"]').first();
-  await searchInput.fill(phone, { timeout: 8000 });
-  await humanPause(800, 1800);
-  await searchInput.press('Enter');
-  await humanPause(1200, 2200);
-
-  if (await detectCheckpoint(page, CHECKPOINT_MARKERS)) {
-    return CHECKPOINT('Zalo chặn khi tìm SĐT');
-  }
-
-  // TODO[selector]: khu vực kết quả. Có hồ sơ -> has_zalo. "Không tìm thấy" -> no_zalo.
-  const notFound = await page
-    .locator('text=/không tìm thấy|chưa có tài khoản|không có kết quả/i')
-    .first()
-    .isVisible()
-    .catch(() => false);
-  if (notFound) return OK({ has_zalo: false });
-
-  const profile = page.locator('[class*="profile"] [class*="name"], .profile-name').first();
-  const hasProfile = await profile.isVisible({ timeout: 4000 }).catch(() => false);
-  if (hasProfile) {
-    const displayName = (await profile.innerText().catch(() => '')).trim();
-    return OK(displayName ? { has_zalo: true, display_name: displayName } : { has_zalo: true });
-  }
-  // Không xác định rõ -> coi như không có (an toàn, tránh nhắn nhầm).
-  return OK({ has_zalo: false });
+  const r = await searchByPhone(page, phone);
+  if ('status' in r) return r;
+  if (!r.found) return OK({ has_zalo: false });
+  return r.name ? OK({ has_zalo: true, display_name: r.name }) : OK({ has_zalo: true });
 }
 
 export async function addFriend(
@@ -75,29 +71,26 @@ export async function addFriend(
   const message = params.message ?? '';
   if (!phone) return ERROR('thiếu params.phone');
   const page = await sessions.getPage(accountId);
-  const guard = await ensureZaloReady(page);
+  const guard = await ensureReady(page);
   if (guard) return guard;
 
-  // TODO[selector]: tìm SĐT như checkPhone, rồi bấm "Kết bạn" + nhập lời nhắn + gửi.
-  const found = await checkPhone(sessions, accountId, params);
-  if (found.status === 'checkpoint') return found;
-  if (found.status === 'ok' && found.data?.has_zalo === false) {
-    return ERROR('SĐT không có Zalo, không thể kết bạn');
-  }
+  const r = await searchByPhone(page, phone);
+  if ('status' in r) return r;
+  if (!r.found) return ERROR('SĐT không có Zalo, không thể kết bạn');
 
-  const addBtn = page.locator('text=/kết bạn|gửi lời mời/i').first();
-  await addBtn.click({ timeout: 8000 }).catch(() => undefined);
+  if (!(await clickFirst(page, ZALO.addFriendConfirm))) {
+    await dumpDebug(page, 'zalo-no-addfriend-confirm');
+    return ERROR('không thấy nút kết bạn (selector ZALO.addFriendConfirm)');
+  }
   await humanPause();
   if (message) {
-    const msgBox = page.locator('textarea, [contenteditable="true"]').first();
-    await msgBox.fill(message, { timeout: 6000 }).catch(() => undefined);
+    await fillFirst(page, ZALO.inviteMessageBox, message);
     await humanPause(600, 1500);
   }
-  const sendBtn = page.locator('text=/gửi lời mời|gửi/i').last();
-  await sendBtn.click({ timeout: 8000 }).catch(() => undefined);
+  await clickFirst(page, ZALO.sendInvite);
   await humanPause();
 
-  if (await detectCheckpoint(page, CHECKPOINT_MARKERS)) return CHECKPOINT('Zalo chặn khi kết bạn');
+  if (await isCheckpoint(page)) return CHECKPOINT('Zalo chặn khi kết bạn');
   return OK();
 }
 
@@ -110,25 +103,24 @@ export async function sendMessage(
   const message = params.message ?? '';
   if (!phone || !message) return ERROR('thiếu params.phone hoặc params.message');
   const page = await sessions.getPage(accountId);
-  const guard = await ensureZaloReady(page);
+  const guard = await ensureReady(page);
   if (guard) return guard;
 
-  // TODO[selector]: mở hội thoại với SĐT (đã là bạn) rồi gõ tin.
-  const found = await checkPhone(sessions, accountId, params);
-  if (found.status === 'checkpoint') return found;
+  const r = await searchByPhone(page, phone);
+  if ('status' in r) return r;
+  if (!r.found) return ERROR('SĐT không có Zalo, không thể nhắn tin');
 
-  const openChat = page.locator('text=/nhắn tin|gửi tin nhắn/i').first();
-  await openChat.click({ timeout: 8000 }).catch(() => undefined);
+  await clickFirst(page, ZALO.openChat);
   await humanPause();
-
-  const input = page.locator('#richInput, [contenteditable="true"], textarea').first();
-  await input.click({ timeout: 8000 }).catch(() => undefined);
-  await input.fill(message, { timeout: 8000 });
+  if (!(await fillFirst(page, ZALO.chatInput, message))) {
+    await dumpDebug(page, 'zalo-no-chat-input');
+    return ERROR('không thấy ô soạn tin (selector ZALO.chatInput)');
+  }
   await humanPause(700, 1800);
-  await input.press('Enter');
+  await page.keyboard.press('Enter');
   await humanPause();
 
-  if (await detectCheckpoint(page, CHECKPOINT_MARKERS)) return CHECKPOINT('Zalo chặn khi nhắn tin');
+  if (await isCheckpoint(page)) return CHECKPOINT('Zalo chặn khi nhắn tin');
   return OK();
 }
 
@@ -141,11 +133,31 @@ export async function addToGroup(
   const groupId = params.groupId ?? '';
   if (!phone || !groupId) return ERROR('thiếu params.phone hoặc params.groupId');
   const page = await sessions.getPage(accountId);
-  const guard = await ensureZaloReady(page);
+  const guard = await ensureReady(page);
   if (guard) return guard;
 
-  // TODO[selector]: mở nhóm groupId -> Thêm thành viên -> tìm SĐT -> xác nhận.
-  // Khung tối thiểu; cần chỉnh theo UI thật.
-  if (await detectCheckpoint(page, CHECKPOINT_MARKERS)) return CHECKPOINT('Zalo chặn khi thêm nhóm');
-  return ERROR('addToGroup chưa cấu hình selector thật (TODO)');
+  // Mở nhóm qua tìm kiếm theo groupId/tên nhóm.
+  if (!(await fillFirst(page, ZALO.searchConversation, groupId))) {
+    await dumpDebug(page, 'zalo-no-search');
+    return ERROR('không thấy ô tìm kiếm hội thoại (selector ZALO.searchConversation)');
+  }
+  await humanPause(1000, 2000);
+  await page.keyboard.press('Enter');
+  await humanPause();
+
+  if (!(await clickFirst(page, ZALO.addMemberButton))) {
+    await dumpDebug(page, 'zalo-no-addmember');
+    return ERROR('không thấy "Thêm thành viên" (selector ZALO.addMemberButton) — kiểm tra đã mở đúng nhóm chưa');
+  }
+  await humanPause();
+  if (!(await fillFirst(page, ZALO.phoneInput, phone))) {
+    await dumpDebug(page, 'zalo-no-member-phone');
+    return ERROR('không thấy ô nhập SĐT thành viên (selector ZALO.phoneInput)');
+  }
+  await humanPause(800, 1600);
+  await clickFirst(page, ZALO.addMemberConfirm);
+  await humanPause();
+
+  if (await isCheckpoint(page)) return CHECKPOINT('Zalo chặn khi thêm nhóm');
+  return OK();
 }

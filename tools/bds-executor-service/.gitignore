@@ -3,3 +3,5 @@ dist/
 .env
 # Profile trình duyệt = chứa session đăng nhập, KHÔNG commit
 profiles/
+# Ảnh/HTML dump khi inspect hoặc lỗi selector
+debug/
