@@ -4,6 +4,7 @@ import { SessionManager } from './browser/sessionManager.js';
 import { ERROR, type ActionRequest, type ActionResponse } from './types.js';
 import * as zalo from './actions/zalo.js';
 import * as facebook from './actions/facebook.js';
+import * as facebookPage from './actions/facebookPage.js';
 import { runMock } from './actions/mock.js';
 
 const config = loadConfig();
@@ -32,6 +33,16 @@ async function dispatch(req: ActionRequest): Promise<ActionResponse> {
       return facebook.message(sessions, accountId, params);
     case 'fb_join_group':
       return facebook.joinGroup(sessions, accountId, params);
+    case 'fb_search_pages':
+      return facebookPage.searchPages(sessions, accountId, params);
+    case 'fb_page_info':
+      return facebookPage.pageInfo(sessions, accountId, params);
+    case 'fb_page_follow':
+      return facebookPage.pageFollow(sessions, accountId, params);
+    case 'fb_page_interact':
+      return facebookPage.pageInteract(sessions, accountId, params);
+    case 'fb_page_message':
+      return facebookPage.pageMessage(sessions, accountId, params);
     default:
       return ERROR(`action không hợp lệ: ${String(action)}`);
   }

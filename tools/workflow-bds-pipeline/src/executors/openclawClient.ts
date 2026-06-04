@@ -7,7 +7,14 @@ export type OpenclawAction =
   | 'send_message'
   | 'add_group'
   | 'fb_like'
-  | 'fb_comment';
+  | 'fb_comment'
+  | 'fb_message'
+  | 'fb_join_group'
+  | 'fb_search_pages'
+  | 'fb_page_info'
+  | 'fb_page_follow'
+  | 'fb_page_interact'
+  | 'fb_page_message';
 
 export interface OpenclawTaskParams {
   phone?: string;
@@ -15,6 +22,16 @@ export interface OpenclawTaskParams {
   groupId?: string;
   postId?: string;
   text?: string;
+  recipientId?: string;
+  keyword?: string;
+  max?: number;
+  pageId?: string;
+  doFollow?: boolean;
+  doLike?: boolean;
+  doComment?: boolean;
+  defaultAnswer?: string;
+  agreeRules?: boolean;
+  answers?: Array<{ keys: string[]; answer: string }>;
 }
 
 export interface OpenclawResponse {

@@ -7,8 +7,8 @@ Service thực thi hành động **Zalo/Facebook** bằng trình duyệt, implem
 ## Hợp đồng HTTP
 `POST /` (mọi path) — header `Authorization: Bearer <BDS_EXECUTOR_TOKEN>` (nếu bật).
 ```json
-{ "action": "check_phone|add_friend|send_message|add_group|fb_like|fb_comment|fb_message|fb_join_group",
-  "account_id": "zalo_acc01", "params": { "phone": "...", "message": "...", "groupId": "...", "postId": "...", "text": "...", "recipientId": "...", "keyword": "...", "max": 1 } }
+{ "action": "check_phone|add_friend|send_message|add_group|fb_like|fb_comment|fb_message|fb_join_group|fb_search_pages|fb_page_info|fb_page_follow|fb_page_interact|fb_page_message",
+  "account_id": "fb_acc01", "params": { "pageId": "...", "keyword": "...", "text": "...", "doFollow": true, "max": 5 } }
 ```
 Trả: `{ "status": "ok|checkpoint|error", "data"?: {...}, "message"?: "..." }`
 - `check_phone` → `data: { has_zalo: boolean, display_name?: string }`.
@@ -17,7 +17,19 @@ Trả: `{ "status": "ok|checkpoint|error", "data"?: {...}, "message"?: "..." }`
   - **Vượt rào nhóm kín**: nếu hiện hộp thoại "Trả lời câu hỏi để tham gia", service tự điền câu trả lời (answer-bank persona, song ngữ Việt/Anh), tick đồng ý nội quy rồi bấm Gửi.
   - Params tùy chọn: `answers` (mảng `{keys:[],answer}` — câu hỏi chứa 1 trong `keys` thì dùng `answer`), `defaultAnswer` (câu trả lời mặc định khi không khớp), `agreeRules` (mặc định `true`), `phone` (chỉ điền khi câu hỏi hỏi SĐT — KHÔNG bịa số).
   - `joined[].status`: `requested_or_joined` (public/không câu hỏi) hoặc `requested_with_answers` (đã trả lời câu hỏi). Câu hỏi bắt buộc mà không gửi được → vào `skipped` + dump DOM để soi.
+- **Fanpage (Trang)** — kênh song song với Nhóm, dùng nuôi dưỡng đối thủ / thị trường:
+  - `fb_search_pages` → `data: { keyword, pages: [{ slug, name, href, info }] }` — tìm Fanpage bán hàng BĐS.
+  - `fb_page_info` → thu thập tên, follower, link liên hệ, `recentPosts[]` (đưa vào CRM/Sheet).
+  - `fb_page_follow` → Theo dõi/Thích Trang.
+  - `fb_page_interact` → **nuôi dưỡng**: tuỳ chọn `doFollow` → like bài mới nhất (`doLike`, mặc định true) → comment `text` (do pipeline/Claude sinh, đúng ngữ cảnh).
+  - `fb_page_message` → nhắn Messenger cho Page (nếu Page bật tin nhắn).
 - `checkpoint` → pipeline tự phanh account.
+
+### Luồng gợi ý (pipeline + Claude)
+1. `fb_search_pages` với từ khóa đối thủ / khu vực → ghi tab `FB_PAGES_QUEUE` trên Sheet.
+2. `fb_page_info` → lấy bài gần nhất + metadata → Claude đọc nội dung bài → sinh comment tự nhiên (không spam CTA).
+3. `fb_page_interact` với `text` đã duyệt + `doFollow: true` → like trước, comment sau (tạo niềm tin trước khi tư vấn).
+4. Theo dõi người tương tác trên bài Page → chuyển Zalo/outreach (P3–P5 pipeline hiện có).
 
 ## Cài đặt
 ```powershell
@@ -87,5 +99,6 @@ Tự động hoá Zalo/Facebook **vi phạm ToS**, rủi ro **khoá tài khoản
 | `src/browser/sessionManager.ts` | Context bền/account + `detectCheckpoint` + `humanPause` |
 | `src/actions/zalo.ts` | check_phone / add_friend / send_message / add_group |
 | `src/actions/facebook.ts` | fb_like / fb_comment / fb_message / fb_join_group |
+| `src/actions/facebookPage.ts` | fb_search_pages / fb_page_info / fb_page_follow / fb_page_interact / fb_page_message |
 | `src/login.ts` | CLI đăng nhập lưu phiên |
 | `src/inspect.ts` | CLI tinh chỉnh selector (dump DOM/ảnh) |

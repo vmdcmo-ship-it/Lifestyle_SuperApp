@@ -162,6 +162,34 @@ export const FACEBOOK = {
   ],
 } as const;
 
+/** Fanpage (Trang) — tìm đối thủ, theo dõi, tương tác bài đăng để nuôi dưỡng niềm tin. */
+export const FACEBOOK_PAGE = {
+  // Theo dõi / Thích Trang (EN Follow, Like Page; VI Theo dõi, Thích Trang).
+  followButton: [
+    'div[aria-label="Follow"][role="button"]',
+    'div[aria-label="Like Page"][role="button"]',
+    'div[aria-label="Theo dõi"][role="button"]',
+    'div[aria-label="Thích Trang"][role="button"]',
+    'div[role="button"]:has-text("Follow")',
+    'div[role="button"]:has-text("Theo dõi")',
+    'div[role="button"]:has-text("Like Page")',
+    'div[role="button"]:has-text("Thích Trang")',
+  ],
+  // Nhắn tin cho Page (mở Messenger).
+  messageButton: [
+    'div[aria-label^="Send message" i][role="button"]',
+    'div[aria-label^="Gửi tin nhắn" i][role="button"]',
+    'div[role="button"]:has-text("Send message")',
+    'div[role="button"]:has-text("Nhắn tin")',
+  ],
+  // Tab Giới thiệu / About (thu thập SĐT, website).
+  aboutTab: [
+    'a[href*="/about"]',
+    'span:has-text("About")',
+    'span:has-text("Giới thiệu")',
+  ],
+} as const;
+
 export const CHECKPOINT_MARKERS = {
   zaloUrl: ['id.zalo.me', 'login', 'verify'],
   fbUrl: ['checkpoint', 'login', 'two_step_verification'],

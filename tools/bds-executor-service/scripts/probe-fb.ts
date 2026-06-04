@@ -75,6 +75,37 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
+  // Bước pages: tìm FANPAGE theo từ khóa (read-only list).
+  if (step === 'pages') {
+    const kw = process.argv[3] ?? 'bất động sản';
+    await page.goto(`https://www.facebook.com/search/pages/?q=${encodeURIComponent(kw)}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForLoadState('networkidle', { timeout: 25000 }).catch(() => undefined);
+    await sleep(6000);
+    const rows = await page.evaluate(() => {
+      const out: Array<Record<string, string>> = [];
+      const seen = new Set<string>();
+      for (const a of Array.from(document.querySelectorAll('a[href*="facebook.com"]'))) {
+        const href = (a as HTMLAnchorElement).href;
+        const m = href.match(/facebook\.com\/([^/?]+)\/?$/);
+        if (!m) continue;
+        const slug = m[1] ?? '';
+        if (['search', 'groups', 'watch', 'gaming', 'marketplace'].includes(slug)) continue;
+        const name = (a.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 50);
+        if (!name || seen.has(slug)) continue;
+        seen.add(slug);
+        out.push({ slug, name, href });
+        if (out.length >= 15) break;
+      }
+      return out;
+    });
+    process.stdout.write(`\n===== FANPAGE (${kw}) =====\n`);
+    for (const r of rows) process.stdout.write(JSON.stringify(r) + '\n');
+    await sessions.closeAll().catch(() => undefined);
+    process.exit(0);
+  }
+
   // Bước dialogurl: mở TRỰC TIẾP 1 nhóm theo URL, bấm Join, dump hộp thoại gia nhập (KHÔNG submit).
   if (step === 'dialogurl') {
     const gurl = process.argv[3] ?? '';

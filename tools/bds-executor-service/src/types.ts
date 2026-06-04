@@ -6,7 +6,12 @@ export type ActionName =
   | 'fb_like'
   | 'fb_comment'
   | 'fb_message'
-  | 'fb_join_group';
+  | 'fb_join_group'
+  | 'fb_search_pages'
+  | 'fb_page_info'
+  | 'fb_page_follow'
+  | 'fb_page_interact'
+  | 'fb_page_message';
 
 export interface ActionParams {
   phone?: string;
@@ -26,6 +31,14 @@ export interface ActionParams {
   defaultAnswer?: string;
   /** Tự tick đồng ý nội quy nhóm (fb_join_group, mặc định true). */
   agreeRules?: boolean;
+  /** Username, id số, hoặc URL Fanpage (fb_page_*). */
+  pageId?: string;
+  /** Theo dõi Fanpage trước khi like/comment (fb_page_interact). */
+  doFollow?: boolean;
+  /** Thích bài gần nhất trên Fanpage (fb_page_interact, mặc định true). */
+  doLike?: boolean;
+  /** Bình luận bài gần nhất — cần params.text (fb_page_interact). */
+  doComment?: boolean;
 }
 
 export interface ActionRequest {

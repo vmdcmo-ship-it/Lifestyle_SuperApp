@@ -3,6 +3,7 @@ import { SessionManager } from './browser/sessionManager.js';
 import { dumpDebug } from './browser/dom.js';
 import * as zalo from './actions/zalo.js';
 import * as facebook from './actions/facebook.js';
+import * as facebookPage from './actions/facebookPage.js';
 import type { ActionParams, ActionResponse } from './types.js';
 
 /**
@@ -16,6 +17,9 @@ import type { ActionParams, ActionResponse } from './types.js';
  *   npm run inspect -- --account zalo_acc01 --flow add_group --phone 0901234567 --groupId "Tên nhóm"
  *   npm run inspect -- --account fb_acc01 --flow fb_comment --postId <url> --text "..."
  *   npm run inspect -- --account fb_acc01 --flow fb_join_group --keyword "bất động sản" --max 1
+ *   npm run inspect -- --account fb_acc01 --flow fb_search_pages --keyword "bất động sản sài gòn"
+ *   npm run inspect -- --account fb_acc01 --flow fb_page_info --pageId "TenFanpage"
+ *   npm run inspect -- --account fb_acc01 --flow fb_page_interact --pageId "TenFanpage" --text "..." --doFollow true
  *
  * Sau khi chạy: trình duyệt GIỮ MỞ để bạn dùng DevTools (Inspect) tìm selector,
  * nhấn Enter ở terminal để dump lần cuối + đóng.
@@ -51,6 +55,8 @@ function buildParams(flags: Map<string, string>): ActionParams {
   const recipientId = flags.get('recipientId');
   const keyword = flags.get('keyword');
   const max = flags.get('max');
+  const pageId = flags.get('pageId');
+  const doFollow = flags.get('doFollow');
   if (phone) p.phone = phone;
   if (message) p.message = message;
   if (groupId) p.groupId = groupId;
@@ -59,6 +65,8 @@ function buildParams(flags: Map<string, string>): ActionParams {
   if (recipientId) p.recipientId = recipientId;
   if (keyword) p.keyword = keyword;
   if (max) p.max = Number(max);
+  if (pageId) p.pageId = pageId;
+  if (doFollow === 'true') p.doFollow = true;
   return p;
 }
 
@@ -107,6 +115,21 @@ async function main(): Promise<void> {
       break;
     case 'fb_join_group':
       result = await facebook.joinGroup(sessions, accountId, params);
+      break;
+    case 'fb_search_pages':
+      result = await facebookPage.searchPages(sessions, accountId, params);
+      break;
+    case 'fb_page_info':
+      result = await facebookPage.pageInfo(sessions, accountId, params);
+      break;
+    case 'fb_page_follow':
+      result = await facebookPage.pageFollow(sessions, accountId, params);
+      break;
+    case 'fb_page_interact':
+      result = await facebookPage.pageInteract(sessions, accountId, params);
+      break;
+    case 'fb_page_message':
+      result = await facebookPage.pageMessage(sessions, accountId, params);
       break;
     default:
       throw new Error(`flow không hợp lệ: ${flow}`);
